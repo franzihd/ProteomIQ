@@ -6,4 +6,5 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "cptac>=1.5.14",
+    "jupyter>=1.1.1",
 ]
