@@ -1364,12 +1364,14 @@ source = { virtual = "." }
 dependencies = [
     { name = "cptac" },
     { name = "jupyter" },
+    { name = "pandas" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "cptac", specifier = ">=1.5.14" },
     { name = "jupyter", specifier = ">=1.1.1" },
+    { name = "pandas", specifier = ">=3.0.2" },
 ]
 
 [[package]]
