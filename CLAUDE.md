@@ -37,6 +37,7 @@ main.py                                        # entry point (stub)
 pyproject.toml                                 # dependencies
 src/
   import_cptac.py                              # downloads proteomics + clinical data for all 10 CPTAC cohorts
+  text_generation.py                           # converts clinical metadata rows into natural-language patient descriptions
 data/
   luad/
     proteomics_raw.csv                         # 213 samples × 13,302 proteins (umich source)
@@ -75,6 +76,30 @@ data/
 - Clinical source: `mssm` for all cohorts
 - COAD is missing — both available sources fail internally in the cptac library
 - Large CSVs cannot be opened in VS Code's text editor — use Jupyter notebooks for exploration
+
+## Text generation
+
+`src/text_generation.py` converts a clinical metadata row into a natural-language patient description for BioBERT embedding. Each description is a flexible sentence — only fields with valid values are included, so length varies per patient.
+
+**Columns used** (in order):
+- `age`, `sex` — patient demographics
+- `ethnicity_race_ancestry_identified` — ancestry
+- `tumor_stage_pathological` — Stage I/II/III/IV
+- `histologic_type` — adenocarcinoma subtype
+- `histologic_grade` — G1/G2/G3
+- `tumor_size_cm` — tumor size in cm
+- `tumor_laterality` — left or right lung
+- `tumor_site` — upper/lower/middle lobe
+- `tumor_focality` — unifocal or multifocal
+- `tobacco_smoking_history` — smoking status (shortened from raw strings)
+- `alcohol_consumption` — drinking status (shortened from raw strings)
+- `bmi` — body mass index
+
+**Key design decisions:**
+- Values in `SKIP_VALUES` (e.g. "Unknown", "Not Reported", "not specified") are silently omitted
+- Long smoking/alcohol strings are mapped to short phrases
+- `cancer_type` is passed as a parameter, not read from the CSV
+- BioBERT handles variable-length sentences — no fixed template needed
 
 ## Development conventions
 
