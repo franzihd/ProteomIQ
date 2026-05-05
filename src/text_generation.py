@@ -164,3 +164,19 @@ def clinical_to_text(row, cancer_type):
 
     return ", ".join(parts) + "."
 
+
+# Apply clinical_to_text to every patient row and return {patient_id: description}
+def generate_descriptions(clinical_df, cancer_type):
+    descriptions = {}
+
+    for idx, row in clinical_df.iterrows():
+        text = clinical_to_text(row, cancer_type)
+        descriptions[idx] = text
+
+    return descriptions
+
+
+
+# Save {patient_id: description} dict as a CSV with patient ID as index
+def save_descriptions(descriptions, output_path):
+    pd.Series(descriptions).to_csv(output_path, header=["description"])
