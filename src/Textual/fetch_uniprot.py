@@ -60,7 +60,7 @@ for entry in data['results']:
     annotation = ''
     for comment in uniprot.get('comments', []):
         if comment.get('commentType') == 'FUNCTION':
-            annotation = comment['texts'][0].get('value', '')
+            annotation = gene + ': ' + comment['texts'][0].get('value', '')
             break
 
     sequence = uniprot.get('sequence', {}).get('value', '')
