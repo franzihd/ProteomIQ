@@ -8,4 +8,7 @@ dependencies = [
     "cptac>=1.5.14",
     "jupyter>=1.1.1",
     "pandas>=3.0.2",
+    "torch>=2.11.0",
+    "tqdm>=4.67.3",
+    "transformers>=5.8.0",
 ]
