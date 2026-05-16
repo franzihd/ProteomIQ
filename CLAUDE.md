@@ -136,9 +136,15 @@ data/
 
 **API note:** UniProt caches job submissions — same input always returns the same `jobId`. The stream endpoint (`/idmapping/stream/`) can expire; use the status endpoint with pagination instead.
 
+**Annotation format:** gene name is prepended to the annotation text, e.g. `"ARF5: GTP-binding protein involved in protein trafficking..."` so BioBERT always sees the protein name.
+
 ## Text generation
 
-The text side of each training pair is: **UniProt protein description** + **patient clinical description**, concatenated.
+The text side of each training pair is: **UniProt protein description** + **patient clinical description**, concatenated at training time (not saved to disk — would be ~1.27M rows).
+
+**Do not save combined texts to disk.** Generate `(protein, patient)` pairs on-the-fly during training by joining `protein_annotations.csv` and `descriptions.csv`. Only save the resulting BioBERT embeddings (1.27M × 768 floats ≈ ~4GB).
+
+`src/text_generation.py` handles the patient clinical description half. It converts a clinical metadata row into a natural-language sentence for BioBERT embedding. Each description is a flexible comma-separated sentence — only fields with valid values are included, so length varies per patient.
 
 `src/text_generation.py` handles the patient clinical description half. It converts a clinical metadata row into a natural-language sentence for BioBERT embedding. Each description is a flexible comma-separated sentence — only fields with valid values are included, so length varies per patient.
 
@@ -169,6 +175,50 @@ The UniProt description half (one per protein, reused across patients) is not ye
 - Raw verbose smoking/alcohol strings are mapped to short phrases via lookup dicts (`SMOKING_DICT`, `ALCOHOL_MAP`); unrecognized values fall through as-is
 - `cancer_type` is passed as a parameter, not read from the CSV
 - BioBERT handles variable-length sentences — no fixed template needed
+
+## BioBERT embedding
+
+`src/BioBERT/embed_biobert.py` pre-computes all BioBERT text embeddings for LUAD and saves them to `data/luad/biobert_embeddings.h5`.
+
+**What it computes:** for every `(protein, patient)` pair, it concatenates the protein's UniProt annotation + the patient's clinical description into one string and runs it through BioBERT. Result: one 768-dim embedding per pair.
+
+**Output file structure (`biobert_embeddings.h5`):**
+- `embeddings` — shape `(111, 11485, 768)`, float32 — the main cube. `embeddings[p, q, :]` = embedding for patient `p`, protein `q`
+- `patient_ids` — array of 111 patient ID strings (row index)
+- `protein_ids` — array of 11485 ENSP ID strings (column index)
+- `completed` — boolean array of length 111. `completed[p] = True` means patient `p` is fully written to disk
+
+**Resume logic:** the script supports stop/resume. On first run it creates the file (`"w"` mode). On restart it opens the existing file (`"r+"` mode), reads `completed`, and skips any patient already marked `True`. After writing each patient's embeddings, it immediately sets `completed[p_idx] = True` on disk — so stopping mid-run loses at most one patient's work.
+
+**To restart from scratch:** `rm data/luad/biobert_embeddings.h5` then rerun.
+
+**Runtime:** ~60 minutes on RTX A6000 for all 111 LUAD patients.
+
+**To run:**
+```bash
+uv run python src/BioBERT/embed_biobert.py
+```
+
+## GPU / CUDA setup (de.NBI server)
+
+**Hardware:** NVIDIA RTX A6000 (46 GB VRAM), CUDA driver 12.2 (version 535.288.01)
+
+**PyTorch version:** `torch==2.6.0+cu118` — installed from `https://download.pytorch.org/whl/cu118`.
+- cu118 = compiled for CUDA toolkit 11.8, fully compatible with driver 12.2 (backward compatible)
+- cu121 was tried first but torch 2.6.0 is not available for cu121
+- torch 2.5.1 was tried but `transformers>=5.x` requires torch>=2.6 due to CVE-2025-32434
+
+**Why CUDA libraries need LD_LIBRARY_PATH:**
+PyTorch depends on several CUDA libraries (cuDNN, NCCL, cuRAND, etc.). These are installed as Python packages (e.g. `nvidia-cudnn-cu12`) but their `.so` files end up inside the venv at non-standard paths like `.venv/lib/python3.11/site-packages/nvidia/cudnn/lib/`. Linux's dynamic linker doesn't know to look there, so PyTorch crashes at import. The fix is to add all these paths to `LD_LIBRARY_PATH`.
+
+**Required export (add to `~/.bashrc` to make permanent):**
+```bash
+export LD_LIBRARY_PATH=/home/franziska/bachelor/ProteomIQ/.venv/lib/python3.11/site-packages/nvidia/cublas/lib:/home/franziska/bachelor/ProteomIQ/.venv/lib/python3.11/site-packages/nvidia/cuda_cupti/lib:/home/franziska/bachelor/ProteomIQ/.venv/lib/python3.11/site-packages/nvidia/cuda_nvrtc/lib:/home/franziska/bachelor/ProteomIQ/.venv/lib/python3.11/site-packages/nvidia/cuda_runtime/lib:/home/franziska/bachelor/ProteomIQ/.venv/lib/python3.11/site-packages/nvidia/cudnn/lib:/home/franziska/bachelor/ProteomIQ/.venv/lib/python3.11/site-packages/nvidia/cufft/lib:/home/franziska/bachelor/ProteomIQ/.venv/lib/python3.11/site-packages/nvidia/cusparse/lib:/home/franziska/bachelor/ProteomIQ/.venv/lib/python3.11/site-packages/nvidia/nvjitlink/lib:/home/franziska/bachelor/ProteomIQ/.venv/lib/python3.11/site-packages/nvidia/nccl/lib:/home/franziska/bachelor/ProteomIQ/.venv/lib/python3.11/site-packages/nvidia/curand/lib:$LD_LIBRARY_PATH
+```
+
+**If `torch.cuda.is_available()` returns False after a fresh terminal:** the LD_LIBRARY_PATH export is missing. Either re-run the export above or check that it is in `~/.bashrc`.
+
+**If uv sync breaks CUDA:** uv sometimes reverts nvidia packages. Run `uv sync --reinstall-package nvidia-nccl-cu12` if NCCL goes missing.
 
 ## Development conventions
 

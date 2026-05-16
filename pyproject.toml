@@ -3,12 +3,26 @@ name = "proteomiq"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "cptac>=1.5.14",
+    "h5py>=3.16.0",
     "jupyter>=1.1.1",
+    "nvidia-cublas-cu12",
+    "nvidia-cuda-runtime-cu12",
+    "nvidia-cudnn-cu12",
+    "nvidia-curand-cu12",
+    "nvidia-nccl-cu12",
     "pandas>=3.0.2",
-    "torch>=2.11.0",
+    "torch==2.6.0",
     "tqdm>=4.67.3",
     "transformers>=5.8.0",
 ]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu118" }
+
+[[tool.uv.index]]
+name = "pytorch-cu118"
+url = "https://download.pytorch.org/whl/cu118"
+explicit = true
