@@ -3,3 +3,5 @@ __pycache__/
 *.pyc
 .python-version
 .vscode/data/
+*.h5
+.vscode/
