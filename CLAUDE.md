@@ -85,6 +85,9 @@ src/
       esm2_embeddings.py                       # pre-computes ESM2 embeddings for all LUAD proteins; saves to data/luad/esm2_embeddings.h5
     textual/
       embed_biobert.py                         # pre-computes BioBERT embeddings for all (protein, patient) pairs; saves to data/luad/biobert_embeddings.h5
+  model/
+    dataset.py                                 # ProteomicsDataset — PyTorch Dataset that loads ESM2, BioBERT, and abundance data, aligns protein IDs across sources, and serves (protein_emb 641-dim, text_emb 768-dim) pairs for training
+    projection_head.py                         # ProjectionHead — shared MLP architecture (input→hidden→output with LayerNorm + ReLU + L2 norm); protein head: 641→512→256, text head: 768→512→256
 data/
   luad/
     proteomics_raw.csv                         # 213 samples × 13,302 proteins (umich source)
@@ -153,8 +156,6 @@ data/
 The text side of each training pair is: **UniProt protein description** + **patient clinical description**, concatenated at training time (not saved to disk — would be ~1.27M rows).
 
 **Do not save combined texts to disk.** Generate `(protein, patient)` pairs on-the-fly during training by joining `protein_annotations.csv` and `descriptions.csv`. Only save the resulting BioBERT embeddings (1.27M × 768 floats ≈ ~4GB).
-
-`src/text_generation.py` handles the patient clinical description half. It converts a clinical metadata row into a natural-language sentence for BioBERT embedding. Each description is a flexible comma-separated sentence — only fields with valid values are included, so length varies per patient.
 
 `src/text_generation.py` handles the patient clinical description half. It converts a clinical metadata row into a natural-language sentence for BioBERT embedding. Each description is a flexible comma-separated sentence — only fields with valid values are included, so length varies per patient.
 
@@ -251,6 +252,25 @@ uv run python src/embeddings/protein/esm2_embeddings.py
 ```bash
 uv run python src/embeddings/textual/embed_biobert.py
 ```
+
+## Dataset
+
+`src/model/dataset.py` implements `ProteomicsDataset` — a PyTorch `Dataset` that assembles training pairs from the three pre-computed data sources.
+
+**What it does:** on construction, it loads all three sources into memory, computes the intersection of proteins and patients present in all sources, iterates over every valid `(patient, protein)` combination, and stores only those pairs where the abundance value is not NaN. `__getitem__` concatenates the ESM2 vector with the abundance scalar to produce the 641-dim protein embedding and looks up the pre-computed BioBERT embedding for the same pair.
+
+**Inputs:**
+- `data/luad/rank_normalized_proteomics.csv` — 213 patients × 13,302 proteins, values in [0, 1]
+- `data/luad/esm2_embeddings.h5` — 11,485 proteins × 640-dim
+- `data/luad/biobert_embeddings.h5` — 111 patients × 11,485 proteins × 768-dim
+
+**Alignment logic:** the abundance matrix has 213 patients; BioBERT only covers 111 (those with clinical descriptions). The dataset intersects both sets so only patients with all three data sources are used.
+
+**Output per `__getitem__`:**
+- `protein_emb` — shape `(641,)`: ESM2 640-dim + abundance scalar
+- `text_emb` — shape `(768,)`: BioBERT embedding for the same `(patient, protein)` pair
+
+**Expected dataset size:** ~111 patients × ~11,000 proteins × ~85% non-NaN ≈ ~1.0M training pairs.
 
 ## GPU / CUDA setup (de.NBI server)
 
