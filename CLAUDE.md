@@ -270,7 +270,34 @@ uv run python src/embeddings/textual/embed_biobert.py
 - `protein_emb` — shape `(641,)`: ESM2 640-dim + abundance scalar
 - `text_emb` — shape `(768,)`: BioBERT embedding for the same `(patient, protein)` pair
 
-**Expected dataset size:** ~111 patients × ~11,000 proteins × ~85% non-NaN ≈ ~1.0M training pairs.
+**Expected dataset size:** ~111 patients × ~11,000 proteins × ~85% non-NaN ≈ ~1.0M training pairs (confirmed: 1,052,388).
+
+## Training
+
+`src/model/train.py` — not yet written. Trains the two projection heads with InfoNCE contrastive loss.
+
+**What is trained:** only the two MLP projection heads (protein: 641→512→256, text: 768→512→256). Both ESM2 and BioBERT are permanently frozen — their embeddings are pre-computed on disk and never updated.
+
+**Hyperparameters (following CellWhisperer):**
+- Batch size: 512
+- Epochs: 16
+- Max learning rate: 1e-5
+- LR schedule: linear warmup for first 3% of steps → cosine decay for remaining 97%
+
+**No train/val split:** all 111 LUAD patients are used for training. 111 patients is too small to hold out a meaningful validation set; a proper split makes more sense when scaling to all CPTAC cohorts (~1,100 patients).
+
+**Difference from CellWhisperer:** CellWhisperer unfreezes BioBERT partway through training, allowing the text encoder to adapt to the biological domain. ProteomIQ keeps BioBERT frozen throughout because (a) outputs are pre-cached and (b) 111 unique patients is too small to fine-tune BioBERT without overfitting. This is an accepted limitation — future work could fine-tune BioBERT on the full multi-cohort dataset.
+
+## Inference and evaluation
+
+At inference:
+1. Take a new patient's abundance matrix (one row)
+2. Rank-normalize within-sample to [0, 1]
+3. For each protein: concatenate ESM2 embedding + abundance scalar → protein projection head → 256-dim vector
+4. Encode text query (e.g. "proteins associated with lung cancer") with BioBERT → text projection head → 256-dim vector
+5. Cosine similarity between query vector and all protein vectors → ranked list
+
+**Sanity check:** query "kinase activity" on a LUAD training patient — known kinases (EGFR, MET, KRAS) should rank near the top. If random proteins rank higher, the model has not learned a meaningful alignment.
 
 ## GPU / CUDA setup (de.NBI server)
 
