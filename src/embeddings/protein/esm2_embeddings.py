@@ -5,8 +5,13 @@ import h5py
 from tqdm import tqdm
 import numpy as np
 import pandas as pd
+import argparse
 
-DATA_DIR = Path("data/luad")
+parser = argparse.ArgumentParser()
+parser.add_argument("--cohort", required=True)
+args = parser.parse_args()
+
+DATA_DIR = Path(f"data/{args.cohort}")
 ANNOTATIONS_PATH = DATA_DIR/"protein_annotations.csv"
 OUTPUT_PATH = DATA_DIR/"esm2_embeddings.h5"
 BATCH_SIZE = 32  # number of proteins processed at once — limited by GPU memory

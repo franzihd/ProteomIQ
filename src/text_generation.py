@@ -1,4 +1,18 @@
 import pandas as pd
+import argparse
+
+
+CANCER_TYPES = {
+    "luad": "lung adenocarcinoma",
+    "lscc": "lung squamous cell carcinoma",
+    "brca": "breast cancer",
+    "ccrcc": "clear cell renal cell carcinoma",
+    "hnscc": "head and neck squamous cell carcinoma",
+    "ucec": "uterine endometrial carcinoma",
+    "gbm": "glioblastoma",
+    "pdac": "pancreatic ductal adenocarcinoma",
+    "ov": "ovarian cancer",
+}
 
 CLINICAL_COLUMNS = [
     "age",
@@ -76,9 +90,16 @@ def clinical_to_text(row, cancer_type):
     age = row.get("age")
     sex = row.get("sex")
     if is_usable(age) and is_usable(sex):
-        parts.append(f"{int(age)}-year-old {str(sex).lower()}")
+        try:
+            parts.append(f"{int(float(age))}-year-old {str(sex).lower()}")
+        except ValueError:
+            parts.append(f"{str(age)}-year-old {str(sex).lower()}")
     elif is_usable(age):
-        parts.append(f"{int(age)}-year-old")
+        try:
+            parts.append(f"{int(float(age))}-year-old")
+        except ValueError:
+            parts.append(f"{str(age)}-year-old")
+
 
     # cancer type
     parts.append(f"{cancer_type} patient")
@@ -159,6 +180,42 @@ def clinical_to_text(row, cancer_type):
             bmi_cat = "obese"
 
         parts.append(f"{bmi_cat} (BMI {value})")
+    
+    # histologic grade
+    value = row.get("histologic_grade")
+    if is_usable(value):
+        parts.append(f"and histologic grade {value}")
+    
+    # lymph node positivity
+    value = row.get("number_of_lymph_nodes_positive_for_tumor_by_he_staining")
+    if is_usable(value):
+        try:
+            n = int(float(value))
+        except ValueError:
+            pass
+        else:
+            if n == 0:
+                parts.append("lymph node negative")
+            else:
+                parts.append(f"{n} lymph node{'s' if n > 1 else ''} positive")
+
+    # tumor size in cm
+    value = row.get("tumor_size_cm")
+    if is_usable(value):
+        parts.append(f"tumor size {value} cm")
+    
+    # tumor necrosis
+    value = row.get("tumor_necrosis")
+    if is_usable(value) and value == "Present":
+        parts.append("tumor necrosis present")
+
+    # margin status
+    value = row.get("margin_status")
+    if is_usable(value):
+        if "uninvolved" in str(value):
+            parts.append("clear surgical margins")
+        elif "involved" in str(value):
+            parts.append("positive surgical margins")
 
 
 
@@ -180,3 +237,15 @@ def generate_descriptions(clinical_df, cancer_type):
 # Save {patient_id: description} dict as a CSV with patient ID as index
 def save_descriptions(descriptions, output_path):
     pd.Series(descriptions).to_csv(output_path, header=["description"])
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--cohort", required=True)
+    args = parser.parse_args()
+
+    cancer_type = CANCER_TYPES[args.cohort]
+    clinical_df = pd.read_csv(f"data/{args.cohort}/clinical.csv", index_col=0)
+    descriptions = generate_descriptions(clinical_df, cancer_type)
+    save_descriptions(descriptions, f"data/{args.cohort}/clinical_descriptions.csv")
+    print(f"Saved {len(descriptions)} descriptions to data/{args.cohort}/descriptions.csv")

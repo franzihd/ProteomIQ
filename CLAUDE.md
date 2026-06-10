@@ -88,6 +88,8 @@ src/
   model/
     dataset.py                                 # ProteomicsDataset — PyTorch Dataset that loads ESM2, BioBERT, and abundance data, aligns protein IDs across sources, and serves (protein_emb 641-dim, text_emb 768-dim) pairs for training
     projection_head.py                         # ProjectionHead — shared MLP architecture (input→hidden→output with LayerNorm + ReLU + L2 norm); protein head: 641→512→256, text head: 768→512→256
+    train.py                                   # trains both projection heads with InfoNCE contrastive loss; holds out 10 LUAD patients for testing; saves checkpoint.pt + test_patients.json
+    evaluate.py                                # loads trained checkpoint, runs a text query against a held-out test patient's proteins, prints ranked nearest-neighbor results (sanity check)
 data/
   luad/
     proteomics_raw.csv                         # 213 samples × 13,302 proteins (umich source)
@@ -96,6 +98,9 @@ data/
     protein_annotations.csv                    # 12,906 proteins with UniProt accession, gene name, annotation text, sequence
     rank_normalized_proteomics.csv             # 213 samples × 13,302 proteins — within-sample percentile ranks [0,1], NaN preserved
     esm2_embeddings.h5                         # 11,485 proteins × 640-dim ESM2 embeddings
+    biobert_embeddings.h5                      # 111 patients × 11,485 proteins × 768-dim BioBERT embeddings
+    checkpoint.pt                              # trained projection head weights ({"protein_head": ..., "text_head": ...} state_dicts), overwritten each epoch by train.py
+    test_patients.json                         # 10 LUAD patient IDs held out from training for evaluation (random.seed(42), reproducible)
   brca/
     proteomics_raw.csv                         # 125 samples × 12,922 proteins
     clinical.csv                               # 134 samples × 124 clinical variables
@@ -274,7 +279,7 @@ uv run python src/embeddings/textual/embed_biobert.py
 
 ## Training
 
-`src/model/train.py` — not yet written. Trains the two projection heads with InfoNCE contrastive loss.
+`src/model/train.py` trains the two projection heads with InfoNCE (NT-Xent) contrastive loss.
 
 **What is trained:** only the two MLP projection heads (protein: 641→512→256, text: 768→512→256). Both ESM2 and BioBERT are permanently frozen — their embeddings are pre-computed on disk and never updated.
 
@@ -282,22 +287,46 @@ uv run python src/embeddings/textual/embed_biobert.py
 - Batch size: 512
 - Epochs: 16
 - Max learning rate: 1e-5
-- LR schedule: linear warmup for first 3% of steps → cosine decay for remaining 97%
+- LR schedule: linear warmup for first 3% of steps (`get_cosine_schedule_with_warmup` from `transformers`) → cosine decay for remaining 97%
+- Temperature: fixed at 0.07 (logits scaled by `1/0.07` before the loss, as in the original CLIP paper)
 
-**No train/val split:** all 111 LUAD patients are used for training. 111 patients is too small to hold out a meaningful validation set; a proper split makes more sense when scaling to all CPTAC cohorts (~1,100 patients).
+**Loss:** for a batch of N pairs, the L2-normalized protein and text vectors are matmul'd into an N×N cosine-similarity matrix. The diagonal holds the matching pairs; cross-entropy (with `labels = arange(N)`) is computed in both directions — protein→text (`logits`) and text→protein (`logits.T`) — and averaged for a symmetric loss.
+
+**Patient-level test split:** 10 of the 111 LUAD patients are randomly held out (`random.seed(42)`, so the split is reproducible) *before* the dataloader is built — `dataset.pairs` is overwritten to contain only the training patients' pairs. Splitting is done at the **patient** level (not pair level) to avoid leakage: a held-out patient's proteins must never appear in training. The held-out patient IDs are saved to `data/luad/test_patients.json`.
+
+**Checkpointing:** at the end of every epoch, both projection heads' `state_dict()`s are saved (overwriting) to `data/luad/checkpoint.pt` as `{"protein_head": ..., "text_head": ...}`.
 
 **Difference from CellWhisperer:** CellWhisperer unfreezes BioBERT partway through training, allowing the text encoder to adapt to the biological domain. ProteomIQ keeps BioBERT frozen throughout because (a) outputs are pre-cached and (b) 111 unique patients is too small to fine-tune BioBERT without overfitting. This is an accepted limitation — future work could fine-tune BioBERT on the full multi-cohort dataset.
 
+**To run:**
+```bash
+uv run python src/model/train.py
+```
+
+**Confirmed result (LUAD, 16 epochs, batch 512, 10 patients held out):** loss converged from 4.79 → 0.86 — a healthy curve (random baseline for batch 512 is `log(512) ≈ 6.24`). Runtime: a few minutes on the RTX A6000, since only the small projection heads are trained (ESM2/BioBERT stay frozen).
+
+**Note on paths:** `checkpoint.pt` and `test_patients.json` are currently saved under `data/luad/` — hardcoded for the LUAD-only proof of concept. When scaling to multi-cohort training, parametrize these paths by run/cohort name so different runs don't overwrite each other.
+
 ## Inference and evaluation
 
-At inference:
-1. Take a new patient's abundance matrix (one row)
-2. Rank-normalize within-sample to [0, 1]
-3. For each protein: concatenate ESM2 embedding + abundance scalar → protein projection head → 256-dim vector
-4. Encode text query (e.g. "proteins associated with lung cancer") with BioBERT → text projection head → 256-dim vector
-5. Cosine similarity between query vector and all protein vectors → ranked list
+`src/model/evaluate.py` runs the sanity-check query pipeline on a held-out test patient using the trained checkpoint.
 
-**Sanity check:** query "kinase activity" on a LUAD training patient — known kinases (EGFR, MET, KRAS) should rank near the top. If random proteins rank higher, the model has not learned a meaningful alignment.
+At inference/evaluation:
+1. Load the trained checkpoint (`data/luad/checkpoint.pt`) into fresh `ProjectionHead` instances, set to `.eval()`
+2. Pick a held-out test patient (from `data/luad/test_patients.json`)
+3. For each of that patient's measured proteins (non-NaN abundance, present in ESM2): concatenate ESM2 embedding + abundance scalar → protein projection head → 256-dim vector. **ESM2 is reused via lookup, not rerun** — a protein's amino-acid sequence (and therefore its ESM2 embedding) is identical across patients; only a brand-new, never-before-seen protein sequence would require running ESM2 live.
+4. Encode the query text (e.g. "kinase activity") live with BioBERT (mean-pooled, using `mean_pool`/`MAX_LENGTH` from `embed_biobert.py`) → text projection head → 256-dim vector. Unlike the protein side, the query text is new and must be encoded on the spot — it was never pre-cached, since `biobert_embeddings.h5` only contains `(protein annotation + clinical description)` pairs from training.
+5. Cosine similarity (dot product of L2-normalized vectors) between the query vector and all of the patient's protein vectors → sort descending → ranked list
+
+**To run:**
+```bash
+uv run python src/model/evaluate.py
+```
+
+**Sanity check & confirmed results (LUAD test patient `11LU035`, 9,420 proteins measured):**
+- Query *"kinase activity"*: top-15 contained 4 real kinase-family proteins (STK25, CDC42BPA, STRADA, MAP3K8) — far above the ~0.3 expected by chance. But the headline oncogenes ranked only modestly above random (random baseline ≈ rank 4,710/9,420): EGFR rank 3,748, MET rank 4,260, KRAS rank 1,968.
+- Query *"receptor tyrosine kinase signaling in lung cancer"* (more specific, contextual phrasing): oncogene ranks improved dramatically — EGFR rank 2,804, MET rank 1,588, **KRAS rank 398 (top 4.2%)** — and the top-15 became biologically coherent (CSF1R, TIE1 — actual RTKs; NCK1/NCK2/GRAP/GRAP2 — classic RTK/EGFR-pathway adaptor proteins).
+- **Takeaway:** the model has learned real biological structure, and retrieval quality is sensitive to query phrasing — more specific, context-rich queries (closer to how UniProt annotations + clinical descriptions read) surface the target oncogenes far better than generic phrasing. This is expected CLIP-style behavior and a good first-training-run result; scaling to multi-cohort data should sharpen fine-grained distinctions further.
 
 ## GPU / CUDA setup (de.NBI server)
 

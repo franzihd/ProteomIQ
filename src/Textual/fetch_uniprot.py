@@ -1,8 +1,14 @@
 import pandas as pd
 import requests
 import time
+import argparse
 
-proteomics = pd.read_csv('data/luad/proteomics_raw.csv', header=[0,1])
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--cohort", required=True)
+args = parser.parse_args()
+
+proteomics = pd.read_csv(f'data/{args.cohort}/proteomics_raw.csv', header=[0,1])
 database_ID = proteomics.columns.get_level_values(1)[1:].astype(str).tolist()
 
 print(database_ID[:10])
@@ -26,14 +32,21 @@ url = f'https://rest.uniprot.org/idmapping/status/{job_id}'
 while url:
     response = requests.get(url)
     page_data = response.json()
+
+    if 'jobStatus' in page_data:
+        print(f'Job status: {page_data["jobStatus"]}')
+        time.sleep(5)
+        continue
+
     all_results.extend(page_data.get('results', []))
     print(f'Fetched {len(all_results)} so far...')
-    
+
     link = response.headers.get('Link', '')
     if 'rel="next"' in link:
         url = link.split('<')[1].split('>')[0]
     else:
         url = None
+
 
 data = {'results': all_results}
 print(f'Total: {len(data["results"])}')
@@ -74,5 +87,5 @@ for entry in data['results']:
     })
 
 df_proteins = pd.DataFrame(rows)
-df_proteins.to_csv('data/luad/protein_annotations.csv', index=False)
-print(f'Saved annotations for {len(df_proteins)} proteins to data/luad/protein_annotations.csv')
+df_proteins.to_csv(f"data/{args.cohort}/protein_annotations.csv", index=False)
+print(f"Saved annotations for {len(df_proteins)} proteins to data/{args.cohort}/protein_annotations.csv")
