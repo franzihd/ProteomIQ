@@ -9,6 +9,7 @@ dependencies = [
     "fair-esm>=2.0.0",
     "h5py>=3.16.0",
     "jupyter>=1.1.1",
+    "matplotlib>=3.11.0",
     "nvidia-cublas-cu12",
     "nvidia-cuda-runtime-cu12",
     "nvidia-cudnn-cu12",
