@@ -5,11 +5,9 @@ import torch
 import h5py
 from tqdm import tqdm
 from transformers import AutoTokenizer, AutoModel
+import argparse
 
-DATA_DIR = Path("data/luad")
-ANNOTATIONS_PATH = DATA_DIR / "protein_annotations.csv"
-DESCRIPTIONS_PATH = DATA_DIR / "descriptions.csv"
-OUTPUT_PATH = DATA_DIR / "biobert_embeddings.h5"
+
 
 MODEL_NAME = "dmis-lab/biobert-base-cased-v1.2"
 BATCH_SIZE = 256
@@ -41,12 +39,20 @@ def embed_batch (texts, tokenizer, model, device):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--cohort", required=True)
+    args = parser.parse_args()
+
+    data_dir = Path(f"data/{args.cohort}")
+    annotations_path = data_dir / "protein_annotations.csv"
+    descriptions_path = data_dir / "clinical_descriptions.csv"
+    output_path = data_dir / "biobert_embeddings.h5"
     # Load protein annotations and drop rows wehre Sequence is missing
     # reset_index is used to reset the DataFrame index after dropping rows, so it goes from 0 to n-1 instead of keeping the original indices
-    annotations = pd.read_csv(ANNOTATIONS_PATH)
+    annotations = pd.read_csv(annotations_path)
     annotations = annotations.dropna(subset=["Sequence", "Annotation"]).reset_index(drop=True)
     # Load patient descriptions, using the first column as the index
-    descriptions = pd.read_csv(DESCRIPTIONS_PATH, index_col=0)
+    descriptions = pd.read_csv(descriptions_path, index_col=0)
 
     n_proteins = len(annotations)
     n_patients = len(descriptions)
@@ -61,8 +67,8 @@ def main():
     model = AutoModel.from_pretrained(MODEL_NAME).to(device).eval()
 
     # Open HDF5 file for writing. All datasets inside are written directly to disk.
-    mode = "r+" if OUTPUT_PATH.exists() else "w"
-    with h5py.File(OUTPUT_PATH, mode) as h5f:
+    mode = "r+" if output_path.exists() else "w"
+    with h5py.File(output_path, mode) as h5f:
 
         if mode == "w":
             emb_ds = h5f.create_dataset("embeddings", shape=(n_patients, n_proteins, 768), dtype="float32")
@@ -90,7 +96,9 @@ def main():
             emb_ds[p_idx] = np.vstack(patient_embeddings)
             completed[p_idx] = True
 
-    print(f"Done. Saved to {OUTPUT_PATH}")
+    print(f"Done. Saved to {output_path}")
+
+
 
 
 if __name__ == "__main__":

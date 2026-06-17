@@ -26,8 +26,8 @@ def train():
     all_patient_ids = sorted(set(patient_id for patient_id, _, _ in dataset.pairs))
     random.seed(42) # for reproducibility
 
-    # randomly sample 10 patient IDs to hold out for testing
-    test_patient_ids = set(random.sample(all_patient_ids, 10))
+    # randomly sample 15 patient IDs to hold out for testing
+    test_patient_ids = set(random.sample(all_patient_ids, 15))
 
     # split the pairs based on whether their patient is in the test set
     train_pairs = [p for p in dataset.pairs if p[0] not in test_patient_ids]

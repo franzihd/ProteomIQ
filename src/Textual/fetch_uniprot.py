@@ -22,6 +22,9 @@ response = requests.post(
     }
 )
 
+if not response.text:
+    print(f"UniProt API returned empty response (status {response.status_code}). Wait a moment and retry.")
+    exit(1)
 job_id = response.json()['jobId']
 print(f'Job ID: {job_id}')
 

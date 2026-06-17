@@ -217,6 +217,17 @@ def clinical_to_text(row, cancer_type):
         elif "involved" in str(value):
             parts.append("positive surgical margins")
 
+    value = row.get("perineural_invasion")
+    if is_usable(value) and value == "Present":
+        parts.append("perineural invasion present")
+
+    value = row.get("residual_tumor")
+    if is_usable(value):
+        if "R0" in str(value):
+            parts.append("no residual tumor after surgery")
+        elif "R1" in str(value):
+            parts.append("microscopic residual tumor after surgery")
+
 
 
     return ", ".join(parts) + "."

@@ -75,16 +75,16 @@ main.py                                        # entry point (stub)
 pyproject.toml                                 # dependencies
 src/
   import_cptac.py                              # downloads proteomics + clinical data for all 10 CPTAC cohorts
-  text_generation.py                           # converts clinical metadata rows into natural-language patient descriptions
+  text_generation.py                           # converts clinical metadata rows into natural-language patient descriptions; accepts --cohort argument
   Textual/
-    fetch_uniprot.py                           # fetches UniProt annotations + sequences for all LUAD proteins via ID mapping API
+    fetch_uniprot.py                           # fetches UniProt annotations + sequences for a cohort's proteins via UniProt REST API; accepts --cohort argument
   preprocessing/
-    rank_normalize.py                          # rank-normalizes proteomics_raw.csv within each patient sample to percentiles [0,1]; saves to data/luad/rank_normalized_proteomics.csv
+    rank_normalize.py                          # rank-normalizes proteomics_raw.csv within each patient sample to percentiles [0,1]; accepts --cohort argument
   embeddings/
     protein/
-      esm2_embeddings.py                       # pre-computes ESM2 embeddings for all LUAD proteins; saves to data/luad/esm2_embeddings.h5
+      esm2_embeddings.py                       # pre-computes ESM2 embeddings for a cohort's proteins; accepts --cohort argument
     textual/
-      embed_biobert.py                         # pre-computes BioBERT embeddings for all (protein, patient) pairs; saves to data/luad/biobert_embeddings.h5
+      embed_biobert.py                         # pre-computes BioBERT embeddings for all (protein, patient) pairs in a cohort; accepts --cohort argument
   model/
     dataset.py                                 # ProteomicsDataset — PyTorch Dataset that loads ESM2, BioBERT, and abundance data, aligns protein IDs across sources, and serves (protein_emb 641-dim, text_emb 768-dim) pairs for training
     projection_head.py                         # ProjectionHead — shared MLP architecture (input→hidden→output with LayerNorm + ReLU + L2 norm); protein head: 641→512→256, text head: 768→512→256
@@ -141,20 +141,27 @@ data/
 
 ## UniProt fetching
 
-`src/Textual/fetch_uniprot.py` fetches protein annotations and sequences for all proteins in the LUAD proteomics data.
+`src/Textual/fetch_uniprot.py` fetches protein annotations and sequences for a cohort's proteins via the UniProt REST API.
 
 **How it works:**
 1. Extracts ENSP IDs from the second header row of `proteomics_raw.csv`
 2. Submits a batch ID mapping job to the UniProt REST API (`Ensembl_Protein` → `UniProtKB`)
-3. Polls the status endpoint until the job is done
+3. Polls the status endpoint until the job is done (checks for `jobStatus` key in response — if present, job is still running, wait 5 seconds and retry)
 4. Paginates through all result pages (25 per page) following `Link` headers
-5. Saves to `data/luad/protein_annotations.csv`
+5. Saves to `data/{cohort}/protein_annotations.csv`
 
 **Output columns:** `ENSP_ID`, `UniProt_Accession`, `Gene`, `Annotation`, `Sequence`
 
 **API note:** UniProt caches job submissions — same input always returns the same `jobId`. The stream endpoint (`/idmapping/stream/`) can expire; use the status endpoint with pagination instead.
 
 **Annotation format:** gene name is prepended to the annotation text, e.g. `"ARF5: GTP-binding protein involved in protein trafficking..."` so BioBERT always sees the protein name.
+
+**Protein overlap across cohorts:** many proteins appear in multiple cohorts (EGFR, KRAS etc. are present in all cancers) and will have identical UniProt annotations. The per-cohort approach accepts this redundancy for simplicity. A future optimization would maintain one unified `protein_annotations.csv` covering the union of all cohorts.
+
+**To run:**
+```bash
+uv run python src/Textual/fetch_uniprot.py --cohort lscc
+```
 
 ## Text generation
 
@@ -173,14 +180,17 @@ The UniProt description half (one per protein, reused across patients) is not ye
 - `save_descriptions(descriptions, output_path)` — writes the dict as a CSV with patient ID as index and a `"description"` column
 
 **Columns used** (in order):
-- `age`, `sex` — patient demographics
+- `age`, `sex` — patient demographics; `age` is parsed via `int(float(age))` to handle values like `">=90"` which fall back to raw string
 - `ethnicity_race_ancestry_identified` — ancestry
 - `tumor_stage_pathological` — Stage I/II/III/IV
-- `histologic_type` — adenocarcinoma subtype
+- `histologic_type` — cancer subtype
 - `histologic_grade` — G1/G2/G3
+- `number_of_lymph_nodes_positive_for_tumor_by_he_staining` — lymph node status: 0 → "lymph node negative", N → "N lymph nodes positive"; parsed via `int(float(...))` wrapped in try/except for non-numeric values
+- `tumor_necrosis` — "Present" → "tumor necrosis present"; "Not identified" is skipped
+- `margin_status` — "uninvolved" → "clear surgical margins"; "involved" → "positive surgical margins"
 - `tumor_size_cm` — tumor size in cm
-- `tumor_laterality` — left or right lung
-- `tumor_site` — upper/lower/middle lobe
+- `tumor_laterality` — left or right (lung/kidney)
+- `tumor_site` — upper/lower/middle lobe (lung only)
 - `tumor_focality` — unifocal or multifocal
 - `tobacco_smoking_history` — mapped to: "lifelong non-smoker", "current smoker", "former smoker (>15 years)", "former smoker (<15 years)"
 - `alcohol_consumption` — mapped to: "lifelong non-drinker", "moderate drinker", "heavy drinker", "former drinker"
@@ -188,9 +198,15 @@ The UniProt description half (one per protein, reused across patients) is not ye
 
 **Key design decisions:**
 - Values in `SKIP_VALUES` (a long list covering "Unknown", "Not Reported", "not specified", etc.) are silently omitted
+- Cohort-specific columns (e.g. lymph nodes, tumor necrosis, margin status) are safe to include for all cohorts — `row.get()` returns `None` for missing columns and `is_usable(None)` returns `False`, so they are silently skipped
 - Raw verbose smoking/alcohol strings are mapped to short phrases via lookup dicts (`SMOKING_DICT`, `ALCOHOL_MAP`); unrecognized values fall through as-is
-- `cancer_type` is passed as a parameter, not read from the CSV
+- `cancer_type` is passed as a parameter, not read from the CSV — mapped from cohort name via `CANCER_TYPES` dict in `__main__`
 - BioBERT handles variable-length sentences — no fixed template needed
+
+**To run:**
+```bash
+uv run python src/text_generation.py --cohort lscc
+```
 
 ## Abundance rank normalization
 
@@ -204,10 +220,11 @@ The UniProt description half (one per protein, reused across patients) is not ye
 
 **To run:**
 ```bash
-uv run python src/preprocessing/rank_normalize.py
+uv run python src/preprocessing/rank_normalize.py --cohort luad
 ```
 
-**Output:** 213 × 13,302, values in [0, 1], NaN count unchanged (534,935).
+**Output (LUAD):** 213 × 13,302, values in [0, 1], NaN count unchanged (534,935).
+**Output (GBM):** 110 × 13,002, values in [0, 1], NaN count unchanged (237,778) — 16.6% missing, comparable to LUAD.
 
 ## ESM2 embedding
 
@@ -226,13 +243,13 @@ uv run python src/preprocessing/rank_normalize.py
 
 **Sequence truncation:** sequences longer than 1022 amino acids are truncated — ESM2's positional embeddings are only defined up to 1022 tokens.
 
-**To restart from scratch:** `rm data/luad/esm2_embeddings.h5` then rerun.
+**To restart from scratch:** `rm data/{cohort}/esm2_embeddings.h5` then rerun.
 
-**Runtime:** ~13 minutes on RTX A6000 for all 11,485 LUAD proteins.
+**Runtime:** ~13 minutes on RTX A6000 per cohort (~11,000–13,000 proteins).
 
 **To run:**
 ```bash
-uv run python src/embeddings/protein/esm2_embeddings.py
+uv run python src/embeddings/protein/esm2_embeddings.py --cohort lscc
 ```
 
 ## BioBERT embedding
@@ -249,13 +266,13 @@ uv run python src/embeddings/protein/esm2_embeddings.py
 
 **Resume logic:** the script supports stop/resume. On first run it creates the file (`"w"` mode). On restart it opens the existing file (`"r+"` mode), reads `completed`, and skips any patient already marked `True`. After writing each patient's embeddings, it immediately sets `completed[p_idx] = True` on disk — so stopping mid-run loses at most one patient's work.
 
-**To restart from scratch:** `rm data/luad/biobert_embeddings.h5` then rerun.
+**To restart from scratch:** `rm data/{cohort}/biobert_embeddings.h5` then rerun.
 
-**Runtime:** ~60 minutes on RTX A6000 for all 111 LUAD patients.
+**Runtime:** ~60 minutes on RTX A6000 per ~110 patients. Full multi-cohort (~1,100 patients) ≈ 9–10 hours total.
 
 **To run:**
 ```bash
-uv run python src/embeddings/textual/embed_biobert.py
+uv run python src/embeddings/textual/embed_biobert.py --cohort lscc
 ```
 
 ## Dataset
@@ -326,7 +343,38 @@ uv run python src/model/evaluate.py
 **Sanity check & confirmed results (LUAD test patient `11LU035`, 9,420 proteins measured):**
 - Query *"kinase activity"*: top-15 contained 4 real kinase-family proteins (STK25, CDC42BPA, STRADA, MAP3K8) — far above the ~0.3 expected by chance. But the headline oncogenes ranked only modestly above random (random baseline ≈ rank 4,710/9,420): EGFR rank 3,748, MET rank 4,260, KRAS rank 1,968.
 - Query *"receptor tyrosine kinase signaling in lung cancer"* (more specific, contextual phrasing): oncogene ranks improved dramatically — EGFR rank 2,804, MET rank 1,588, **KRAS rank 398 (top 4.2%)** — and the top-15 became biologically coherent (CSF1R, TIE1 — actual RTKs; NCK1/NCK2/GRAP/GRAP2 — classic RTK/EGFR-pathway adaptor proteins).
-- **Takeaway:** the model has learned real biological structure, and retrieval quality is sensitive to query phrasing — more specific, context-rich queries (closer to how UniProt annotations + clinical descriptions read) surface the target oncogenes far better than generic phrasing. This is expected CLIP-style behavior and a good first-training-run result; scaling to multi-cohort data should sharpen fine-grained distinctions further.
+- Query *"ribosomal protein translation"* (sanity check — ground truth is obvious from gene names): RPS3 rank 330 (top 3.5%), RPS14 rank 493 (top 5.2%) — above chance. But top-15 dominated by mitochondrial proteins (MRPL32, MRPL18, TACO1, MTRES1) instead of cytoplasmic ribosomes; RPL7 rank 4,557 (≈ random). The model conflated cytoplasmic translation with mitochondrial translation machinery — a data diversity problem, not an architecture problem.
+- **Takeaway:** the model has learned real biological structure (RTK query works well), but lacks sufficient diversity to cleanly separate functionally adjacent protein families (cytoplasmic vs. mitochondrial ribosomes). This is expected with only 111 patients. Scaling to multi-cohort data should resolve fine-grained distinctions.
+
+## Multi-cohort preprocessing
+
+All preprocessing scripts now accept `--cohort` argument. The full pipeline per cohort is:
+
+```bash
+uv run python src/preprocessing/rank_normalize.py --cohort <cohort>
+uv run python src/Textual/fetch_uniprot.py --cohort <cohort>
+uv run python src/text_generation.py --cohort <cohort>
+uv run python src/embeddings/protein/esm2_embeddings.py --cohort <cohort>
+uv run python src/embeddings/textual/embed_biobert.py --cohort <cohort>
+```
+
+**Current status (as of 2026-06-10):**
+
+| Cohort | rank_normalize | fetch_uniprot | descriptions | esm2 | biobert |
+|---|---|---|---|---|---|
+| luad | ✓ | ✓ | ✓ | ✓ | ✓ |
+| brca | ✓ | ✓ | ✓ | — | — |
+| ccrcc | — | in progress | ✓ | — | — |
+| gbm | ✓ | — | — | — | — |
+| lscc | — | — | — | — | — |
+| hnscc | — | — | — | — | — |
+| ucec | — | — | — | — | — |
+| pdac | — | — | — | — | — |
+| ov | — | — | — | — | — |
+
+**Note on protein overlap:** many proteins appear in multiple cohorts and will have identical UniProt annotations and ESM2 embeddings. The per-cohort approach accepts this redundancy. A future optimization would maintain one unified protein annotation + ESM2 file covering the union of all cohorts.
+
+**Note on clinical descriptions:** cohort-specific clinical fields are handled gracefully — `row.get()` returns `None` for absent columns and `is_usable(None)` skips them silently. Fields added beyond LUAD baseline: lymph node positivity (BRCA, CCRCC), tumor necrosis (CCRCC), margin status (CCRCC).
 
 ## GPU / CUDA setup (de.NBI server)
 
@@ -355,3 +403,35 @@ export LD_LIBRARY_PATH=/home/franziska/bachelor/ProteomIQ/.venv/lib/python3.11/s
 - Run scripts with `uv run python <script>`
 - Use Jupyter notebooks inside VS Code (Microsoft Jupyter extension) for data exploration
 - Explain domain-specific proteomics or ML concepts when they come up — the developer is new to both research and proteomics
+
+## Thesis notes
+
+### Structure
+The thesis (~30 pages) compares model performance across increasing amounts of training data to show that scaling to more CPTAC cohorts improves retrieval quality.
+
+**Experiments:**
+1. LUAD only (~101 training patients)
+2. LUAD + additional cohorts (TBD)
+3. All cohorts (~1,100 patients total)
+
+**Fixed test set:** 15 LUAD patients held out with `random.seed(42)`, saved to `data/luad/test_patients.json`. Same 15 patients used for evaluation in all three experiments so results are directly comparable.
+
+**Evaluation metric:** Recall@K (R@K) — implemented in `src/model/R@K.py`. For each test pair `(protein, patient)`, the model ranks all ~9,500 proteins in that patient by cosine similarity to the protein's text embedding. R@K measures how often the correct protein appears in the top K.
+
+### Results
+
+| Experiment | Cohorts | R@1 | R@10 | R@50 |
+|---|---|---|---|---|
+| 1 | LUAD only (101 patients, 16 epochs, batch 512) | 61.50% | 94.02% | 98.22% |
+| 2 | TBD | — | — | — |
+| 3 | TBD | — | — | — |
+
+**Random baseline:** R@1 ≈ 0.01%, R@10 ≈ 0.11%, R@50 ≈ 0.53% (1/~9,500 proteins per patient).
+
+### Key thesis points to write about
+- Why protein-level (not patient-level) retrieval: returns actionable proteins (EGFR, KRAS) not other patients
+- Why R@K and not cross-entropy loss as evaluation metric: R@K evaluates against the full ~9,500-protein pool (realistic setting); cross-entropy depends on batch composition and scale
+- Held-out split is at the **patient level** to avoid leakage (a patient's proteins must never appear in both train and test)
+- Qualitative results from `evaluate.py`: RTK query works well (KRAS rank 398, top 4.2%); ribosomal query conflates cytoplasmic and mitochondrial ribosomes — expected with only 111 patients, should improve with more data
+- CellWhisperer comparison: same CLIP-style approach applied to scRNA-seq; ProteomIQ targets mass-spectrometry proteomics instead
+- **R@K limitation — name shortcut:** both ESM2 and BioBERT encode protein identity (ESM2 via unique sequence, BioBERT via gene name in UniProt annotation e.g. "EGFR: receptor tyrosine kinase..."). The model may be learning name matching rather than purely biological function. A stricter evaluation would mask the gene name from the annotation text. This is worth one sentence of acknowledgment in the thesis as a known limitation.
