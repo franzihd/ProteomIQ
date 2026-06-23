@@ -9,10 +9,10 @@ import numpy as np
 from src.model.projection_head import ProjectionHead
 
 
-def compute_ranks():
+def compute_ranks(checkpoint_path: str = "data/luad/checkpoint.pt"):
      
     DATA_DIR = Path("data/luad")
-    CHECKPOINT_PATH = DATA_DIR / "checkpoint.pt"
+    CHECKPOINT_PATH = Path(checkpoint_path)
     TEST_PATIENTS_PATH = DATA_DIR / "test_patients.json"
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -116,13 +116,30 @@ def compute_ranks():
 
             all_ranks.append(rank)
 
-    return np.array(all_ranks)
+        ranks = np.array(all_ranks)
+
+    return {
+        "ranks": ranks,
+        "r1":  float((ranks <= 1).mean()  * 100),
+        "r10": float((ranks <= 10).mean() * 100),
+        "r50": float((ranks <= 50).mean() * 100),
+    }
+
+
+
+
+
 
 if __name__ == "__main__":
-    ranks = compute_ranks()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--checkpoint", default="data/luad/checkpoint.pt")
+    args = parser.parse_args()
+
+    metrics = compute_ranks(checkpoint_path=args.checkpoint)
+    ranks = metrics["ranks"]
     total = len(ranks)
-    print(f"R@1:  {(ranks <= 1).mean() * 100:.2f}%")
-    print(f"R@10: {(ranks <= 10).mean() * 100:.2f}%")
-    print(f"R@50: {(ranks <= 50).mean() * 100:.2f}%")
-    print(f"\nEvaluated {total:,} pairs across {len(ranks)} held-out patients. "
-          f"Random baseline: R@1 ≈ 0.01%, R@10 ≈ 0.11%, R@50 ≈ 0.53%.")
+    print(f"R@1:  {metrics['r1']:.2f}%")
+    print(f"R@10: {metrics['r10']:.2f}%")
+    print(f"R@50: {metrics['r50']:.2f}%")
+    print(f"\nEvaluated {total:,} pairs across {total} held-out test pairs.")

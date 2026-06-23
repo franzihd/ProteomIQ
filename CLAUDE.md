@@ -434,4 +434,74 @@ The thesis (~30 pages) compares model performance across increasing amounts of t
 - Held-out split is at the **patient level** to avoid leakage (a patient's proteins must never appear in both train and test)
 - Qualitative results from `evaluate.py`: RTK query works well (KRAS rank 398, top 4.2%); ribosomal query conflates cytoplasmic and mitochondrial ribosomes — expected with only 111 patients, should improve with more data
 - CellWhisperer comparison: same CLIP-style approach applied to scRNA-seq; ProteomIQ targets mass-spectrometry proteomics instead
+- R@K limitation — name shortcut: both ESM2 and BioBERT encode protein identity (ESM2 via unique sequence, BioBERT via gene name in UniProt annotation e.g. "EGFR: receptor tyrosine kinase..."). The model may be learning name matching rather than purely biological function. A stricter evaluation would mask the gene name from the annotation text. This is worth one sentence of acknowledgment in the thesis as a known limitation.
+
+## Planned tool: Streamlit interface with LLM interpretation
+
+The long-term vision for ProteomIQ is a researcher-facing tool where a user uploads their own proteomics data and has a natural language conversation about it — similar in spirit to CellWhisperer, but for mass-spectrometry proteomics.
+
+### What the tool does
+
+```
+Researcher uploads: abundance_matrix.csv
+
+Researcher: "What's going on with this patient?"
+
+Tool: "This patient shows strong activation of growth factor signaling —
+EGFR, MET and SRC are among the highest-ranked proteins. Combined with
+elevated cell cycle proteins like CDK1 and CCNB1, this suggests a highly
+proliferative tumor. Immune signaling appears relatively low, which may
+indicate immune evasion."
+
+Researcher: "Could this patient be resistant to EGFR inhibitors?"
+
+Tool: "Possibly — MET and AXL both rank in the top 50, which are known
+bypass resistance mechanisms when EGFR is inhibited."
+```
+
+### How it works (pipeline)
+
+```
+1. Researcher uploads CSV (proteins × abundance values)
+2. Rank-normalize abundances within the sample [0, 1]
+3. Look up pre-computed ESM2 embeddings for each protein
+4. Concatenate ESM2 + abundance → protein projection head → 256-dim vectors
+5. Researcher asks a question in plain language
+6. BioBERT + text projection head encodes the question → 256-dim query vector
+7. Cosine similarity → top-20 most relevant proteins retrieved
+8. Top proteins + abundances + question sent to Claude API
+9. Claude returns a natural language biological interpretation
+```
+
+### Key design note: retrieval vs. interpretation
+
+The ProteomIQ model does **retrieval** — it finds which proteins are semantically relevant to a query. The LLM (Claude) does **interpretation** — it explains what those proteins mean biologically and clinically. Neither component alone is sufficient; together they produce a useful tool.
+
+The retrieval score reflects semantic similarity between protein function and the query concept, not biological activity per se. Multiplying cosine similarity by abundance rank gives a combined score that better approximates pathway activity:
+
+```
+activity_score = cosine_similarity × abundance_rank
+```
+
+### What questions the tool can answer
+
+- "Which proteins are most relevant to [any biological concept]?"
+- "What does this patient's overall proteomic profile suggest?"
+- "Could this patient be resistant to [drug]?"
+- "What's the most striking finding in this sample?"
+- "Which proteins here are associated with poor prognosis?"
+
+### Tech stack for the tool
+
+- **Streamlit** — UI (file upload + chat interface, Python-native, fast to build)
+- **ProteomIQ retrieval model** — finds relevant proteins for any text query
+- **Claude API** — interprets retrieved proteins in natural language
+- Pre-computed ESM2 embeddings loaded at startup for fast inference
+
+### Known limitations of the tool
+
+- The model cannot say a protein is "overexpressed" — within-sample rank only captures relative abundance, not dysregulation vs. a baseline
+- Abundance scalar contribution is uncertain — the model likely learned primarily from protein identity (sequence), not from abundance variation across patients. An ablation (train without abundance scalar, compare R@K) would quantify this.
+- The LLM interpretation depends on what the retrieval model returns — if retrieval is wrong, the LLM explanation will also be wrong
+- Not a replacement for established bioinformatics tools (GSEA, Enrichr) — best used for hypothesis generation and exploratory analysis
 - **R@K limitation — name shortcut:** both ESM2 and BioBERT encode protein identity (ESM2 via unique sequence, BioBERT via gene name in UniProt annotation e.g. "EGFR: receptor tyrosine kinase..."). The model may be learning name matching rather than purely biological function. A stricter evaluation would mask the gene name from the annotation text. This is worth one sentence of acknowledgment in the thesis as a known limitation.
