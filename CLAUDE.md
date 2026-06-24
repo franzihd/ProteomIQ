@@ -477,11 +477,19 @@ bypass resistance mechanisms when EGFR is inhibited."
 
 The ProteomIQ model does **retrieval** — it finds which proteins are semantically relevant to a query. The LLM (Claude) does **interpretation** — it explains what those proteins mean biologically and clinically. Neither component alone is sufficient; together they produce a useful tool.
 
-The retrieval score reflects semantic similarity between protein function and the query concept, not biological activity per se. Multiplying cosine similarity by abundance rank gives a combined score that better approximates pathway activity:
+### Why abundance weighting is essential for patient-specificity
+
+Pure semantic retrieval (cosine similarity alone) is essentially a **protein function lookup** — the same proteins rank highly for "RTK signaling" in every patient, because the ranking is dominated by the ESM2 embedding (protein sequence/function, identical across patients). This is no more useful than searching UniProt directly.
+
+The tool only becomes patient-specific when **abundance is factored in**. Multiplying cosine similarity by abundance rank gives a combined score that reflects both semantic relevance and actual expression in this patient:
 
 ```
 activity_score = cosine_similarity × abundance_rank
 ```
+
+A protein at 0.8 semantic similarity but 5th percentile abundance is probably not driving anything in this patient. A protein at 0.6 similarity but 95th percentile abundance likely is. This weighting is what makes ProteomIQ answer a question GSEA cannot: **"which proteins are BOTH functionally related to concept X AND highly expressed in THIS specific patient?"** — using free-text natural language rather than fixed pathway gene sets.
+
+`activity_score` should be the default ranking in the Streamlit app, not raw cosine similarity.
 
 ### What questions the tool can answer
 
@@ -505,3 +513,52 @@ activity_score = cosine_similarity × abundance_rank
 - The LLM interpretation depends on what the retrieval model returns — if retrieval is wrong, the LLM explanation will also be wrong
 - Not a replacement for established bioinformatics tools (GSEA, Enrichr) — best used for hypothesis generation and exploratory analysis
 - **R@K limitation — name shortcut:** both ESM2 and BioBERT encode protein identity (ESM2 via unique sequence, BioBERT via gene name in UniProt annotation e.g. "EGFR: receptor tyrosine kinase..."). The model may be learning name matching rather than purely biological function. A stricter evaluation would mask the gene name from the annotation text. This is worth one sentence of acknowledgment in the thesis as a known limitation.
+
+
+## Next steps (as of 2026-06-24)
+
+### Query-based evaluation
+`src/model/query_evaluation.py` runs a fixed set of biological queries against
+a held-out test patient and reports mean percentile rank across all 15 test
+patients. Key findings with the multi-cohort checkpoint
+(`data/runs/luad_brca_ccrcc_gbm_hnscc_lscc_ov_pdac/checkpoint.pt`):
+
+- **Collagen query works very well**: COL1A1 0.8%, COL1A2 0.9%, COL3A1 1.2%
+- **Structural/ECM proteins generally good** — model learned these clearly
+- **Functional groups weak**: MTOR 98.3%, RPS3 73.3%, BRCA1 46% — near random
+- **Root cause**: model was never trained on generic biological queries — only on
+  specific UniProt annotations + clinical descriptions. It does implicit
+  word-matching, not biological reasoning.
+
+### Planned improvements
+1. **GO-Term augmentation** — fetch GO-terms per protein from UniProt, randomly
+   alternate between UniProt annotation and GO-term description during training.
+   This exposes the model to generic biological query language at training time.
+2. **BioBERT fine-tuning** — unfreeze last 2-3 BioBERT layers and run BioBERT
+   live during training (not pre-cached). Requires dropping `biobert_embeddings.h5`
+   and loading texts on-the-fly. Slower but biggest potential quality jump.
+   GPU memory should be fine on the RTX A6000 (46GB).
+
+**Start with GO-Term augmentation first** — simpler, directly comparable to
+current results, and may be sufficient for the thesis.
+
+## Current state of ProteomIQ (as of 2026-06-24)
+
+### What it can do
+- Given a patient's protein abundance sample, rank proteins by semantic relevance to a natural language query
+- Works well for queries that use UniProt-style vocabulary: "receptor tyrosine kinase", "component of the 60S ribosomal subunit", "collagen fibril assembly"
+- R@K=61.5% on LUAD test set (random baseline ~0.01%) — proves the contrastive training objective worked
+- query_evaluation.py shows concrete examples: EGFR ranks top 2%, COL1A2 top 0.7%, RPL7 top 0.1% for matching queries
+
+### What it cannot do yet
+- Answer truly patient-specific questions — ranking is currently dominated by protein identity (ESM2), not abundance variation. Pure cosine similarity gives nearly the same ranked list for every patient.
+- Answer generic researcher questions ("what's driving this tumor?") — model was trained on UniProt annotations, not clinical reasoning language
+- Classify cancer type or characterize what kind of patient a sample came from
+- Work outside LUAD in the Streamlit app (not built yet)
+- Say a protein is "overexpressed" — within-sample rank has no cross-patient reference
+
+### How to explain it to a professor
+*"ProteomIQ is a proof-of-concept that shows CLIP-style contrastive training works for proteomics data. Given a patient's protein abundance sample, the model ranks proteins by semantic relevance to a free-text query — for example, ranking EGFR and MET highest for 'receptor tyrosine kinase signaling.' R@K=61.5% shows the model learned real biological structure, far above the random baseline. The current limitation is that ranking is largely driven by protein identity rather than patient-specific abundance, so results are not yet truly personalized. The next step — GO-term augmentation — exposes the model to generic biological vocabulary at training time, which is what a researcher would actually type."*
+
+### How it differs from GSEA
+GSEA requires predefined pathway gene sets and tests statistical enrichment. ProteomIQ accepts any free-text natural language query. That advantage fully materializes once GO-term augmentation is done — until then, the model only works well for queries that closely match UniProt annotation language.
