@@ -70,45 +70,44 @@ def evaluate():
         protein_vecs = protein_projection_head(protein_embs)
 
     
-    query1 = "receptor tyrosine kinase signaling in lung cancer"
-    query2 = "ribosomal protein translation"
+    annotations = pd.read_csv(DATA_DIR / "protein_annotations.csv")
+    annot_lookup = dict(zip(annotations["Gene"], annotations["Annotation"]))
 
-    encoded = tokenizer(query2, padding=True, truncation=True, max_length=MAX_LENGTH, return_tensors="pt")
-    encoded = {k: v.to(device) for k, v in encoded.items()}
+    genes_of_interest = ["EGFR", "MET", "KRAS", "COL1A1", "RPS3", "RPL7", "CDK1", "ACTB", "PCNA", "TP53"]
 
-    with torch.no_grad():
-        outputs = biobert_model(**encoded)
-    
-    textual_vec = mean_pool(outputs.last_hidden_state, encoded['attention_mask'])
+    def get_rank(query_text):
+        enc = tokenizer(query_text, padding=True, truncation=True,
+                        max_length=MAX_LENGTH, return_tensors="pt")
+        enc = {k: v.to(device) for k, v in enc.items()}
+        with torch.no_grad():
+            out = biobert_model(**enc)
+        vec = mean_pool(out.last_hidden_state, enc["attention_mask"])
+        with torch.no_grad():
+            vec = textual_projection_head(vec)
+        sims = (protein_vecs @ vec.T).squeeze()
+        ranked = torch.argsort(sims, descending=True)
+        return sims, ranked
 
-    with torch.no_grad():
-        textual_vec = textual_projection_head(textual_vec)
-
-    similarities = (protein_vecs @ textual_vec.T).squeeze()  # shape (num_proteins,)
-
-    ranked_indices = torch.argsort(similarities, descending=True)
-
-    print(f"\nTop 15 proteins for query: '{query2}'\n")
-    for rank, idx in enumerate(ranked_indices[:15], start=1):
-        gene_name, protein_id = protein_labels[idx]
-        score = similarities[idx].item()
-        print(f"{rank:2d}. {gene_name:10s} ({protein_id})  similarity: {score:.4f}")
-
-    print(f"\nLooking up specific lung-cancer oncogenes:\n")
-
-    genes_of_interest = ["RPS3", "RPL11", "RPS6", "RPL7", "RPS14"]
+    n_proteins = len(protein_labels)
+    print(f"\n{'Gene':<10} {'Rank (with name)':>18} {'Rank (masked)':>15} {'Present?':>10}\n" + "-" * 58)
 
     for gene in genes_of_interest:
-        matches = [i for i, (gene_name, _) in enumerate(protein_labels) if gene_name == gene]
-        if not matches:
-            print(f"{gene}: not measured in this patient")
+        gene_indices = [i for i, (g, _) in enumerate(protein_labels) if g == gene]
+        if not gene_indices or gene not in annot_lookup:
+            print(f"{gene:<10} {'—':>18} {'—':>15} {'not in sample':>10}")
             continue
 
-        idx = matches[0]
-        rank = (ranked_indices == idx).nonzero(as_tuple=True)[0].item() + 1
-        score = similarities[idx].item()
-        print(f"{gene}: rank {rank} / {len(protein_labels)}   similarity: {score:.4f}")
+        protein_idx = gene_indices[0]
+        annotation  = annot_lookup[gene]
+        masked      = annotation.split(": ", 1)[1] if ": " in annotation else annotation
 
+        _, ranked_full   = get_rank(annotation)
+        _, ranked_masked = get_rank(masked)
+
+        rank_full   = (ranked_full   == protein_idx).nonzero(as_tuple=True)[0].item() + 1
+        rank_masked = (ranked_masked == protein_idx).nonzero(as_tuple=True)[0].item() + 1
+
+        print(f"{gene:<10} {rank_full:>12} / {n_proteins:<5} {rank_masked:>8} / {n_proteins:<5}")
 
 
 if __name__ == "__main__":

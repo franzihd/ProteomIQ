@@ -11,7 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.model.train import train
-from src.model.recall_at_k import compute_ranks
+from src.model.recall_at_k import compute_ranks_luad, compute_ranks_all_cohorts
 
 # Add cohorts in the order you want to add them.
 # Only include cohorts that have all 5 preprocessing steps done.
@@ -27,7 +27,7 @@ COHORT_ORDER = [
     "ucec"
 ]
 
-RESULTS_PATH = Path("data/scaling_results.json")
+RESULTS_PATH = Path("data/scaling_results_v2.json")
 RESULTS_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # load existing results so we can resume if interrupted
@@ -52,19 +52,20 @@ for i in range(1, len(COHORT_ORDER) + 1):
 
     train(cohorts=cohorts, checkpoint_path=checkpoint_path)
 
-    metrics = compute_ranks(checkpoint_path=checkpoint_path)
+    luad    = compute_ranks_luad(checkpoint_path=checkpoint_path)
+    all_c   = compute_ranks_all_cohorts(checkpoint_path=checkpoint_path, cohorts=cohorts)
 
     results[run_name] = {
-        "cohorts": cohorts,
+        "cohorts":   cohorts,
         "n_cohorts": i,
-        "r1": metrics["r1"],
-        "r10": metrics["r10"],
-        "r50": metrics["r50"],
+        "luad_r1":   luad["r1"],   "luad_r10":  luad["r10"],  "luad_r50":  luad["r50"],
+        "all_r1":    all_c["r1"],  "all_r10":   all_c["r10"], "all_r50":   all_c["r50"],
     }
 
     with open(RESULTS_PATH, "w") as f:
         json.dump(results, f, indent=2)
 
-    print(f"R@1={metrics['r1']:.2f}%  R@10={metrics['r10']:.2f}%  R@50={metrics['r50']:.2f}%")
+    print(f"LUAD  R@1={luad['r1']:.2f}%  R@10={luad['r10']:.2f}%  R@50={luad['r50']:.2f}%")
+    print(f"All   R@1={all_c['r1']:.2f}%  R@10={all_c['r10']:.2f}%  R@50={all_c['r50']:.2f}%")
 
 print("\nAll experiments done. Results saved to", RESULTS_PATH)

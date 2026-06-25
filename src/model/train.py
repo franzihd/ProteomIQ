@@ -16,8 +16,9 @@ MAX_LR = 1e-5
 
 
 def train(cohorts: list[str], checkpoint_path: str):
-    with open("data/luad/test_patients.json") as f:
-        test_patient_ids = set(json.load(f))
+    with open("data/test_patients_per_cohort.json") as f:
+        per_cohort = json.load(f)
+    test_patient_ids = {pid for ids in per_cohort.values() for pid in ids}
 
     dataset = ProteomicsDataset(cohorts=cohorts, test_patient_ids=test_patient_ids)
     print(f"Cohorts: {cohorts}  |  Training pairs: {len(dataset):,}")
