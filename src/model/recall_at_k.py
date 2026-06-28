@@ -142,10 +142,6 @@ def compute_ranks(checkpoint_path: str = "data/luad/checkpoint.pt"):
     biobert_patient_id_to_idx = {pid: idx for idx, pid in enumerate(biobert_patient_ids)}
     biobert_protein_id_to_idx = {pid: idx for idx, pid in enumerate(biobert_protein_ids)}   
 
-    #hits_at_1 = 0
-    #hits_at_10 = 0
-    #hits_at_50 = 0
-    #total_pairs = 0
 
     all_ranks = []
 

@@ -515,32 +515,180 @@ A protein at 0.8 semantic similarity but 5th percentile abundance is probably no
 - **R@K limitation — name shortcut:** both ESM2 and BioBERT encode protein identity (ESM2 via unique sequence, BioBERT via gene name in UniProt annotation e.g. "EGFR: receptor tyrosine kinase..."). The model may be learning name matching rather than purely biological function. A stricter evaluation would mask the gene name from the annotation text. This is worth one sentence of acknowledgment in the thesis as a known limitation.
 
 
-## Next steps (as of 2026-06-24)
+## Next steps (as of 2026-06-28)
 
-### Query-based evaluation
-`src/model/query_evaluation.py` runs a fixed set of biological queries against
-a held-out test patient and reports mean percentile rank across all 15 test
-patients. Key findings with the multi-cohort checkpoint
-(`data/runs/luad_brca_ccrcc_gbm_hnscc_lscc_ov_pdac/checkpoint.pt`):
+### Pathway AUROC evaluation (implemented)
+`src/evaluation/pathway_evaluation.py` evaluates the model against all ~300 KEGG
+human pathways using AUROC as the metric. For each pathway, the pathway name is
+used as a natural language query; AUROC measures how well the model ranks pathway
+members above non-members across all test patients.
 
-- **Collagen query works very well**: COL1A1 0.8%, COL1A2 0.9%, COL3A1 1.2%
-- **Structural/ECM proteins generally good** — model learned these clearly
-- **Functional groups weak**: MTOR 98.3%, RPS3 73.3%, BRCA1 46% — near random
-- **Root cause**: model was never trained on generic biological queries — only on
-  specific UniProt annotations + clinical descriptions. It does implicit
-  word-matching, not biological reasoning.
+**First results (multi-cohort checkpoint, raw pathway names as queries):**
+- Overall mean AUROC: ~0.72–0.75 (random baseline = 0.50)
+- Top pathways: Mucin O-glycan biosynthesis (0.96), Arginine biosynthesis (0.95),
+  Fatty acid biosynthesis (0.90), Mismatch repair (0.84)
+- Cancer signaling pathways score moderately: Cell cycle (0.71), cAMP (0.69)
+- Full results saved to `data/evaluation/pathway_auroc_results.csv`
 
-### Planned improvements
-1. **GO-Term augmentation** — fetch GO-terms per protein from UniProt, randomly
-   alternate between UniProt annotation and GO-term description during training.
-   This exposes the model to generic biological query language at training time.
-2. **BioBERT fine-tuning** — unfreeze last 2-3 BioBERT layers and run BioBERT
-   live during training (not pre-cached). Requires dropping `biobert_embeddings.h5`
-   and loading texts on-the-fly. Slower but biggest potential quality jump.
-   GPU memory should be fine on the RTX A6000 (46GB).
+**Why some pathways score high:** members share distinctive UniProt vocabulary
+(e.g. "glycosyltransferase"). **Why some score lower:** large, diverse pathways
+(Cell cycle, MAPK) whose members have heterogeneous annotations.
 
-**Start with GO-Term augmentation first** — simpler, directly comparable to
-current results, and may be sufficient for the thesis.
+### Next: focused evaluation with natural language queries
+Select ~20 biologically meaningful pathways (in consultation with professor) and
+replace raw pathway names with natural language queries a researcher would type:
+- e.g. "Ribosome" → "proteins that make up the ribosome and are involved in translation"
+- Compare AUROC: raw pathway name vs. natural language query
+
+**Candidate pathways (to confirm with professor):**
+- DNA repair: Homologous recombination, Mismatch repair, DNA replication
+- Cancer signaling: Cell cycle, Apoptosis, p53 signaling, ErbB signaling, mTOR signaling
+- Metabolism: Glycolysis, Fatty acid biosynthesis, Oxidative phosphorylation
+- Structural: Ribosome, RNA polymerase, Spliceosome
+- Immune/ECM: Complement and coagulation, Focal adhesion, Cell adhesion molecules
+
+### Activity score for patient-specific retrieval
+Pure cosine similarity gives the same ranked list for every patient — not
+patient-specific. The pragmatic fix is `activity_score` at inference:
+
+```
+activity_score = cosine_similarity × abundance_rank
+```
+
+This weights retrieval by both semantic relevance AND expression in this specific
+patient. Implement in `query_evaluation.py` and the Streamlit app.
+**Abundance stays in the embedding** — removing it would break patient-specificity,
+which is the core claim of the thesis title ("natural language retrieval in
+clinical proteomics"). The abundance scalar likely contributes minimally to the
+learned representation (1 dim vs. 640 ESM2 dims), but `activity_score` at
+inference restores patient-specificity without architecture changes. A dedicated
+abundance encoding pathway (separate MLP branch) is left as future work.
+
+### LLM integration (proof-of-concept)
+After retrieval: top-K protein IDs → filter from CSV → LLM prompt with
+abundance values + UniProt annotations → LLM generates biological hypotheses.
+Goal: biological hypothesis generation, not clinical diagnosis (1,000 samples
+is too few for clinical conclusions). Implement as Streamlit proof-of-concept
+with 2–3 example queries showing the full pipeline end-to-end.
+
+## Thesis Structure — Timeline
+
+Chronological overview of everything built, in the order it was done.
+Use this as the basis for structuring the thesis.
+
+### 1. Data acquisition
+Downloaded CPTAC proteomics and clinical data for 9 cancer cohorts via the `cptac` Python package.
+
+Per cohort:
+- `proteomics_raw.csv` — protein abundance matrix (patients × proteins)
+- `clinical.csv` — clinical metadata (age, tumor stage, smoking history, etc.)
+
+Key decisions:
+- Source: `umich` (bcm was broken for all cohorts)
+- Clinical data: `mssm` for all cohorts
+- COAD skipped — both available sources fail internally in the cptac library
+
+### 2. Text side preparation
+
+**2a. Clinical descriptions** (`src/text_generation.py`)
+
+Each patient row → natural language sentence:
+> *"67-year-old male, Stage III lung adenocarcinoma, former smoker, BMI 24.1 (normal weight)..."*
+
+**2b. UniProt annotations** (`src/Textual/fetch_uniprot.py`)
+
+ENSP IDs → UniProt REST API → gene name, annotation text, amino acid sequence per protein:
+> *"EGFR: receptor tyrosine kinase involved in cell proliferation..."*
+
+Training text = UniProt annotation + clinical description (concatenated on-the-fly, never saved to disk)
+
+### 3. Preprocessing — rank normalization
+`src/preprocessing/rank_normalize.py` replaces raw abundance values with within-sample percentile ranks [0, 1].
+
+Why: raw abundance values are not comparable across experiments/instruments. Within-sample rank is instrument-agnostic and makes the model applicable to new patient samples at inference time.
+
+### 4. Pre-computing embeddings
+
+**4a. ESM2 embeddings** (`src/embeddings/protein/esm2_embeddings.py`)
+
+Protein sequence → ESM2 (150M params, frozen) → 640-dim vector per protein.
+Saved to `data/{cohort}/esm2_embeddings.h5`. Runtime ~13 min per cohort on RTX A6000.
+
+**4b. BioBERT embeddings** (`src/embeddings/textual/embed_biobert.py`)
+
+(UniProt annotation + clinical description) → BioBERT (frozen) → 768-dim vector per (protein, patient) pair.
+Saved to `data/{cohort}/biobert_embeddings.h5`. Runtime ~60 min per ~110 patients.
+
+Why pre-compute: ESM2 and BioBERT are large models — computing embeddings once and caching them makes training feasible without fine-tuning.
+
+### 5. Model architecture
+`src/model/projection_head.py` — shared MLP architecture (LayerNorm + ReLU + L2 norm):
+- Protein head: 641→512→256 (ESM2 640-dim + abundance scalar)
+- Text head: 768→512→256
+
+Both heads project into a shared 256-dim embedding space. Only the two MLPs are trained — ESM2 and BioBERT stay frozen throughout.
+
+### 6. Training
+`src/model/train.py` — InfoNCE contrastive loss (CLIP-style)
+
+Hyperparameters:
+- Batch size: 512, Epochs: 16, Max LR: 1e-5, Temperature: 0.07
+- LR schedule: linear warmup (3%) → cosine decay
+- Patient-level test split: 10–15 patients per cohort held out, never seen during training
+
+Result (LUAD, 101 training patients, 16 epochs): loss 4.79 → 0.86
+
+### 7. Multi-cohort scaling
+All preprocessing steps extended to 8 cohorts: LUAD, BRCA, CCRCC, GBM, HNSCC, LSCC, OV, PDAC.
+
+Multi-cohort checkpoint: `data/runs/luad_brca_ccrcc_gbm_hnscc_lscc_ov_pdac/checkpoint.pt`
+Test patients: `data/test_patients_per_cohort.json` — 10 per cohort, reproducible with `random.seed(42)`
+
+### 8. Evaluation
+
+**8a. R@K** (`src/model/recall_at_k.py`)
+
+For each (protein, patient) pair: text embedding → cosine similarity against all protein embeddings → rank of the correct protein.
+
+| Experiment | R@1 | R@10 | R@50 |
+|---|---|---|---|
+| LUAD only (101 patients) | 61.50% | 94.02% | 98.22% |
+| Multi-cohort | TBD | TBD | TBD |
+
+Random baseline: R@1 ≈ 0.01%
+
+**8b. Query evaluation** (`src/model/query_evaluation.py`)
+
+Fixed biological queries → mean percentile rank across all test patients.
+
+Key findings:
+- Collagen queries work very well: COL1A1 top 0.8%, COL1A2 top 0.9%
+- Structural/ECM proteins generally good — model learned these clearly
+- Functional groups weak: MTOR 98.3%, RPS3 73.3% — near random
+- Root cause: model was trained on UniProt vocabulary, not generic biological query language
+
+**8c. Pathway AUROC** (`src/evaluation/pathway_evaluation.py`)
+
+~300 KEGG pathways as ground truth → AUROC measures how well the model ranks pathway members above non-members across all test patients.
+
+First results (multi-cohort checkpoint, raw pathway names as queries):
+- Mean AUROC: ~0.72–0.75 (random baseline = 0.50)
+- Best: Mucin O-glycan biosynthesis (0.96), Arginine biosynthesis (0.95), Fatty acid biosynthesis (0.90)
+- Cancer signaling: Cell cycle (0.71), cAMP signaling (0.69)
+- Full results: `data/evaluation/pathway_auroc_results.csv`
+
+### 9. Planned (not yet implemented)
+- **20 pathways with natural language queries** — after consultation with professor; compare AUROC: raw name vs. natural language query
+- **`activity_score = cosine_sim × abundance_rank`** — patient-specific retrieval at inference without architecture changes
+- **LLM integration** — proof-of-concept: top-K proteins → LLM prompt with abundances + UniProt annotations → biological hypotheses
+
+### Proposed thesis structure
+1. **Introduction** — motivation, CellWhisperer as prior work, thesis title and goals
+2. **Related Work** — CLIP, ESM2, BioBERT, CPTAC, GSEA comparison
+3. **Methods** — data pipeline, architecture, training (covers steps 1–6 above)
+4. **Experiments** — R@K, query evaluation, pathway AUROC (covers step 8)
+5. **Discussion** — what works, what doesn't, known limitations (abundance scalar contribution, name shortcut, within-sample rank)
+6. **Conclusion & Future Work** — GO-term augmentation, BioBERT fine-tuning, LLM integration, dedicated abundance encoding
 
 ## Current state of ProteomIQ (as of 2026-06-24)
 
