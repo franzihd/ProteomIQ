@@ -1,0 +1,321 @@
+pathway,kegg_total_genes,mean_measured,min_measured,max_measured
+Pathways of neurodegeneration,475,308.3,275,340
+Pathways in cancer,531,291.5,244,344
+Amyotrophic lateral sclerosis,364,262.3,238,278
+Alzheimer disease,369,241.5,222,260
+Human papillomavirus infection,331,215.7,193,244
+Huntington disease,306,214.4,196,230
+Endocytosis,252,204.6,177,218
+Salmonella infection,249,199.8,176,214
+PI3K-Akt signaling pathway,354,196.4,167,235
+Prion disease,273,191.8,179,204
+Shigellosis,246,180.3,160,193
+Parkinson disease,249,175.6,162,183
+Coronavirus disease,232,174.0,160,184
+MAPK signaling pathway,294,170.4,132,200
+Thermogenesis,232,162.3,148,178
+Human immunodeficiency virus 1 infection,212,153.2,130,165
+Regulation of actin cytoskeleton,218,152.8,137,167
+Focal adhesion,201,152.6,140,173
+Diabetic cardiomyopathy,203,152.5,145,160
+Herpes simplex virus 1 infection,498,150.8,121,193
+Human T-cell leukemia virus 1 infection,219,150.5,126,174
+Epstein-Barr virus infection,202,145.2,127,161
+Proteoglycans in cancer,205,144.4,130,164
+Human cytomegalovirus infection,225,144.1,125,160
+Pathogenic Escherichia coli infection,197,143.4,126,154
+RNA transport,186,142.2,131,147
+Lipid and atherosclerosis,215,140.4,111,154
+Protein processing in endoplasmic reticulum,171,137.7,126,150
+Ras signaling pathway,232,131.0,107,155
+Rap1 signaling pathway,210,130.5,108,151
+Viral carcinogenesis,203,126.1,111,140
+Kaposi sarcoma-associated herpesvirus infection,193,123.3,105,140
+NOD-like receptor signaling pathway,181,122.3,102,134
+Spliceosome,150,120.5,113,124
+Ribosome,158,117.7,112,121
+Phagosome,152,117.0,108,130
+Tight junction,169,115.2,100,128
+Tuberculosis,180,113.6,93,129
+Chemokine signaling pathway,192,113.4,93,130
+Axon guidance,182,112.4,84,145
+Autophagy,137,112.3,96,123
+Yersinia infection,137,111.6,96,118
+Cellular senescence,156,110.8,95,124
+MicroRNAs in cancer,310,110.3,94,124
+Non-alcoholic fatty liver disease,155,110.3,97,119
+Hepatitis B,162,110.0,89,125
+Influenza A,172,109.6,97,119
+mTOR signaling pathway,154,107.1,94,119
+Ubiquitin mediated proteolysis,140,103.8,84,116
+Hepatocellular carcinoma,168,103.2,90,120
+Spinocerebellar ataxia,143,102.6,90,118
+Chemical carcinogenesis,239,102.4,85,118
+Insulin signaling pathway,137,101.6,89,110
+Lysosome,128,99.3,84,112
+Hepatitis C,157,98.3,90,107
+Transcriptional misregulation in cancer,192,97.9,70,119
+Apoptosis,142,97.3,84,108
+Calcium signaling pathway,240,94.0,75,131
+cAMP signaling pathway,216,93.4,74,129
+Oxidative phosphorylation,133,93.0,88,98
+Necroptosis,159,92.6,81,100
+Platelet activation,124,92.5,80,103
+Fluid shear stress and atherosclerosis,139,91.7,74,103
+Oxytocin signaling pathway,154,91.4,74,114
+Neutrophil extracellular trap formation,189,90.8,83,104
+cGMP-PKG signaling pathway,167,90.8,75,109
+Apelin signaling pathway,137,90.4,75,105
+Phospholipase D signaling pathway,148,89.6,76,106
+Measles,139,89.1,73,102
+Osteoclast differentiation,127,88.0,73,101
+Wnt signaling pathway,166,87.6,68,110
+Cell cycle,124,87.5,66,104
+Thyroid hormone signaling pathway,121,87.3,79,94
+Hippo signaling pathway,163,86.9,68,110
+AMPK signaling pathway,120,86.2,77,93
+Neurotrophin signaling pathway,119,85.6,68,99
+Purine metabolism,129,85.2,69,101
+Sphingolipid signaling pathway,119,85.2,74,95
+Retrograde endocannabinoid signaling,148,83.2,71,118
+Cell adhesion molecules,148,83.2,71,102
+Relaxin signaling pathway,129,82.6,67,97
+Fc gamma R-mediated phagocytosis,97,81.0,73,87
+Toxoplasmosis,112,81.0,69,89
+FoxO signaling pathway,131,80.3,65,91
+Leukocyte transendothelial migration,114,79.0,71,88
+HIF-1 signaling pathway,109,78.9,70,86
+mRNA surveillance pathway,98,77.3,72,82
+Adrenergic signaling in cardiomyocytes,150,76.6,62,106
+Dopaminergic synapse,132,76.6,65,100
+Cushing syndrome,155,76.4,64,91
+Oocyte meiosis,129,76.2,60,89
+Insulin resistance,108,75.0,68,80
+TNF signaling pathway,112,74.5,58,90
+AGE-RAGE signaling pathway in diabetic complications,100,74.4,61,85
+Estrogen signaling pathway,137,74.3,64,84
+"Growth hormone synthesis, secretion and action",119,73.7,65,87
+T cell receptor signaling pathway,104,73.6,56,82
+Gastric cancer,149,73.1,60,88
+Phosphatidylinositol signaling system,97,72.2,63,81
+Complement and coagulation cascades,85,70.5,64,76
+Breast cancer,147,70.3,56,85
+Vascular smooth muscle contraction,133,70.3,59,82
+Longevity regulating pathway,102,70.0,58,79
+Glucagon signaling pathway,107,69.1,58,75
+C-type lectin receptor signaling pathway,104,68.5,56,76
+Ribosome biogenesis in eukaryotes,108,67.7,62,72
+Chagas disease,102,67.7,55,76
+Small cell lung cancer,92,67.6,58,78
+Choline metabolism in cancer,98,67.4,56,77
+Th17 cell differentiation,107,66.9,50,78
+ECM-receptor interaction,88,66.4,60,79
+Amoebiasis,102,65.4,53,79
+Bacterial invasion of epithelial cells,77,65.0,58,69
+Signaling pathways regulating pluripotency of stem cells,143,64.5,44,87
+RNA degradation,79,64.1,55,69
+PD-L1 expression and PD-1 checkpoint pathway in cancer,89,63.8,49,73
+Alcoholism,186,63.0,52,78
+NF-kappa B signaling pathway,104,62.8,50,75
+Prostate cancer,97,62.7,53,74
+Glycerophospholipid metabolism,98,62.7,50,75
+Natural killer cell mediated cytotoxicity,131,62.6,51,70
+"Parathyroid hormone synthesis, secretion and action",106,61.5,48,73
+ErbB signaling pathway,85,61.4,53,68
+Colorectal cancer,86,60.7,51,71
+Pancreatic cancer,76,60.4,53,66
+Chronic myeloid leukemia,76,60.2,54,67
+B cell receptor signaling pathway,81,59.9,46,68
+GnRH signaling pathway,93,59.8,51,70
+Progesterone-mediated oocyte maturation,100,59.8,45,73
+Inositol phosphate metabolism,73,59.8,52,66
+Peroxisome,82,59.6,49,70
+Adherens junction,71,59.3,52,67
+Drug metabolism,108,58.7,48,68
+Toll-like receptor signaling pathway,104,58.4,47,67
+Th1 and Th2 cell differentiation,92,57.9,43,68
+Gap junction,88,57.8,51,68
+Cytokine-cytokine receptor interaction,295,56.3,33,98
+Glutamatergic synapse,114,56.2,43,89
+Cholinergic synapse,113,55.9,45,78
+Renal cell carcinoma,69,55.3,44,60
+Leishmaniasis,77,54.1,45,62
+Hypertrophic cardiomyopathy,90,54.0,44,64
+Non-small cell lung cancer,72,53.7,46,59
+Dilated cardiomyopathy,96,53.5,42,68
+IL-17 signaling pathway,94,53.3,39,65
+Glycolysis / Gluconeogenesis,67,52.5,47,57
+Inflammatory mediator regulation of TRP channels,98,52.3,42,65
+Mitophagy,68,52.0,40,58
+Central carbon metabolism in cancer,70,51.8,47,57
+JAK-STAT signaling pathway,162,51.8,40,67
+Serotonergic synapse,113,50.8,41,67
+Epithelial cell signaling in Helicobacter pylori infection,70,50.1,41,57
+PPAR signaling pathway,74,49.7,43,54
+Staphylococcus aureus infection,95,49.5,38,59
+Glioma,75,49.4,42,57
+Lysine degradation,63,49.4,40,58
+Pertussis,76,49.3,38,58
+Circadian entrainment,97,48.9,38,72
+Melanogenesis,101,48.5,40,60
+Aldosterone synthesis and secretion,98,48.5,38,63
+TGF-beta signaling pathway,94,48.4,36,64
+Fc epsilon RI signaling pathway,68,48.3,41,53
+Arrhythmogenic right ventricular cardiomyopathy,77,47.7,38,60
+Rheumatoid arthritis,93,47.2,36,61
+Protein digestion and absorption,103,47.2,38,63
+Acute myeloid leukemia,67,46.7,37,53
+Pancreatic secretion,102,46.6,37,65
+Adipocytokine signaling pathway,69,46.1,39,50
+Antigen processing and presentation,78,45.6,41,51
+p53 signaling pathway,73,45.4,33,56
+Hematopoietic cell lineage,99,45.4,33,64
+VEGF signaling pathway,59,44.3,35,50
+"Valine, leucine and isoleucine degradation",48,43.6,40,46
+Amino sugar and nucleotide sugar metabolism,48,43.5,41,44
+RIG-I-like receptor signaling pathway,70,43.5,34,47
+Cardiac muscle contraction,87,43.4,36,55
+Viral myocarditis,60,43.1,39,48
+Pyrimidine metabolism,56,43.0,37,47
+Salivary secretion,93,42.4,35,52
+Long-term potentiation,67,42.3,34,56
+Systemic lupus erythematosus,135,41.8,37,48
+Endometrial cancer,58,41.8,35,48
+Thyroid hormone synthesis,75,41.5,35,48
+Long-term depression,60,41.3,35,49
+Aminoacyl-tRNA biosynthesis,66,40.9,40,42
+Proteasome,46,40.7,38,42
+Melanoma,72,40.4,33,47
+Glutathione metabolism,57,40.1,33,44
+Nucleotide excision repair,47,40.0,34,43
+Legionellosis,57,39.7,32,46
+Pyruvate metabolism,47,39.3,35,42
+Synaptic vesicle cycle,78,38.9,30,54
+Prolactin signaling pathway,70,38.8,30,47
+Cytosolic DNA-sensing pathway,63,38.5,32,44
+Morphine addiction,91,37.5,25,68
+Glycerolipid metabolism,61,37.3,29,42
+Gastric acid secretion,76,37.3,29,48
+GABAergic synapse,89,37.1,28,69
+Cholesterol metabolism,50,36.8,30,41
+N-Glycan biosynthesis,50,36.7,30,41
+Cysteine and methionine metabolism,50,36.7,31,41
+Notch signaling pathway,59,36.5,27,44
+Arginine and proline metabolism,50,35.6,31,41
+Vibrio cholerae infection,50,35.6,30,41
+Fatty acid degradation,43,35.6,31,38
+Renin secretion,69,35.0,27,44
+Insulin secretion,86,35.0,25,54
+Basal transcription factors,45,34.1,25,39
+Endocrine and other factor-regulated calcium reabsorption,53,33.1,25,41
+DNA replication,36,31.5,26,34
+Amphetamine addiction,69,31.2,23,45
+Mineral absorption,60,30.8,19,37
+Ferroptosis,41,30.8,26,35
+Arachidonic acid metabolism,61,30.5,23,39
+GnRH secretion,64,30.5,27,41
+Vasopressin-regulated water reabsorption,44,30.3,25,35
+Neuroactive ligand-receptor interaction,341,30.2,13,86
+Regulation of lipolysis in adipocytes,55,30.2,24,39
+Propanoate metabolism,34,29.9,28,32
+Sphingolipid metabolism,49,29.8,22,37
+Metabolism of xenobiotics by cytochrome P450,76,29.7,22,38
+Fructose and mannose metabolism,33,29.3,25,31
+Bladder cancer,41,29.1,24,34
+Various types of N-glycan biosynthesis,39,28.1,23,31
+"Alanine, aspartate and glutamate metabolism",37,28.1,24,34
+"Glycine, serine and threonine metabolism",40,27.7,23,34
+Tryptophan metabolism,42,27.6,23,32
+Malaria,50,27.6,23,31
+Cortisol synthesis and secretion,65,27.4,21,35
+Citrate cycle (TCA cycle),30,27.3,25,29
+Bile secretion,90,27.1,19,37
+Hedgehog signaling pathway,56,27.1,18,37
+SNARE interactions in vesicular transport,33,27.0,24,31
+Ether lipid metabolism,49,26.9,21,34
+Base excision repair,33,26.7,21,32
+Inflammatory bowel disease,65,26.5,20,34
+Other types of O-glycan biosynthesis,47,26.5,16,32
+Nicotinate and nicotinamide metabolism,35,26.0,23,28
+Fanconi anemia pathway,54,25.9,14,39
+Homologous recombination,41,25.6,18,34
+Glycosaminoglycan biosynthesis,53,25.4,14,36
+Type II diabetes mellitus,46,24.6,20,31
+Pentose phosphate pathway,30,24.5,22,26
+Glyoxylate and dicarboxylate metabolism,30,24.4,22,29
+Carbohydrate digestion and absorption,47,24.2,18,33
+RNA polymerase,31,23.7,20,26
+Thyroid cancer,37,23.4,18,28
+Viral protein interaction with cytokine and cytokine receptor,100,23.4,13,39
+Basal cell carcinoma,63,23.1,13,36
+Galactose metabolism,31,22.4,20,26
+Porphyrin and chlorophyll metabolism,43,22.4,19,28
+Retinol metabolism,68,22.3,13,31
+Starch and sucrose metabolism,36,22.1,19,28
+beta-Alanine metabolism,30,21.9,20,26
+ABC transporters,45,21.8,14,30
+Aldosterone-regulated sodium reabsorption,37,21.8,18,25
+Ovarian steroidogenesis,51,20.7,13,29
+Type I diabetes mellitus,43,20.7,16,26
+Tyrosine metabolism,36,20.6,14,25
+Primary immunodeficiency,38,20.6,14,27
+Protein export,23,20.4,19,22
+Fat digestion and absorption,43,20.1,15,28
+Olfactory transduction,440,20.0,13,28
+Mismatch repair,23,19.9,18,22
+African trypanosomiasis,37,19.4,17,22
+Cocaine addiction,49,19.3,15,30
+Terpenoid backbone biosynthesis,22,18.6,14,21
+Butanoate metabolism,28,18.5,17,23
+Autoimmune thyroid disease,53,18.4,15,24
+Allograft rejection,38,17.9,15,22
+Circadian rhythm,31,17.7,9,24
+Biosynthesis of unsaturated fatty acids,27,17.7,12,23
+Folate biosynthesis,26,17.6,15,20
+Intestinal immune network for IgA production,48,17.4,13,25
+Graft-versus-host disease,42,17.2,14,24
+Fatty acid elongation,27,17.1,13,22
+Steroid hormone biosynthesis,61,17.1,10,24
+Collecting duct acid secretion,27,16.8,13,22
+Arginine biosynthesis,22,16.2,14,18
+Pantothenate and CoA biosynthesis,21,15.9,14,18
+One carbon pool by folate,20,15.7,13,18
+Histidine metabolism,22,15.1,13,17
+Other glycan degradation,18,15.1,13,17
+Steroid biosynthesis,20,14.9,12,17
+Mucin type O-glycan biosynthesis,36,14.5,7,19
+Glycosphingolipid biosynthesis,45,14.4,9,20
+Selenocompound metabolism,17,14.3,11,15
+Glycosylphosphatidylinositol (GPI)-anchor biosynthesis,26,14.2,9,18
+Asthma,31,14.2,12,18
+Renin-angiotensin system,23,14.2,11,17
+Pentose and glucuronate interconversions,34,13.8,10,20
+Glycosaminoglycan degradation,19,13.5,10,17
+Fatty acid biosynthesis,18,13.4,11,16
+Proximal tubule bicarbonate reclamation,23,13.0,9,17
+Taste transduction,86,12.6,7,32
+Vitamin digestion and absorption,24,11.7,8,15
+Ascorbate and aldarate metabolism,30,11.1,8,18
+Non-homologous end-joining,13,10.7,9,12
+Nitrogen metabolism,17,10.6,8,13
+Thiamine metabolism,15,10.5,9,13
+alpha-Linolenic acid metabolism,25,10.1,7,15
+Phenylalanine metabolism,17,9.7,8,13
+Mannose type O-glycan biosynthesis,23,9.2,5,15
+Sulfur metabolism,10,8.9,8,9
+Primary bile acid biosynthesis,17,8.2,6,10
+Synthesis and degradation of ketone bodies,10,7.9,7,9
+Sulfur relay system,8,7.8,5,8
+Linoleic acid metabolism,29,7.5,4,13
+Riboflavin metabolism,8,7.4,6,8
+Ubiquinone and other terpenoid-quinone biosynthesis,11,7.2,6,9
+Vitamin B6 metabolism,6,4.9,4,6
+Maturity onset diabetes of the young,26,4.7,1,12
+Phosphonate and phosphinate metabolism,6,4.5,2,6
+Taurine and hypotaurine metabolism,11,4.3,3,6
+D-Glutamine and D-glutamate metabolism,5,4.1,3,5
+"Neomycin, kanamycin and gentamicin biosynthesis",5,3.7,3,4
+Phototransduction,28,3.4,2,5
+"Phenylalanine, tyrosine and tryptophan biosynthesis",6,3.3,3,4
+Nicotine addiction,40,2.5,0,23
+Caffeine metabolism,6,1.8,1,4

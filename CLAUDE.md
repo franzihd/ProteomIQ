@@ -435,6 +435,7 @@ The thesis (~30 pages) compares model performance across increasing amounts of t
 - Qualitative results from `evaluate.py`: RTK query works well (KRAS rank 398, top 4.2%); ribosomal query conflates cytoplasmic and mitochondrial ribosomes — expected with only 111 patients, should improve with more data
 - CellWhisperer comparison: same CLIP-style approach applied to scRNA-seq; ProteomIQ targets mass-spectrometry proteomics instead
 - R@K limitation — name shortcut: both ESM2 and BioBERT encode protein identity (ESM2 via unique sequence, BioBERT via gene name in UniProt annotation e.g. "EGFR: receptor tyrosine kinase..."). The model may be learning name matching rather than purely biological function. A stricter evaluation would mask the gene name from the annotation text. This is worth one sentence of acknowledgment in the thesis as a known limitation.
+- **R@K vs. pathway AUROC — the name shortcut, quantified:** multi-cohort R@K is near-perfect (R@1=90.9%, R@10=99.75%, R@50=99.96%), but each R@K query is a protein's *own* true UniProt annotation, which starts with its own gene name (`src/model/recall_at_k.py`) — a closed-set self-identification task with a built-in shortcut. Pathway AUROC uses generic category names with no gene names at all (e.g. "Ribosome"), removing that shortcut — and there, mean AUROC is only 0.573 with 32% of pathways scoring below random (see Timeline 8d). The size of this gap is itself evidence for the name-shortcut limitation, now measured rather than just suspected. Report both numbers together: R@K alone overstates the model, pathway AUROC alone understates it.
 
 ## Planned tool: Streamlit interface with LLM interpretation
 
@@ -535,6 +536,8 @@ members above non-members across all test patients.
 (Cell cycle, MAPK) whose members have heterogeneous annotations.
 
 ### Next: focused evaluation with natural language queries
+**Update (2026-07-06):** the hand-picked approach below was rejected by the professor as not scientifically defensible — replaced with objective, performance-blind selection criteria. See the "Next steps (as of 2026-07-06)" section and Timeline section 8d for what was actually built and the results. Kept here as a historical record of the original plan.
+
 Select ~20 biologically meaningful pathways (in consultation with professor) and
 replace raw pathway names with natural language queries a researcher would type:
 - e.g. "Ribosome" → "proteins that make up the ribosome and are involved in translation"
@@ -570,6 +573,22 @@ abundance values + UniProt annotations → LLM generates biological hypotheses.
 Goal: biological hypothesis generation, not clinical diagnosis (1,000 samples
 is too few for clinical conclusions). Implement as Streamlit proof-of-concept
 with 2–3 example queries showing the full pipeline end-to-end.
+
+## Next steps (as of 2026-07-06)
+
+### Objective pathway selection (implemented, replaces hand-picking)
+Professor flagged that hand-picking ~20 pathways is not scientifically defensible — any manually curated list can be second-guessed as selection bias, no matter how principled the reasoning behind each pick. Replaced with pre-specified, performance-blind inclusion criteria applied to all 320 KEGG pathways at once, decided before looking at any AUROC results:
+
+- `src/evaluation/pathway_final_choice.py` — applies the coverage filter (≥50% of pathway genes measured), the power filter (≥5 measured genes in the worst-covered test patient), and computes annotation coverage as a reported covariate (not a filter). Also flags cohort-matched cancer-type pathways as a pre-specified secondary analysis. Output: `data/evaluation/pathway_final_choice.csv`.
+- `src/evaluation/pathway_final_auroc_evaluation.py` — computes AUROC only for the pathways that passed both hard filters, merges the scores back onto the selection table. Output: `data/evaluation/pathway_final_auroc_results.csv`.
+
+Full results and the checkpoint-version caveat discovered while comparing against the earlier unfiltered run are in Timeline section **8d**.
+
+### Key interpretive finding: R@K vs. pathway AUROC gap
+Multi-cohort R@K (90.9% / 99.75% / 99.96%) and pathway AUROC (mean 0.573, uneven, 32% below random) are not contradictory — they test different things. R@K's query for each evaluation instance is a protein's own true annotation text, which contains its own gene name — a closed-set self-identification task with a built-in shortcut. Pathway AUROC's queries are generic category names with no gene names — an open-vocabulary generalization task with no shortcut available. The size of the gap between the two is evidence for the "name shortcut" limitation already noted elsewhere in this file — now quantified rather than just suspected.
+
+### Decision: natural-language queries before more training data
+Two options considered for closing the pathway AUROC gap: (a) rephrase pathway queries in natural language, (b) get more/richer training data (GO-term augmentation). Decision: do (a) first — it's cheap (no retraining, just rerun the existing checkpoint with rewritten queries), fast (~an afternoon), and diagnostic (tells us whether the gap is query-phrasing or a real generalization limit). CPTAC cohort count is also already maxed out (9/10 usable cohorts, COAD structurally broken in the library), so "more training data" in practice means the heavier GO-term augmentation investment — only justified if (a) shows the gap survives well-phrased queries.
 
 ## Thesis Structure — Timeline
 
@@ -653,9 +672,13 @@ For each (protein, patient) pair: text embedding → cosine similarity against a
 | Experiment | R@1 | R@10 | R@50 |
 |---|---|---|---|
 | LUAD only (101 patients) | 61.50% | 94.02% | 98.22% |
-| Multi-cohort | TBD | TBD | TBD |
+| Multi-cohort (9 cohorts, all test patients) | 90.99% | 99.75% | 99.96% |
 
 Random baseline: R@1 ≈ 0.01%
+
+Full incremental scaling curve (R@K recomputed after adding each cohort, 1→9) saved to `data/scaling_results_v2.json`, computed via `src/model/run_experiments.py`. R@1 rises monotonically from 66.5% (LUAD only, this run's own checkpoint) to 90.9% (all 9 cohorts) — confirms the scaling hypothesis. Note: the 66.5%/95.4%/98.6% "LUAD only" numbers in that JSON come from a different checkpoint/test-split setup (`data/runs/luad/checkpoint.pt`, 10 held-out patients) than the 61.50%/94.02%/98.22% row above (`data/luad/checkpoint.pt`, 15 held-out patients) — both are valid but not directly comparable; don't mix them in the same table without noting the difference.
+
+**Important — R@K measures something narrower than it looks like it does.** `recall_at_k.py` queries each protein with *its own* pre-cached true annotation text, which by construction starts with its own gene name (e.g. `"EGFR: receptor tyrosine kinase..."`). Near-100% R@K mostly proves the model can re-identify a protein from a description containing its own name — a closed-set self-identification task with a built-in shortcut, not evidence of general biological understanding. See **8d** below for the harder, shortcut-free test (pathway AUROC) and how the two numbers together tell the real story.
 
 **8b. Query evaluation** (`src/model/query_evaluation.py`)
 
@@ -677,8 +700,30 @@ First results (multi-cohort checkpoint, raw pathway names as queries):
 - Cancer signaling: Cell cycle (0.71), cAMP signaling (0.69)
 - Full results: `data/evaluation/pathway_auroc_results.csv`
 
+**8d. Objective pathway selection + filtered AUROC** (`src/evaluation/pathway_final_choice.py`, `src/evaluation/pathway_final_auroc_evaluation.py`)
+
+Problem: the ~20 hand-picked pathways originally planned for a "focused evaluation" (see section 9 of the 2026-06-28 notes below) were rejected by the professor as not scientifically defensible — manually curating a subset out of 320 candidates is selection bias, however well-intentioned the picks are.
+
+Solution: replace pathway *picking* with pre-specified pathway *inclusion criteria*, applied identically to all 320 KEGG pathways and decided before looking at any AUROC results:
+1. **Coverage filter (hard cutoff):** `mean_measured / kegg_total_genes >= 50%` — at least half of a pathway's KEGG member genes must actually be measured (non-NaN), on average across test patients. Excludes 75/320 pathways — mostly membrane receptors/GPCRs and low-abundance secreted signaling proteins (olfactory transduction, taste transduction, cytokine-receptor interaction), a known mass-spec detection blind spot rather than a flaw in the filter.
+2. **Power filter (hard cutoff):** `min_measured >= 5` (matches `MIN_POSITIVES`, already used for AUROC stability elsewhere) — the *worst-covered* test patient must still have ≥5 measured pathway genes, so no patient is silently dropped from a pathway's AUROC computation.
+3. **Annotation coverage (covariate, not a filter):** fraction of a pathway's genes with a real UniProt annotation (vs. the ~1,421 unannotated TrEMBL entries) — reported next to AUROC so a low score can be judged as a model failure vs. a UniProt data gap, but it does not gate inclusion.
+
+Cohort-matched cancer-type pathways (Non-small cell lung cancer for luad/lscc, Breast cancer, Renal cell carcinoma, Glioma, Pancreatic cancer, Endometrial cancer) are flagged as a **pre-specified secondary analysis** — motivated by "these are the cohorts the model trained on," decided independent of how they score. HNSCC and OV have no direct KEGG cancer-type match.
+
+**Results (9-cohort checkpoint, `data/evaluation/pathway_final_auroc_results.csv`):**
+- 245 / 320 pathways passed both hard filters
+- Mean AUROC = 0.573 (median 0.556, range 0.32–0.95)
+- 79 / 245 pathways (32%) scored *below* the 0.5 random baseline — notably neurological/cardiac disease pathways with no obvious proteomic signature in cancer patients (Alzheimer disease 0.355, Arrhythmogenic right ventricular cardiomyopathy 0.333)
+- Correlations: `coverage_fraction` r=+0.23, `annotation_coverage_fraction` r=+0.24, `kegg_total_genes` r=-0.37 — bigger/more diffuse pathways score worse, a quantitative confirmation of the "large heterogeneous pathways underperform" pattern first noticed in 8c
+- **Cohort-matched secondary analysis:** mean AUROC = 0.473, *below* the overall 0.573 — Glioma 0.539, NSCLC 0.507, Pancreatic cancer 0.470, Renal cell carcinoma 0.429, Endometrial cancer 0.417. **Breast cancer was excluded from the evaluation set entirely** — its coverage (47.8%) fell just under the 50% cutoff, before AUROC was ever computed. This is the filter working as intended: it excludes even the most thesis-relevant pathway when the data doesn't support it, with zero regard for how the result would look.
+
+**Methodological caveat — checkpoint confound:** comparing 0.573 (new, filtered, 9-cohort checkpoint) against the earlier 0.72–0.75 (8c, unfiltered, 8-cohort checkpoint) is misleading. When the *old* unfiltered results are restricted to the same 245 pathways, the mean is 0.605 — nearly identical to its own full-320-pathway mean (0.606). This shows **the filtering itself barely changes the aggregate number**; the ~3-point gap between 0.605 and 0.573 is attributable to the checkpoint version (8-cohort vs. 9-cohort/+UCEC), not to pathway selection. Rerun both evaluations on the same checkpoint before making any "filtering changed the result" claim in the thesis.
+
 ### 9. Planned (not yet implemented)
-- **20 pathways with natural language queries** — after consultation with professor; compare AUROC: raw name vs. natural language query
+- ~~20 hand-picked pathways with natural language queries~~ — superseded (see 8d): hand-picking was rejected as not scientifically defensible; objective filtering criteria implemented instead.
+- **Natural language query rewrites (next up):** rerun `pathway_final_auroc_evaluation.py` with researcher-style phrasings instead of raw KEGG names (e.g. "Non-small cell lung cancer" → "genes driving lung cancer progression and proliferation") for the cohort-matched pathways, to test whether the low cohort-matched AUROC (0.473 mean) is a query-phrasing problem or a genuine generalization limit. Cheap, no retraining required — do this before investing in more training data.
+- **GO-term augmentation (deferred):** exposes the model to generic biological vocabulary at training time. A bigger investment (new data source + full retrain) — only justified if the natural-language-query experiment shows the generalization gap persists even with well-phrased queries.
 - **`activity_score = cosine_sim × abundance_rank`** — patient-specific retrieval at inference without architecture changes
 - **LLM integration** — proof-of-concept: top-K proteins → LLM prompt with abundances + UniProt annotations → biological hypotheses
 
@@ -695,7 +740,7 @@ First results (multi-cohort checkpoint, raw pathway names as queries):
 ### What it can do
 - Given a patient's protein abundance sample, rank proteins by semantic relevance to a natural language query
 - Works well for queries that use UniProt-style vocabulary: "receptor tyrosine kinase", "component of the 60S ribosomal subunit", "collagen fibril assembly"
-- R@K=61.5% on LUAD test set (random baseline ~0.01%) — proves the contrastive training objective worked
+- R@K=61.5% on LUAD-only test set, 90.9%/99.75%/99.96% on the full 9-cohort model (random baseline ~0.01%) — proves the contrastive training objective worked, though pathway-level AUROC (mean 0.573, see Timeline 8d) shows R@K is partly inflated by a name-matching shortcut
 - query_evaluation.py shows concrete examples: EGFR ranks top 2%, COL1A2 top 0.7%, RPL7 top 0.1% for matching queries
 
 ### What it cannot do yet
@@ -706,7 +751,7 @@ First results (multi-cohort checkpoint, raw pathway names as queries):
 - Say a protein is "overexpressed" — within-sample rank has no cross-patient reference
 
 ### How to explain it to a professor
-*"ProteomIQ is a proof-of-concept that shows CLIP-style contrastive training works for proteomics data. Given a patient's protein abundance sample, the model ranks proteins by semantic relevance to a free-text query — for example, ranking EGFR and MET highest for 'receptor tyrosine kinase signaling.' R@K=61.5% shows the model learned real biological structure, far above the random baseline. The current limitation is that ranking is largely driven by protein identity rather than patient-specific abundance, so results are not yet truly personalized. The next step — GO-term augmentation — exposes the model to generic biological vocabulary at training time, which is what a researcher would actually type."*
+*"ProteomIQ is a proof-of-concept that shows CLIP-style contrastive training works for proteomics data. Given a patient's protein abundance sample, the model ranks proteins by semantic relevance to a free-text query — for example, ranking EGFR and MET highest for 'receptor tyrosine kinase signaling.' Multi-cohort R@K=90.9% shows the model can discriminate its own training pairs almost perfectly, but that number is inflated by a name-matching shortcut — the harder, shortcut-free pathway-AUROC evaluation (mean 0.573, no gene names in the query) shows more modest, uneven generalization: strong on lexically distinctive biochemical pathways, weak on diffuse cancer-signaling pathways. The current limitation is that ranking is largely driven by protein identity rather than patient-specific abundance, so results are not yet truly personalized. The next step is testing natural-language query rewrites (cheap, no retraining) before deciding whether the more expensive GO-term augmentation is actually necessary."*
 
 ### How it differs from GSEA
 GSEA requires predefined pathway gene sets and tests statistical enrichment. ProteomIQ accepts any free-text natural language query. That advantage fully materializes once GO-term augmentation is done — until then, the model only works well for queries that closely match UniProt annotation language.
