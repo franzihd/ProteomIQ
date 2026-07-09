@@ -27,7 +27,7 @@ def embed_batch (texts, tokenizer, model, device):
     encoded = tokenizer(texts, padding=True, truncation=True, max_length=MAX_LENGTH, return_tensors="pt")
     # Move all tensors to the GPU (or CPU if GPU is not available) before passing them to the model
     encoded = {k: v.to(device) for k, v in encoded.items()}
-   
+
     # Run BioBERT without computing gradients - we are not training, just extracting embeddings
     with torch.no_grad():
         outputs = model(**encoded)
@@ -45,18 +45,14 @@ def main():
 
     data_dir = Path(f"data/{args.cohort}")
     annotations_path = data_dir / "protein_annotations.csv"
-    descriptions_path = data_dir / "clinical_descriptions.csv"
     output_path = data_dir / "biobert_embeddings.h5"
-    # Load protein annotations and drop rows wehre Sequence is missing
+    # Load protein annotations and drop rows where Sequence or Annotation is missing
     # reset_index is used to reset the DataFrame index after dropping rows, so it goes from 0 to n-1 instead of keeping the original indices
     annotations = pd.read_csv(annotations_path)
     annotations = annotations.dropna(subset=["Sequence", "Annotation"]).reset_index(drop=True)
-    # Load patient descriptions, using the first column as the index
-    descriptions = pd.read_csv(descriptions_path, index_col=0)
 
     n_proteins = len(annotations)
-    n_patients = len(descriptions)
-    print(f"Proteins: {n_proteins}, Patients: {n_patients}, Total pairs: {n_proteins * n_patients}")
+    print(f"Proteins: {n_proteins}")
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     print(f"Using device: {device}")
@@ -66,35 +62,29 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     model = AutoModel.from_pretrained(MODEL_NAME).to(device).eval()
 
+    texts = annotations["Annotation"].tolist()
+
     # Open HDF5 file for writing. All datasets inside are written directly to disk.
     mode = "r+" if output_path.exists() else "w"
     with h5py.File(output_path, mode) as h5f:
 
         if mode == "w":
-            emb_ds = h5f.create_dataset("embeddings", shape=(n_patients, n_proteins, 768), dtype="float32")
-            h5f.create_dataset("patient_ids", data=np.array(descriptions.index.tolist(), dtype="S50"))
+            emb_ds = h5f.create_dataset("embeddings", shape=(n_proteins, 768), dtype="float32")
             h5f.create_dataset("protein_ids", data=np.array(annotations["ENSP_ID"].tolist(), dtype="S30"))
-            completed = h5f.create_dataset("completed", data=np.zeros(n_patients, dtype=bool))
+            completed = h5f.create_dataset("completed", data=np.zeros(n_proteins, dtype=bool))
         else:
             emb_ds = h5f["embeddings"]
             completed = h5f["completed"]
-            print(f"Resuming from patient {int(completed[:].sum())}/{n_patients}")
+            print(f"Resuming from protein {int(completed[:].sum())}/{n_proteins}")
 
-        for p_idx, patient_id in enumerate(tqdm(descriptions.index, desc="Patients")):
+        for i in tqdm(range(0, n_proteins, BATCH_SIZE), desc="Proteins"):
 
-            if completed[p_idx]:
+            if completed[i]:
                 continue
 
-            clinical_text = descriptions.loc[patient_id, "description"]
-            texts = (annotations["Annotation"] + " " + clinical_text).tolist()
-
-            patient_embeddings = []
-            for i in range(0, len(texts), BATCH_SIZE):
-                batch_emb = embed_batch(texts[i : i + BATCH_SIZE], tokenizer, model, device)
-                patient_embeddings.append(batch_emb)
-
-            emb_ds[p_idx] = np.vstack(patient_embeddings)
-            completed[p_idx] = True
+            batch_emb = embed_batch(texts[i : i + BATCH_SIZE], tokenizer, model, device)
+            emb_ds[i : i + BATCH_SIZE] = batch_emb
+            completed[i : i + BATCH_SIZE] = True
 
     print(f"Done. Saved to {output_path}")
 
