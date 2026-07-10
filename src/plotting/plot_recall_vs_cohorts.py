@@ -1,10 +1,13 @@
 """
-Plot R@1 and R@10 vs. number of cohorts from scaling_results_v2.json.
+Plot R@1 and R@10 vs. number of cohorts from a scaling_results JSON
+(as produced by src/model/run_experiments.py).
 Test set = 10 patients per trained cohort (growing).
 
 Usage:
-    uv run python src/plotting/plot_scaling_v2.py
+    uv run python src/plotting/plot_scaling_v2.py               # original (with clinical text)
+    uv run python src/plotting/plot_scaling_v2.py --no-clinical  # retrain without clinical text
 """
+import argparse
 import json
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -12,7 +15,19 @@ import matplotlib.ticker as mticker
 
 plt.rcParams["font.family"] = "DejaVu Sans"
 
-RESULTS_PATH = Path("data/scaling_results_v2.json")
+parser = argparse.ArgumentParser()
+parser.add_argument("--no-clinical", action="store_true",
+                     help="plot the no-clinical-text retrain instead of the original run")
+parser.add_argument("--results-path", default=None, help="override the default results JSON path")
+parser.add_argument("--out", default=None, help="override the default output PNG path")
+args = parser.parse_args()
+
+if args.results_path is None:
+    args.results_path = "data/scaling_results_no_clinical.json" if args.no_clinical else "data/scaling_results_v2.json"
+if args.out is None:
+    args.out = "data/plots/scaling_rk_no_clinical.png" if args.no_clinical else "data/plots/scaling_rk_v2.png"
+
+RESULTS_PATH = Path(args.results_path)
 COHORT_ORDER = ["luad", "brca", "ccrcc", "gbm", "hnscc", "lscc", "ov", "pdac", "ucec"]
 
 with open(RESULTS_PATH) as f:
@@ -67,7 +82,7 @@ ax.grid(axis="y", color="#E2E8F0", linewidth=1.2)
 ax.legend(fontsize=11, frameon=False, loc="lower right")
 
 plt.tight_layout()
-out = Path("data/plots/scaling_rk_v2.png")
+out = Path(args.out)
 out.parent.mkdir(parents=True, exist_ok=True)
 plt.savefig(out, dpi=150, bbox_inches="tight")
 print(f"Saved to {out}")

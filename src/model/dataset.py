@@ -28,12 +28,18 @@ class ProteomicsDataset(Dataset):
 
             with h5py.File(data_dir / "biobert_embeddings.h5", "r") as h5f:
                 biobert_matrix = torch.tensor(h5f["embeddings"][:], dtype=torch.float32)
-                biobert_patient_ids = [pid.decode() for pid in h5f["patient_ids"][:]]
                 biobert_protein_ids = [pid.decode() for pid in h5f["protein_ids"][:]]
 
             esm2_id_to_idx = {pid: i for i, pid in enumerate(esm2_protein_ids)}
             biobert_protein_id_to_idx = {pid: i for i, pid in enumerate(biobert_protein_ids)}
-            biobert_patient_id_to_idx = {pid: i for i, pid in enumerate(biobert_patient_ids)}
+
+            # Text no longer varies per patient (clinical description dropped), but we still
+            # restrict training to the same patient pool as before (patients with a valid
+            # clinical description) so this retrain isolates text content as the only variable.
+            descriptions_path = data_dir / "descriptions.csv"
+            if not descriptions_path.exists():
+                descriptions_path = data_dir / "clinical_descriptions.csv"
+            description_patient_ids = set(pd.read_csv(descriptions_path, index_col=0).index)
 
             abundance_protein_ids = [col[1] for col in abundance_df.columns]
             abundance_patient_ids = list(abundance_df.index)
@@ -42,7 +48,7 @@ class ProteomicsDataset(Dataset):
                 set(esm2_protein_ids) & set(biobert_protein_ids) & set(abundance_protein_ids)
             )
             shared_patients = (
-                set(biobert_patient_ids) & set(abundance_patient_ids)
+                description_patient_ids & set(abundance_patient_ids)
             ) - test_patient_ids
 
             protein_id_to_col = {pid: i for i, pid in enumerate(abundance_protein_ids)}
@@ -61,7 +67,6 @@ class ProteomicsDataset(Dataset):
                 "biobert_matrix": biobert_matrix,
                 "esm2_id_to_idx": esm2_id_to_idx,
                 "biobert_protein_id_to_idx": biobert_protein_id_to_idx,
-                "biobert_patient_id_to_idx": biobert_patient_id_to_idx,
             })
 
     def __len__(self):
@@ -74,8 +79,7 @@ class ProteomicsDataset(Dataset):
         esm2_vec = cd["esm2_matrix"][cd["esm2_id_to_idx"][protein_id]]
         protein_emb = torch.cat([esm2_vec, torch.tensor([abundance], dtype=torch.float32)])
 
-        patient_i = cd["biobert_patient_id_to_idx"][patient_id]
         protein_i = cd["biobert_protein_id_to_idx"][protein_id]
-        text_emb = cd["biobert_matrix"][patient_i, protein_i]
+        text_emb = cd["biobert_matrix"][protein_i]
 
         return protein_emb, text_emb

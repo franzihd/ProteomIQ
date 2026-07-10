@@ -30,16 +30,12 @@ def _ranks_for_cohort(cohort, test_ids, protein_head, text_head, device):
     with h5py.File(data_dir / "biobert_embeddings.h5") as f:
         biobert_matrix       = torch.tensor(f["embeddings"][:], dtype=torch.float32)
         biobert_protein_ids  = [p.decode() for p in f["protein_ids"][:]]
-        biobert_patient_ids  = [p.decode() for p in f["patient_ids"][:]]
 
     esm2_id_to_idx           = {p: i for i, p in enumerate(esm2_protein_ids)}
     biobert_protein_id_to_idx = {p: i for i, p in enumerate(biobert_protein_ids)}
-    biobert_patient_id_to_idx = {p: i for i, p in enumerate(biobert_patient_ids)}
 
     ranks = []
     for patient_id in test_ids:
-        if patient_id not in biobert_patient_id_to_idx:
-            continue
         if patient_id not in abundance_df.index:
             continue
         patient_row = abundance_df.loc[patient_id]
@@ -56,9 +52,8 @@ def _ranks_for_cohort(cohort, test_ids, protein_head, text_head, device):
         with torch.no_grad():
             protein_vecs = protein_head(protein_embs)
 
-        p_idx = biobert_patient_id_to_idx[patient_id]
         text_embs = torch.stack([
-            biobert_matrix[p_idx, biobert_protein_id_to_idx[pid]]
+            biobert_matrix[biobert_protein_id_to_idx[pid]]
             for pid in protein_ids_list
         ]).to(device)
         with torch.no_grad():
@@ -94,7 +89,8 @@ def compute_ranks_all_cohorts(checkpoint_path: str, cohorts: list[str]):
         test_ids = per_cohort.get(cohort, [])
         all_ranks.extend(_ranks_for_cohort(cohort, test_ids, protein_head, text_head, device))
     ranks = np.array(all_ranks)
-    return {"r1": float((ranks <= 1).mean() * 100),
+    return {"ranks": ranks,
+            "r1": float((ranks <= 1).mean() * 100),
             "r10": float((ranks <= 10).mean() * 100),
             "r50": float((ranks <= 50).mean() * 100)}
 
@@ -132,15 +128,13 @@ def compute_ranks(checkpoint_path: str = "data/luad/checkpoint.pt"):
     # map ENSP ID → row index in esm2_matrix
     esm2_id_to_idx = {pid: idx for idx, pid in enumerate(esm2_protein_ids)}
 
-    # load BioBERT embeddings: one 768-dim vector per (patient, protein) pair
+    # load BioBERT embeddings: one 768-dim vector per protein (text no longer varies per patient)
     with h5py.File(DATA_DIR / "biobert_embeddings.h5", "r") as h5f:
         biobert_matrix = torch.tensor(h5f["embeddings"][:], dtype= torch.float32)
         biobert_protein_ids = [pid.decode() for pid in h5f["protein_ids"][:]]
-        biobert_patient_ids = [pid.decode() for pid in h5f["patient_ids"][:]]
 
-    # map patient/protein ID → index in biobert_matrix
-    biobert_patient_id_to_idx = {pid: idx for idx, pid in enumerate(biobert_patient_ids)}
-    biobert_protein_id_to_idx = {pid: idx for idx, pid in enumerate(biobert_protein_ids)}   
+    # map protein ID → index in biobert_matrix
+    biobert_protein_id_to_idx = {pid: idx for idx, pid in enumerate(biobert_protein_ids)}
 
 
     all_ranks = []
@@ -176,11 +170,10 @@ def compute_ranks(checkpoint_path: str = "data/luad/checkpoint.pt"):
 
         text_embs = []
 
-        # look up the pre-computed BioBERT embedding for each (patient, protein) pair
+        # look up the pre-computed BioBERT embedding for each protein
         for protein_id in protein_ids_list:
-            p_idx = biobert_patient_id_to_idx[test_patient_id]
             q_idx = biobert_protein_id_to_idx[protein_id]
-            text_embs.append(biobert_matrix[p_idx, q_idx])
+            text_embs.append(biobert_matrix[q_idx])
         
         text_embs = torch.stack(text_embs).to(device) # shape (num_proteins, 768)
 

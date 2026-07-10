@@ -27,7 +27,8 @@ COHORT_ORDER = [
     "ucec"
 ]
 
-RESULTS_PATH = Path("data/scaling_results_v2.json")
+CHECKPOINT_NAME = "checkpoint_no_clinical.pt"
+RESULTS_PATH = Path("data/scaling_results_no_clinical.json")
 RESULTS_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 # load existing results so we can resume if interrupted
@@ -45,7 +46,7 @@ for i in range(1, len(COHORT_ORDER) + 1):
         print(f"[skip] {run_name} already done")
         continue
 
-    checkpoint_path = f"data/runs/{run_name}/checkpoint.pt"
+    checkpoint_path = f"data/runs/{run_name}/{CHECKPOINT_NAME}"
     print(f"\n{'='*60}")
     print(f"Experiment: {run_name}")
     print(f"{'='*60}")
