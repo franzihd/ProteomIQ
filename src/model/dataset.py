@@ -7,11 +7,24 @@ from torch.utils.data import Dataset
 
 
 class ProteomicsDataset(Dataset):
-    def __init__(self, cohorts: list[str], test_patient_ids: set[str] | None = None):
+    def __init__(
+        self,
+        cohorts: list[str],
+        test_patient_ids: set[str] | None = None,
+        use_abundance: bool = True,
+        held_out_protein_ids: set[str] | None = None,
+    ):
         if test_patient_ids is None:
             test_patient_ids = set()
+        if held_out_protein_ids is None:
+            held_out_protein_ids = set()
 
-        self.pairs = []       # (cohort_idx, patient_id, protein_id, abundance)
+        self.use_abundance = use_abundance
+        # (cohort_idx, patient_id, protein_id, abundance) if use_abundance,
+        # else (cohort_idx, protein_id) — one row per protein. Without
+        # abundance, protein_emb/text_emb no longer vary by patient at all,
+        # so per-patient duplicates would just be exact-copy rows.
+        self.pairs = []
         self.cohort_data = [] # per-cohort lookup structures
 
         for cohort_idx, cohort in enumerate(cohorts):
@@ -46,7 +59,7 @@ class ProteomicsDataset(Dataset):
 
             shared_proteins = (
                 set(esm2_protein_ids) & set(biobert_protein_ids) & set(abundance_protein_ids)
-            )
+            ) - held_out_protein_ids
             shared_patients = (
                 description_patient_ids & set(abundance_patient_ids)
             ) - test_patient_ids
@@ -55,12 +68,22 @@ class ProteomicsDataset(Dataset):
             abundance_array = abundance_df.values
             patient_id_to_row = {pid: i for i, pid in enumerate(abundance_patient_ids)}
 
-            for patient_id in shared_patients:
-                patient_row = patient_id_to_row[patient_id]
+            if use_abundance:
+                for patient_id in shared_patients:
+                    patient_row = patient_id_to_row[patient_id]
+                    for protein_id in shared_proteins:
+                        val = abundance_array[patient_row, protein_id_to_col[protein_id]]
+                        if not np.isnan(val):
+                            self.pairs.append((cohort_idx, patient_id, protein_id, float(val)))
+            else:
+                # One row per protein: only need to know it was measured in at
+                # least one shared (non-test) patient, not by whom or what the
+                # value was.
+                shared_rows = [patient_id_to_row[pid] for pid in shared_patients]
                 for protein_id in shared_proteins:
-                    val = abundance_array[patient_row, protein_id_to_col[protein_id]]
-                    if not np.isnan(val):
-                        self.pairs.append((cohort_idx, patient_id, protein_id, float(val)))
+                    col = abundance_array[shared_rows, protein_id_to_col[protein_id]]
+                    if not np.isnan(col).all():
+                        self.pairs.append((cohort_idx, protein_id))
 
             self.cohort_data.append({
                 "esm2_matrix": esm2_matrix,
@@ -73,11 +96,18 @@ class ProteomicsDataset(Dataset):
         return len(self.pairs)
 
     def __getitem__(self, idx):
-        cohort_idx, patient_id, protein_id, abundance = self.pairs[idx]
+        cd_idx = self.pairs[idx]
+        if self.use_abundance:
+            cohort_idx, patient_id, protein_id, abundance = cd_idx
+        else:
+            cohort_idx, protein_id = cd_idx
         cd = self.cohort_data[cohort_idx]
 
         esm2_vec = cd["esm2_matrix"][cd["esm2_id_to_idx"][protein_id]]
-        protein_emb = torch.cat([esm2_vec, torch.tensor([abundance], dtype=torch.float32)])
+        if self.use_abundance:
+            protein_emb = torch.cat([esm2_vec, torch.tensor([abundance], dtype=torch.float32)])
+        else:
+            protein_emb = esm2_vec
 
         protein_i = cd["biobert_protein_id_to_idx"][protein_id]
         text_emb = cd["biobert_matrix"][protein_i]
