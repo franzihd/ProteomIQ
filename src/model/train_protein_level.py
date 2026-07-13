@@ -36,7 +36,8 @@ def infonce_loss(protein_vec, text_vec):
     return (F.cross_entropy(logits, labels) + F.cross_entropy(logits.T, labels)) / 2
 
 
-def train(cohorts: list[str], checkpoint_path: str, epochs: int):
+def train(cohorts: list[str], checkpoint_path: str, epochs: int,
+          biobert_filename: str = "biobert_embeddings.h5"):
     # Fixed seed so repeated runs (e.g. comparing different --epochs values)
     # only differ because of epochs, not because of a different random weight
     # initialization or batch shuffle order each time.
@@ -49,8 +50,10 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int):
 
     dataset = ProteomicsDataset(
         cohorts=cohorts, use_abundance=False, held_out_protein_ids=held_out_protein_ids,
+        biobert_filename=biobert_filename,
     )
     print(f"Cohorts: {cohorts}  |  Training pairs (unique proteins): {len(dataset):,}")
+    print(f"BioBERT source: {biobert_filename}")
 
     shuffle_generator = torch.Generator().manual_seed(SEED)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True,
@@ -58,6 +61,7 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int):
 
     val_dataset = ProteomicsDataset(
         cohorts=cohorts, use_abundance=False, restrict_to_protein_ids=val_protein_ids,
+        biobert_filename=biobert_filename,
     )
     val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
     print(f"Validation pairs (proteins never trained on): {len(val_dataset):,}")
@@ -139,5 +143,8 @@ if __name__ == "__main__":
                         help="each epoch is only ~len(train_set)/512 steps (~20-160), "
                              "far fewer than the with-abundance model, so this needs to "
                              "be set deliberately — watch val_loss and stop once it plateaus")
+    parser.add_argument("--biobert-filename", default="biobert_embeddings.h5",
+                        help="e.g. biobert_embeddings_masked.h5 for the gene-name-masking ablation")
     args = parser.parse_args()
-    train(cohorts=args.cohorts, checkpoint_path=args.checkpoint, epochs=args.epochs)
+    train(cohorts=args.cohorts, checkpoint_path=args.checkpoint, epochs=args.epochs,
+          biobert_filename=args.biobert_filename)

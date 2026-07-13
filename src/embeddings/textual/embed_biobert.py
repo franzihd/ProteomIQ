@@ -38,14 +38,29 @@ def embed_batch (texts, tokenizer, model, device):
     return mean_pool(outputs.last_hidden_state, encoded['attention_mask']).cpu().numpy()
 
 
+def strip_gene_name(gene, annotation):
+    # Annotation is always built as "{gene}: {function text}" (fetch_uniprot.py).
+    # Strips just that leading prefix -- the gene-name-masking ablation -- so the
+    # rest of the functional description is untouched.
+    prefix = f"{gene}: "
+    if isinstance(gene, str) and annotation.startswith(prefix):
+        return annotation[len(prefix):]
+    return annotation
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cohort", required=True)
+    parser.add_argument("--mask-gene-names", action="store_true",
+                        help="strip the leading '{gene}: ' prefix from each annotation "
+                             "before embedding; writes to biobert_embeddings_masked.h5 "
+                             "instead of biobert_embeddings.h5")
     args = parser.parse_args()
 
     data_dir = Path(f"data/{args.cohort}")
     annotations_path = data_dir / "protein_annotations.csv"
-    output_path = data_dir / "biobert_embeddings.h5"
+    output_filename = "biobert_embeddings_masked.h5" if args.mask_gene_names else "biobert_embeddings.h5"
+    output_path = data_dir / output_filename
     # Load protein annotations and drop rows where Sequence or Annotation is missing
     # reset_index is used to reset the DataFrame index after dropping rows, so it goes from 0 to n-1 instead of keeping the original indices
     annotations = pd.read_csv(annotations_path)
@@ -62,7 +77,12 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     model = AutoModel.from_pretrained(MODEL_NAME).to(device).eval()
 
-    texts = annotations["Annotation"].tolist()
+    if args.mask_gene_names:
+        texts = [strip_gene_name(g, a) for g, a in zip(annotations["Gene"], annotations["Annotation"])]
+        n_masked = sum(t != a for t, a in zip(texts, annotations["Annotation"]))
+        print(f"Gene-name prefix stripped from {n_masked}/{n_proteins} annotations")
+    else:
+        texts = annotations["Annotation"].tolist()
 
     # Open HDF5 file for writing. All datasets inside are written directly to disk.
     mode = "r+" if output_path.exists() else "w"

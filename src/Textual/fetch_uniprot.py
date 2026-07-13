@@ -4,6 +4,37 @@ import time
 import argparse
 
 
+# Data-driven choice (see CLAUDE.md "GO-term augmentation"): the typical
+# protein has ~4 GO terms per category and is untouched by this cap; it only
+# bounds the long tail of heavily-studied proteins (up to 90+ terms) so they
+# don't dominate the token budget purely from research attention. Cap=10 is
+# the point where, on a real 299-protein sample, raising it further starts
+# costing much more added BioBERT-truncation risk than the GO signal gained.
+MAX_GO_TERMS_PER_CATEGORY = 10
+
+
+def extract_go_terms(uniprot_entry, category_letter):
+    """category_letter: 'P' (Biological Process) or 'C' (Cellular Component).
+    GoTerm property values look like 'P:apoptotic process' -- the category
+    letter prefix is stripped from the returned labels."""
+    terms = []
+    seen = set()
+    for xref in uniprot_entry.get('uniProtKBCrossReferences', []):
+        if xref.get('database') != 'GO':
+            continue
+        for prop in xref.get('properties', []):
+            if prop.get('key') != 'GoTerm':
+                continue
+            value = prop['value']
+            if not value.startswith(f'{category_letter}:'):
+                continue
+            label = value[2:]
+            if label not in seen:
+                seen.add(label)
+                terms.append(label)
+    return terms[:MAX_GO_TERMS_PER_CATEGORY]
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--cohort", required=True)
 args = parser.parse_args()
@@ -81,12 +112,17 @@ for entry in data['results']:
 
     sequence = uniprot.get('sequence', {}).get('value', '')
 
+    go_bp = extract_go_terms(uniprot, 'P')
+    go_cc = extract_go_terms(uniprot, 'C')
+
     rows.append({
         'ENSP_ID': ensp_id,
         'UniProt_Accession': accession,
         'Gene': gene,
         'Annotation': annotation,
-        'Sequence': sequence
+        'Sequence': sequence,
+        'GO_Biological_Process': '; '.join(go_bp),
+        'GO_Cellular_Component': '; '.join(go_cc),
     })
 
 df_proteins = pd.DataFrame(rows)

@@ -14,6 +14,7 @@ class ProteomicsDataset(Dataset):
         use_abundance: bool = True,
         held_out_protein_ids: set[str] | None = None,
         restrict_to_protein_ids: set[str] | None = None,
+        biobert_filename: str = "biobert_embeddings.h5",
     ):
         if test_patient_ids is None:
             test_patient_ids = set()
@@ -55,7 +56,7 @@ class ProteomicsDataset(Dataset):
                 esm2_matrix = torch.tensor(h5f["embeddings"][:], dtype=torch.float32)
                 esm2_protein_ids = [pid.decode() for pid in h5f["protein_ids"][:]]
 
-            with h5py.File(data_dir / "biobert_embeddings.h5", "r") as h5f:
+            with h5py.File(data_dir / biobert_filename, "r") as h5f:
                 biobert_matrix = torch.tensor(h5f["embeddings"][:], dtype=torch.float32)
                 biobert_protein_ids = [pid.decode() for pid in h5f["protein_ids"][:]]
 
