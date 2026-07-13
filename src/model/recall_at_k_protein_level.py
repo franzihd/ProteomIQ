@@ -29,14 +29,18 @@ from src.model.projection_head import ProjectionHead
 COHORTS = ["luad", "brca", "ccrcc", "gbm", "hnscc", "lscc", "ov", "pdac", "ucec"]
 
 
-def compute_ranks(checkpoint_path: str):
+def compute_ranks(checkpoint_path: str, biobert_filename: str = "biobert_embeddings.h5"):
     with open("data/protein_splits.json") as f:
         protein_splits = json.load(f)
     test_protein_ids = set(protein_splits["test"])
 
     # Full candidate pool: every protein across all 9 cohorts, no exclusions —
-    # train + validation + test proteins all together.
-    dataset = ProteomicsDataset(cohorts=COHORTS, use_abundance=False)
+    # train + validation + test proteins all together. biobert_filename must
+    # match whatever text variant the checkpoint's text_head was trained on
+    # (plain / masked / masked+GO) -- otherwise the text_head sees raw BioBERT
+    # vectors of a different text distribution than it was trained on, and
+    # the resulting R@K number does not reflect the model's real capability.
+    dataset = ProteomicsDataset(cohorts=COHORTS, use_abundance=False, biobert_filename=biobert_filename)
     protein_ids = dataset.pairs
     esm2_matrix = torch.stack([dataset.protein_esm2[pid] for pid in protein_ids])
     text_matrix = torch.stack([dataset.protein_text[pid] for pid in protein_ids])
@@ -80,9 +84,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", required=True,
                         help="e.g. data/runs/.../checkpoint_no_abundance_best.pt")
+    parser.add_argument("--biobert-filename", default="biobert_embeddings.h5",
+                        help="must match the text variant the checkpoint was trained on, "
+                             "e.g. biobert_embeddings_masked.h5 or biobert_embeddings_masked_go.h5")
     args = parser.parse_args()
 
-    metrics = compute_ranks(args.checkpoint)
+    metrics = compute_ranks(args.checkpoint, biobert_filename=args.biobert_filename)
     total = len(metrics["ranks"])
     print(f"\nR@1:   {metrics['r1']:.2f}%")
     print(f"R@10:  {metrics['r10']:.2f}%")

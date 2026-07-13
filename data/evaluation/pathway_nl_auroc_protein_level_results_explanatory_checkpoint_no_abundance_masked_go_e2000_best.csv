@@ -1,0 +1,246 @@
+pathway,nl_query,overall_auroc,n_positives,n_test_positives,test_only_auroc
+Other types of O-glycan biosynthesis,How cells attach sugar molecules to proteins through less common oxygen-linked glycosylation processes,0.9294584381341207,42,8,0.8973350982393468
+Nitrogen metabolism,How cells process and utilize nitrogen-containing compounds for growth and metabolism.,0.925877276780028,16,2,
+Aminoacyl-tRNA biosynthesis,How amino acids are attached to transfer RNA molecules during protein synthesis.,0.9228921641605876,45,3,
+"Alanine, aspartate and glutamate metabolism","How the body breaks down and produces the amino acids alanine, aspartate, and glutamate for energy and building blocks.",0.9096888426423202,38,7,0.930493804664723
+Fructose and mannose metabolism,How the body breaks down and processes fructose and mannose sugars for energy and cellular building blocks.,0.9096841389278578,36,3,
+Sulfur metabolism,How cells process and metabolize sulfur-containing compounds.,0.903310415075121,10,0,
+Inositol phosphate metabolism,How cells process and regulate inositol phosphate molecules for signaling and metabolic functions.,0.895034187474709,86,7,0.8332724082468197
+Pyrimidine metabolism,How cells synthesize and break down pyrimidine building blocks for DNA and RNA.,0.8709522593821802,50,5,0.8819632371713046
+Phenylalanine metabolism,How the body breaks down and processes the amino acid phenylalanine.,0.8629723846738874,17,0,
+Arginine and proline metabolism,How the body breaks down and produces the amino acids arginine and proline.,0.8558060977520852,55,4,
+Pentose phosphate pathway,How cells convert glucose to generate building blocks for nucleotides and antioxidant defenses.,0.853696382264167,36,3,
+Sphingolipid metabolism,How cells synthesize and break down sphingolipids to regulate membrane structure and signaling.,0.8344853545477161,49,4,
+Collecting duct acid secretion,How the kidney's collecting duct secretes acid to regulate the body's pH balance,0.8334403615757171,26,2,
+Amino sugar and nucleotide sugar metabolism,How cells synthesize and break down amino sugars and nucleotide sugars for building cellular structures.,0.8317245340822058,50,2,
+Butanoate metabolism,How the body breaks down and processes butyrate and related short-chain fatty acids for energy and cellular function.,0.8283290950611125,29,2,
+Ribosome,How cells build proteins by assembling amino acids according to genetic instructions.,0.827471209213052,88,10,0.8265131158029431
+Glutathione metabolism,How cells produce and use glutathione to manage oxidative stress and detoxification.,0.8194727488232092,47,7,0.9267801307237208
+Mismatch repair,How cells detect and correct base-pairing errors that occur during DNA replication.,0.8119849614477792,25,3,
+Arginine biosynthesis,How the body synthesizes the amino acid arginine.,0.8093751327471219,24,4,
+Biosynthesis of unsaturated fatty acids,How cells produce unsaturated fatty acids.,0.8060406258907541,34,2,
+Steroid biosynthesis,How cells synthesize steroids and cholesterol.,0.7916964204894044,19,1,
+Fatty acid elongation,How cells lengthen fatty acid chains to build longer-chain fatty acids.,0.7902126138657858,33,4,
+Pyruvate metabolism,How cells break down and process pyruvate to generate energy and metabolic intermediates.,0.7819520736104488,51,5,0.8130082338673645
+Glycosaminoglycan degradation,How glycosaminoglycans are broken down in cells.,0.7793490031212179,19,5,0.8709981527485827
+Homologous recombination,How cells repair double-strand DNA breaks by using a matching DNA template to accurately restore the damaged sequence.,0.777365178615737,45,7,0.8267812707932659
+Various types of N-glycan biosynthesis,How cells build and attach different types of N-linked sugar chains to proteins,0.776203077838711,36,1,
+Ether lipid metabolism,How cells synthesize and break down ether-linked lipids.,0.774819925076963,43,3,
+Cysteine and methionine metabolism,How cells break down and process the amino acids cysteine and methionine.,0.7692053966632617,54,6,0.775823544433095
+Glycerolipid metabolism,How cells synthesize and break down fats and triglycerides.,0.7595805357433264,66,5,0.8642346026066956
+Thiamine metabolism,How the body processes and utilizes vitamin B1 to support cellular energy production.,0.7569886765746638,18,1,
+Selenocompound metabolism,How the body processes and metabolizes selenium-containing compounds.,0.7553138135269393,16,2,
+Glycerophospholipid metabolism,How cells synthesize and break down the phospholipids that make up cell membranes.,0.7531532493415901,108,11,0.6696057305922776
+Toll-like receptor signaling pathway,How immune cells recognize pathogens and trigger inflammatory responses through cell surface receptors.,0.7501520684473267,91,10,0.6267869712676777
+Phosphatidylinositol signaling system,How cells use membrane lipid signaling to regulate growth and communication.,0.7495182585940288,105,8,0.6598747838339846
+"Glycine, serine and threonine metabolism",How the body breaks down and synthesizes simple amino acids to support cellular building blocks and energy.,0.7489439573756176,39,1,
+Parkinson disease,How neuronal degeneration and mitochondrial dysfunction lead to the progressive movement disorder affecting dopamine-producing brain cells.,0.7468098903602965,239,25,0.7014665030040701
+Proximal tubule bicarbonate reclamation,How the kidney reabsorbs bicarbonate to maintain acid-base balance.,0.7411814184668324,25,4,
+Folate biosynthesis,How cells synthesize folate and produce this essential vitamin for metabolism.,0.739468241530965,29,4,
+Starch and sucrose metabolism,How cells break down and synthesize starch and sugars for energy and storage.,0.7348286821031482,33,3,
+Propanoate metabolism,"How the body breaks down and processes propionate, a short-chain fatty acid.",0.7307174538395045,36,0,
+Sulfur relay system,How sulfur atoms are transferred and incorporated into biomolecules within cells.,0.7291711281015413,11,1,
+Purine metabolism,How cells synthesize and break down purine building blocks for DNA and RNA.,0.7253677987075484,133,9,0.6181014508252236
+One carbon pool by folate,How folate supports the transfer of single-carbon units in cellular metabolism.,0.7253597794922226,23,3,
+Protein processing in endoplasmic reticulum,"How proteins are folded, modified, and quality-controlled in the endoplasmic reticulum.",0.7243590299770075,178,12,0.75006435006435
+Oxytocin signaling pathway,How oxytocin triggers cellular responses like muscle contraction and hormone release through its receptor.,0.7177313093276567,179,19,0.716983752256631
+Oxidative phosphorylation,How cells produce energy through the electron transport chain in mitochondria,0.7176372256651601,110,7,0.6136322032657244
+Histidine metabolism,How the body breaks down and processes the amino acid histidine.,0.7112234732647578,22,1,
+Measles,How the measles virus infects cells and evades the immune response.,0.7111962654024673,139,12,0.7430675909878682
+Nicotinate and nicotinamide metabolism,How the body processes vitamin B3 to produce energy-carrying molecules for cellular metabolism.,0.7106133055128911,33,2,
+Glycolysis / Gluconeogenesis,How cells break down and synthesize glucose to produce energy.,0.7051714844478842,74,4,
+Phospholipase D signaling pathway,How phospholipase D enzymes regulate lipid signaling to control cell growth and survival.,0.7049498449543431,156,13,0.7801202139333485
+IL-17 signaling pathway,How immune signaling from inflammatory cells drives tissue inflammation and immune responses.,0.7046638307784219,89,10,0.7486659415189711
+Pantothenate and CoA biosynthesis,How cells produce coenzyme A and its vitamin precursor for metabolism.,0.704590200735961,21,1,
+Ubiquinone and other terpenoid-quinone biosynthesis,How cells synthesize coenzyme Q and related quinone molecules used in energy production and antioxidant defense.,0.7027119938884645,10,0,
+Fatty acid biosynthesis,How cells synthesize fatty acids from simpler building blocks.,0.695513092710545,18,3,
+Antigen processing and presentation,How immune cells break down and display foreign molecules to trigger an immune response,0.6912970760980734,57,4,
+Non-homologous end-joining,How cells repair double-strand DNA breaks by directly rejoining the broken ends.,0.6887498407846134,16,1,
+ErbB signaling pathway,How growth factor receptor signaling drives cell proliferation and survival in cancer.,0.6875899603022154,100,6,0.6756413539932556
+NOD-like receptor signaling pathway,How cells detect intracellular pathogens and trigger inflammatory immune responses.,0.6864404515625214,188,23,0.6489403398751366
+beta-Alanine metabolism,How the body breaks down and processes beta-alanine amino acids.,0.6848061718949248,34,1,
+Prolactin signaling pathway,How prolactin hormone triggers cell signaling to regulate growth and lactation.,0.6820548779993825,71,4,
+Cytosolic DNA-sensing pathway,How cells detect DNA in the cytoplasm to trigger an immune response.,0.6811388665777207,57,5,0.5790051720835195
+SNARE interactions in vesicular transport,How proteins mediate membrane fusion and cargo delivery during vesicle transport within cells.,0.6808389484673056,41,3,
+Adrenergic signaling in cardiomyocytes,How adrenergic signaling regulates heart muscle cell function.,0.6789086539231429,189,12,0.5647873870393028
+Focal adhesion,"How cells attach to and interact with the surrounding extracellular matrix to control shape, movement, and survival.",0.6786291640104285,226,21,0.6412126689043807
+Choline metabolism in cancer,How cells process choline to support cancer growth and membrane synthesis,0.676387217916554,103,7,0.6884314532729517
+Rap1 signaling pathway,"How cells use signaling to control adhesion, movement, and proliferation.",0.6730923491120987,224,20,0.6272395766103007
+FoxO signaling pathway,"How cells regulate metabolism, stress resistance, cell cycle arrest, and apoptosis through a key transcription factor family.",0.6728350933937265,119,9,0.6607830986316787
+Arrhythmogenic right ventricular cardiomyopathy,How disrupted cell adhesion in heart muscle leads to a genetic disease that causes abnormal heart rhythms and progressive weakening of the right ventricle.,0.6708215304564449,102,5,0.8622310450819672
+AMPK signaling pathway,How cells sense and respond to low energy levels to regulate metabolism.,0.6677212947071623,134,11,0.6977494399850663
+Sphingolipid signaling pathway,"How sphingolipids act as signaling molecules to regulate cell growth, survival, and death.",0.6661142751006486,133,8,0.6473051010587103
+Staphylococcus aureus infection,How the immune system responds to and is evaded by a common bacterial skin and blood infection.,0.6600159744408947,68,6,0.667231096911608
+Mitophagy,How cells identify and degrade damaged mitochondria through selective autophagy.,0.6597869236447332,77,10,0.5717856914519532
+Tryptophan metabolism,How the body breaks down and processes the amino acid tryptophan.,0.657036796176471,41,3,
+B cell receptor signaling pathway,How B cells become activated and transmit signals after their surface receptors detect antigens.,0.6558949465457433,91,6,0.6830059085770355
+Glucagon signaling pathway,How glucagon regulates blood sugar and energy metabolism through hormone signaling in cells.,0.653062752181199,113,13,0.6948660439208341
+Glioma,How brain tumors develop and grow through disrupted cell signaling and growth control.,0.6523267706468934,74,8,0.6755145742776784
+Circadian rhythm,How the body regulates its internal 24-hour clock to control daily biological cycles.,0.6523173530536784,32,1,
+Fatty acid degradation,How cells break down fatty acids to produce energy.,0.6504967979404693,51,6,0.8001212740154464
+Base excision repair,How cells repair damaged or incorrect DNA bases by removing and replacing them.,0.648360815378225,37,7,0.6952818242276823
+Wnt signaling pathway,"How cells communicate through signals that control growth, development, and tissue formation.",0.646810636726386,199,21,0.6457430062688133
+Tyrosine metabolism,How the body breaks down and processes the amino acid tyrosine.,0.6429918542594598,27,1,
+p53 signaling pathway,"How cells respond to DNA damage and stress by triggering cell cycle arrest, repair, or programmed cell death.",0.6416818269001634,77,9,0.7284416313250787
+Glyoxylate and dicarboxylate metabolism,How cells convert and break down small carbon compounds to manage energy and carbon balance.,0.6411124312941335,33,2,
+Regulation of actin cytoskeleton,How cells control the assembly and organization of their internal actin filament network to shape movement and structure.,0.6399955476218941,235,23,0.7014200708210127
+Other glycan degradation,How cells break down complex sugar chains into simpler components.,0.6396612030809647,21,1,
+Influenza A,How the influenza virus infects cells and triggers immune and inflammatory responses.,0.6364792809355018,159,13,0.7150350773976971
+Notch signaling pathway,How cells communicate through direct contact to control differentiation and cell fate decisions.,0.6340821435415868,64,10,0.6721476938801584
+Th17 cell differentiation,How immune helper cells develop into a specific inflammatory subtype that produces signaling molecules driving autoimmune and inflammatory responses.,0.6329512997779134,115,9,0.6525383295235248
+Bladder cancer,How normal bladder cells become cancerous and progress into invasive tumors.,0.6323623011015913,43,5,0.8688740031897927
+"Parathyroid hormone synthesis, secretion and action","How the parathyroid hormone is produced, released, and regulates calcium levels in the body.",0.6315668196758916,123,13,0.6259106715663304
+Thermogenesis,How the body generates heat by burning energy in fat and muscle tissue.,0.6309822432672388,218,16,0.6534153225806453
+C-type lectin receptor signaling pathway,How immune cells recognize pathogens and trigger inflammatory responses through carbohydrate-binding surface receptors.,0.6296846605470388,110,10,0.5844182470527934
+Gap junction,How cells communicate directly by passing small molecules and signals between neighboring cells through connecting channels.,0.6295932706668226,87,6,0.661943147164822
+TGF-beta signaling pathway,"How cells respond to signals that regulate growth, differentiation, and tissue development.",0.6285095913978495,93,7,0.8129188571428572
+Rheumatoid arthritis,how the immune system attacks joint tissue and drives chronic inflammation in autoimmune joint disease,0.6278281989006775,72,3,
+Insulin signaling pathway,How insulin regulates cell metabolism and growth through intracellular signaling.,0.6278020277604563,153,7,0.5792666697260336
+Hepatitis C,How the hepatitis C virus infects liver cells and drives chronic inflammation and cancer development.,0.6272709679950916,144,9,0.7025027467431474
+Galactose metabolism,How the body breaks down and processes galactose sugar for energy and cellular use.,0.6260639074475063,31,2,
+Ubiquitin mediated proteolysis,How cells tag and break down proteins for regulated degradation.,0.6226886941811314,145,16,0.6263886213317922
+Cellular senescence,How cells permanently stop dividing and enter a state of growth arrest in response to stress or damage.,0.6208841376236707,163,17,0.7089681774349084
+Th1 and Th2 cell differentiation,How naive T helper cells develop into distinct effector subsets that regulate cellular and antibody-mediated immune responses.,0.6193795875474758,96,8,0.6082287799257458
+Relaxin signaling pathway,How relaxin hormone triggers cellular responses to regulate tissue remodeling and blood vessel function.,0.6186085422476937,134,17,0.5892355658896001
+Coronavirus disease,How coronavirus infection affects human cells and triggers immune responses.,0.6176010944618371,215,21,0.5716742995979273
+TNF signaling pathway,How inflammatory signaling triggers cell death and immune responses.,0.6154777498922105,117,10,0.6066534196525863
+Peroxisome,How cells use specialized organelles to break down fatty acids and detoxify reactive oxygen species.,0.6139024516129032,93,10,0.6359744
+Chronic myeloid leukemia,How chronic myeloid leukemia develops and progresses at the molecular level.,0.6137517334888112,89,7,0.6582452035136148
+NF-kappa B signaling pathway,How cells activate inflammatory and immune responses through a key transcription factor that controls gene expression.,0.6129381444901436,103,12,0.5612658768278365
+Kaposi sarcoma-associated herpesvirus infection,How Kaposi sarcoma-associated herpesvirus infects cells and drives cancer development.,0.6107759860804757,188,17,0.6540661338585659
+Thyroid hormone signaling pathway,"How thyroid hormones regulate cell growth, metabolism, and gene expression through their signaling network.",0.6098923740953657,138,19,0.6009019660833728
+Drug metabolism,How the body chemically breaks down and eliminates drugs.,0.6098848863180804,95,7,0.4605572370406269
+Hepatitis B,How the hepatitis B virus infects liver cells and drives them toward cancer.,0.6085907619888202,165,12,0.7307218328725433
+Chemokine signaling pathway,How chemokines direct immune cell migration and signaling.,0.6084678248003179,188,20,0.613058596265293
+Synthesis and degradation of ketone bodies,How the body produces and breaks down ketones for energy metabolism.,0.5998472116119176,10,1,
+Dopaminergic synapse,How dopamine signaling works at synapses between neurons.,0.5986920803139798,156,19,0.6527540094291763
+Proteasome,How cells break down and degrade damaged or unneeded proteins.,0.598659331608802,44,3,
+Cell cycle,"How cells grow, replicate their DNA, and divide in a regulated sequence of phases.",0.5983067755404048,136,17,0.6033356738921984
+Tuberculosis,How the bacteria that cause tuberculosis infect immune cells and evade the body's defenses,0.5982564517328574,166,20,0.6853909465020576
+MAPK signaling pathway,"How cells transmit signals from the surface to the nucleus to control growth, division, and survival.",0.5973206747629562,320,28,0.5543994581856642
+Estrogen signaling pathway,how estrogen hormones trigger cellular responses and influence gene activity,0.5969319956104339,123,10,0.7128310355883296
+Renin secretion,How the kidney releases the hormone that regulates blood pressure and fluid balance.,0.5968759286005514,74,6,0.4655458961902327
+Shigellosis,How Shigella bacteria infect and manipulate host intestinal cells to cause disease.,0.5964811637647364,255,24,0.5732231779085559
+Neurotrophin signaling pathway,"How neurotrophins promote neuron survival, growth, and differentiation through cell signaling.",0.5952289259734702,138,15,0.508528027385537
+Vibrio cholerae infection,How the cholera bacterium infects intestinal cells and causes disease.,0.5936514551175844,57,6,0.7362556669433624
+Terpenoid backbone biosynthesis,How cells build the core molecular structures used to make terpenoids and related compounds.,0.5928348855527754,22,3,
+Adipocytokine signaling pathway,"How fat cells release signaling molecules that regulate metabolism, inflammation, and insulin sensitivity.",0.5873938372020704,74,8,0.4464091664535924
+Longevity regulating pathway,How cellular and molecular processes control aging and lifespan.,0.5858688044226161,108,9,0.5260872659975799
+Non-alcoholic fatty liver disease,How fat accumulation in the liver leads to inflammation and disease progression.,0.5834215961912671,146,9,0.5747994976738876
+"Valine, leucine and isoleucine degradation",How the body breaks down branched-chain amino acids for energy and metabolism.,0.5834145342639823,53,3,
+Inflammatory mediator regulation of TRP channels,How inflammation controls the activity of temperature- and pain-sensing ion channels.,0.5821737738506851,100,8,0.6988010628761685
+Epithelial cell signaling in Helicobacter pylori infection,How Helicobacter pylori infection triggers signaling responses in the cells lining the stomach.,0.581125140151267,83,8,0.5480332587144228
+Necroptosis,How cells undergo programmed inflammatory cell death when apoptosis is blocked.,0.5807029549385643,141,13,0.40095604466150786
+Viral myocarditis,How viral infection triggers inflammation and damage to the heart muscle.,0.5791507157635056,65,7,0.46026777158189663
+Endocytosis,How cells internalize molecules and receptors from their surface by engulfing them into membrane-bound vesicles.,0.575314134305269,307,37,0.6400096806949055
+RIG-I-like receptor signaling pathway,How cells detect viral RNA to trigger an antiviral immune response.,0.5743182613192195,63,7,0.5762741251083634
+Arachidonic acid metabolism,How the body breaks down and processes fatty acids to produce inflammatory signaling molecules.,0.5736475377749941,53,6,0.580380891584211
+Circadian entrainment,How the body's internal clock synchronizes with daily light and environmental cues.,0.5730353897768045,110,17,0.5558574788193084
+Pancreatic cancer,How pancreatic tumors develop and progress at the molecular level,0.572133689090322,84,7,0.48834956779180905
+Leishmaniasis,How the immune system responds to and is manipulated during infection by the Leishmania parasite.,0.569297808966665,71,9,0.5394218274003537
+Spliceosome,How cells remove introns from pre-mRNA and join exons together during RNA processing.,0.5687479386901352,148,14,0.6102165336269383
+ECM-receptor interaction,How cells attach to and communicate with the extracellular matrix.,0.568411190673929,109,15,0.5529075106242125
+Apelin signaling pathway,how apelin peptides trigger cellular signaling to regulate cardiovascular function and metabolism,0.5678666992661029,141,12,0.5953596113928655
+Hypertrophic cardiomyopathy,how genetic mutations cause the heart muscle to abnormally thicken and impair its function,0.566355812125009,122,8,0.5956415106437548
+Apoptosis,How programmed cell death is regulated and executed in cells.,0.5660393539045225,143,14,0.6662600321027288
+Bacterial invasion of epithelial cells,How bacteria enter and infect the cells lining body surfaces.,0.565665409163167,108,19,0.4873798846893017
+Leukocyte transendothelial migration,How immune cells cross blood vessel walls to enter tissues.,0.5625350711118953,121,14,0.5373973016788942
+Transcriptional misregulation in cancer,How abnormal gene expression control drives cancer development.,0.5610825194373084,182,23,0.4808131464648726
+Tight junction,How cells form sealed connections that control what passes between them and maintain tissue barriers.,0.559423907450771,215,23,0.5531524052848117
+Pathways of neurodegeneration,How various cellular processes lead to neuron damage and death in neurodegenerative diseases.,0.5571812896089329,481,58,0.5613388914914467
+mRNA surveillance pathway,How cells detect and degrade faulty or abnormal messenger RNA molecules to ensure accurate gene expression.,0.5566929386133539,112,8,0.5364603357682942
+Acute myeloid leukemia,How acute myeloid leukemia develops and progresses at the molecular level.,0.5566854346344148,77,4,
+Human T-cell leukemia virus 1 infection,How the human T-cell leukemia virus 1 infects cells and drives leukemia development.,0.5554735921065685,239,24,0.5281887288153843
+Pertussis,How the whooping cough bacterium infects host cells and evades the immune response.,0.55418534084291,71,9,0.5435191694538535
+Epstein-Barr virus infection,How the Epstein-Barr virus infects human cells and contributes to cancer development.,0.552930686261871,204,19,0.6358433469260363
+Human immunodeficiency virus 1 infection,How HIV infects human cells and disrupts the immune system,0.5511325508276728,220,22,0.602151010687596
+Huntington disease,How mutant protein aggregation disrupts mitochondrial function and neuronal survival in a progressive neurodegenerative brain disorder.,0.550598866402962,305,32,0.5251755823006553
+Basal transcription factors,How general transcription factors assemble to initiate gene transcription.,0.5500930898882921,44,3,
+Fc epsilon RI signaling pathway,How immune cells trigger allergic responses through antibody-bound receptor activation.,0.5497253609759756,69,3,
+Hippo signaling pathway,How cells control organ size and growth through contact inhibition and mechanical signaling.,0.5493333235933985,194,24,0.569867624323628
+Chagas disease,How the parasite that causes Chagas disease evades the immune system and triggers chronic inflammation and heart tissue damage.,0.5492086397014391,106,5,0.6732385344606713
+Prion disease,How misfolded proteins accumulate and cause progressive neurodegeneration in the brain.,0.5476176139813091,260,24,0.5250571440893604
+Lysine degradation,How the amino acid lysine is broken down in cells.,0.5451239400996497,74,9,0.5980780703997273
+Diabetic cardiomyopathy,How diabetes causes damage and dysfunction to the heart muscle.,0.5447232368248426,202,17,0.5161161912560848
+Amyotrophic lateral sclerosis,How motor neurons degenerate and die in ALS.,0.5440559016731432,361,43,0.5019391202557428
+RNA transport,How RNA molecules are moved from the nucleus to the cytoplasm within cells.,0.5438335083303875,183,9,0.5507849658477273
+"Growth hormone synthesis, secretion and action",How growth hormone is produced and released and how it affects target cells in the body,0.5432636841430586,116,8,0.6062203563645687
+Endocrine and other factor-regulated calcium reabsorption,How hormones and other factors control the reabsorption of calcium in the kidney.,0.5428151026296806,78,9,0.4962134129013924
+cGMP-PKG signaling pathway,How cyclic GMP activates protein kinase G to regulate cell function.,0.5411125717995813,176,14,0.49058771623435116
+Oocyte meiosis,How an egg cell divides and matures during reproduction.,0.5398223384478326,127,14,0.5621054271237069
+Citrate cycle (TCA cycle),How cells break down nutrients to produce energy through cellular respiration.,0.5396668508835324,36,2,
+Progesterone-mediated oocyte maturation,How progesterone triggers egg cell maturation.,0.5396266812837022,92,9,0.45306255955174424
+Melanoma,How melanoma skin cancer develops and progresses through molecular changes.,0.5386570925694997,61,7,0.5811731858867325
+Vascular smooth muscle contraction,How blood vessels tighten and relax to control blood flow and pressure.,0.5381265515339115,134,15,0.6776651266255989
+Ferroptosis,How iron-dependent cell death is regulated and contributes to disease.,0.5343568022652292,49,9,0.4775033505648095
+Riboflavin metabolism,How the body processes and breaks down vitamin B2 to support cellular energy production.,0.5289466052722784,9,3,
+Mineral absorption,How the body takes up essential minerals from the digestive tract.,0.5221409064775777,64,9,0.5875104694575756
+Ras signaling pathway,How cells transmit growth and survival signals from the cell surface to control proliferation and differentiation.,0.5208288386817018,242,25,0.4776169552856035
+Autophagy,How cells break down and recycle their own components to survive stress or starvation.,0.5188994518670778,150,19,0.5409105046789636
+Salmonella infection,How Salmonella bacteria invade and infect host cells.,0.5181634505461936,294,32,0.5121077541493776
+Insulin resistance,How the body's cells become less responsive to insulin and fail to properly regulate blood sugar.,0.517650628202329,113,7,0.4701515082162311
+Cholesterol metabolism,How the body processes and regulates cholesterol.,0.5161907041055095,48,7,0.5399762968365394
+Retrograde endocannabinoid signaling,How endocannabinoids released from neurons signal backward to presynaptic cells to regulate neurotransmitter release.,0.5109157110232978,146,18,0.530207352227645
+Toxoplasmosis,How the Toxoplasma parasite infects host cells and evades immune destruction,0.5108577792264233,118,14,0.4846016483516483
+mTOR signaling pathway,"How cells regulate growth, metabolism, and protein synthesis in response to nutrients and energy availability.",0.5067868150330394,174,12,0.39269171384457024
+Thyroid cancer,How thyroid cancer develops and progresses at the molecular level.,0.5051075762489563,49,2,
+RNA degradation,How cells break down and recycle RNA molecules,0.5030775606351422,88,5,0.34587332053742803
+Thyroid hormone synthesis,How the body produces thyroid hormones in the thyroid gland.,0.501300085251492,78,7,0.5394409937888198
+Porphyrin and chlorophyll metabolism,How the body makes and breaks down heme and related pigment molecules.,0.5009553579022832,42,5,0.8253380964531768
+Pathways in cancer,How normal cells become cancerous through changes in signaling and cell growth control.,0.49791430957383764,538,69,0.5390215959214069
+Lysosome,How cells break down and recycle waste materials and cellular components in specialized digestive compartments.,0.49638214854883694,134,21,0.5601563263909259
+Yersinia infection,How Yersinia bacteria infect host cells and evade the immune response,0.49588692522416594,172,15,0.41399288134139545
+Lipid and atherosclerosis,How lipid metabolism and cholesterol buildup contribute to the development of arterial plaque and cardiovascular disease.,0.4950331201487951,226,27,0.5321838750705261
+Non-small cell lung cancer,How non-small cell lung cancer develops and progresses at the molecular level.,0.493380285081583,77,10,0.6942394987532767
+Small cell lung cancer,How small cell lung cancer develops and progresses at the molecular level.,0.49057348424542435,105,13,0.5340569249491302
+AGE-RAGE signaling pathway in diabetic complications,How advanced glycation end products contribute to tissue damage and complications in diabetes.,0.48995118546579824,122,8,0.4011445242369838
+T cell receptor signaling pathway,How T cells recognize antigens and activate their immune response.,0.48853110062539024,119,8,0.376618693505994
+Colorectal cancer,How colorectal cancer develops and progresses at the molecular level.,0.4858299016243422,94,8,0.4182827700972862
+Dilated cardiomyopathy,"How the heart muscle weakens and enlarges, impairing its ability to pump blood effectively.",0.48537561420394104,133,8,0.48957330766762913
+PPAR signaling pathway,"How cells regulate fat metabolism, energy storage, and lipid-related gene expression.",0.48401534717097905,86,10,0.45515609007164787
+HIF-1 signaling pathway,how cells respond and adapt to low oxygen conditions,0.48264519922311483,115,11,0.6549672848461543
+RNA polymerase,How cells transcribe DNA into RNA using enzyme complexes.,0.4770053719384503,28,1,
+Fluid shear stress and atherosclerosis,How mechanical blood flow forces on vessel walls contribute to the development of arterial plaque buildup.,0.4769715433916841,133,11,0.4314754863359291
+Endometrial cancer,How endometrial cancer develops and progresses at the molecular level.,0.4766097393194475,61,4,
+Complement and coagulation cascades,How the immune system and blood clotting work together to respond to injury and infection.,0.4761101901936835,88,9,0.44575957915689196
+GnRH signaling pathway,How gonadotropin-releasing hormone triggers cellular signaling to control reproductive hormone production.,0.4753650491654465,103,6,0.5934037784181876
+Axon guidance,How growing nerve fibers are directed to their correct targets during development.,0.4752563380612161,220,18,0.6188755538349034
+Osteoclast differentiation,How immature precursor cells develop into bone-resorbing cells that break down bone tissue.,0.470210889834839,135,14,0.5155709976989575
+PD-L1 expression and PD-1 checkpoint pathway in cancer,How tumors evade immune destruction by activating an inhibitory immune checkpoint that suppresses T cell responses.,0.4667390190805481,100,7,0.5771820061101659
+Adherens junction,How cells physically connect and adhere to their neighbors to maintain tissue structure.,0.4655955237147817,115,17,0.43225850232421364
+N-Glycan biosynthesis,How cells build and attach complex sugar chains to proteins.,0.4639398532227185,48,5,0.5358008934269305
+Ribosome biogenesis in eukaryotes,How eukaryotic cells assemble and process their ribosomes.,0.4623927094184226,84,8,0.47573397722911603
+Prostate cancer,How prostate cancer develops and progresses at the molecular level.,0.46058970418747597,100,9,0.4641368221852279
+Phagosome,How cells engulf and digest pathogens or debris by forming internal vesicles that fuse with degradative compartments.,0.45922793943615303,152,23,0.5419615773508595
+Hepatocellular carcinoma,How liver cancer develops and progresses at the molecular level.,0.45858311632514276,169,15,0.5593242866636654
+Proteoglycans in cancer,How proteoglycans influence tumor growth and cancer progression,0.45848871843446887,234,25,0.505926117282356
+Platelet activation,How platelets become activated to form blood clots and stop bleeding.,0.45588950779981,134,12,0.6630946269678303
+Vasopressin-regulated water reabsorption,How the kidney controls water retention and reabsorption in response to hormonal signals.,0.45237705536498873,55,6,0.5549809529889974
+Pathogenic Escherichia coli infection,How pathogenic E. coli bacteria infect and damage human intestinal cells,0.4519252794575774,214,28,0.35831766917293234
+Amoebiasis,How the parasite Entamoeba histolytica invades intestinal tissue and causes disease.,0.44615172653836666,106,8,0.6833285293364079
+Regulation of lipolysis in adipocytes,How fat cells break down stored fat to release energy,0.44530216416464186,57,4,
+Cell adhesion molecules,How cells stick to each other and their surroundings to maintain tissue structure and communication.,0.44062794897660346,158,17,0.4041244518372902
+Alzheimer disease,How amyloid plaques and neurofibrillary tangles cause progressive neuron loss and dementia.,0.4367550353775442,364,36,0.4547801513901553
+Human cytomegalovirus infection,How human cytomegalovirus infects cells and manipulates host signaling to promote its replication and persistence.,0.4358266457253096,225,25,0.47273994707287165
+Viral carcinogenesis,How viral infections cause cancer.,0.4356548734770384,198,16,0.44172841494845366
+Fc gamma R-mediated phagocytosis,How immune cells engulf antibody-coated targets through cell surface receptor signaling.,0.43533917670190986,117,8,0.4412457534773412
+Renal cell carcinoma,How kidney cancer develops and progresses at the molecular level.,0.4251033640293178,68,8,0.38093450479233226
+Legionellosis,How the bacterium causing Legionnaires' disease infects and survives inside human cells.,0.4205527026287465,56,8,0.4639413867960669
+Malaria,How malaria infection interacts with host cells and triggers immune and inflammatory responses.,0.41917271659030253,35,4,
+VEGF signaling pathway,How blood vessel growth signals are transmitted inside cells to promote new blood vessel formation.,0.416508357096939,62,6,0.5625319366377108
+Central carbon metabolism in cancer,How cancer cells reprogram their core energy and nutrient metabolism to support rapid growth.,0.4160324093701842,76,8,0.3316072113540468
+Aldosterone-regulated sodium reabsorption,How the hormone aldosterone controls sodium reabsorption in the kidney.,0.41342531805200106,43,7,0.5332239690134426
+PI3K-Akt signaling pathway,How cell survival and growth signals are transmitted to promote proliferation and resist cell death.,0.4107549512668595,341,33,0.4167893410268386
+Renin-angiotensin system,How the body regulates blood pressure and fluid balance through hormone signaling.,0.40431295121704497,17,2,
+African trypanosomiasis,How the parasite that causes sleeping sickness infects the body and evades the immune system.,0.3988077244975807,31,3,
+Spinocerebellar ataxia,How neurodegeneration causes progressive loss of movement coordination and balance.,0.3984039102309732,153,15,0.3585137595031587
+Carbohydrate digestion and absorption,How the body breaks down and takes up sugars and starches from food in the digestive tract.,0.3969129504456631,36,2,
+Human papillomavirus infection,How human papillomavirus infects cells and drives cancer development.,0.39243184393145447,368,28,0.37130060493252676
+Primary immunodeficiency,How genetic defects in immune cell development lead to impaired ability to fight infections.,0.3918470648467461,33,4,
+Type II diabetes mellitus,How the body becomes resistant to insulin and loses the ability to control blood sugar.,0.3792846814663604,42,2,
+Long-term potentiation,How repeated neural activity strengthens synaptic connections to support learning and memory.,0.36336024797153316,81,8,0.5422715354607661
+Protein export,How cells transport newly made proteins across membranes for secretion.,0.3508443254954438,25,2,
+Glycosylphosphatidylinositol (GPI)-anchor biosynthesis,How cells build the lipid anchors that attach certain proteins to the cell membrane.,0.34148931651161807,24,3,
+Nucleotide excision repair,How cells detect and remove bulky DNA damage to repair the affected strand.,0.3232410657306956,48,6,0.29207615400978515
+Long-term depression,How repeated low-frequency stimulation weakens synaptic connections between neurons over time.,0.30844593347777594,71,5,0.3625998593979677
+DNA replication,How cells copy their DNA before dividing.,0.2699221126617339,37,5,0.18834258019258976

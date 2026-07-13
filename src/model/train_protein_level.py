@@ -1,6 +1,8 @@
 """
 Train the no-abundance ablation: protein_emb = ESM2 only (640-dim), text_emb
-= UniProt annotation only. No patient-level anything — abundance and clinical
+= whichever biobert_embeddings*.h5 variant --biobert-filename points at
+(plain UniProt annotation, gene-name-masked, and/or GO-term-augmented — see
+embed_biobert.py). No patient-level anything — abundance and clinical
 description are both gone, so there is no patient-varying signal left at all.
 Proteins are deduplicated globally across cohorts (src/model/dataset.py) and split
 train/validation/test at the protein level (data/protein_splits.json), not
@@ -9,8 +11,9 @@ the patient level (see CLAUDE.md's "no-abundance ablation" notes for why).
 Usage:
     uv run python src/model/train_protein_level.py \\
         --cohorts luad brca ccrcc gbm hnscc lscc ov pdac ucec \\
-        --checkpoint data/runs/.../checkpoint_no_abundance.pt \\
-        --epochs 300
+        --checkpoint data/runs/.../checkpoint_no_abundance_masked_go.pt \\
+        --epochs 2000 \\
+        --biobert-filename biobert_embeddings_masked_go.h5
 """
 import sys
 import argparse

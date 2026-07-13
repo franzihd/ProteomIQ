@@ -139,7 +139,7 @@ def run(checkpoint_path: Path):
         results.append(row)
 
     results_df = pd.DataFrame(results).sort_values("recall_at_200", ascending=False)
-    out_path = Path("data/evaluation/pathway_recall_at_k_protein_level_results.csv")
+    out_path = Path(f"data/evaluation/pathway_recall_at_k_protein_level_results_{checkpoint_path.stem}.csv")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     results_df.to_csv(out_path, index=False)
 

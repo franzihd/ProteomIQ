@@ -48,6 +48,25 @@ def strip_gene_name(gene, annotation):
     return annotation
 
 
+def append_go_terms(text, go_bp, go_cc, include_cc=True):
+    # go_bp/go_cc are "; "-joined GO term label strings from fetch_uniprot.py
+    # (already capped at MAX_GO_TERMS_PER_CATEGORY there), or NaN when a
+    # protein has no terms in that category (~8% BP, ~3% CC) -- skip those.
+    # include_cc=False drops Cellular Component terms entirely: they are far
+    # more generic than BP terms (e.g. "cytosol"/"nucleus"/"cytoplasm" each
+    # appear on 30%+ of all proteins -- verified against protein_annotations.csv),
+    # which risks diluting the mean-pooled BioBERT embedding with boilerplate
+    # shared across huge swaths of unrelated proteins rather than adding
+    # distinguishing signal -- the suspected cause of the masked+GO pathway
+    # AUROC/recall@K regression vs. masked-only (see CLAUDE.md).
+    parts = [text]
+    if isinstance(go_bp, str) and go_bp.strip():
+        parts.append(f"Biological process: {go_bp}.")
+    if include_cc and isinstance(go_cc, str) and go_cc.strip():
+        parts.append(f"Cellular component: {go_cc}.")
+    return " ".join(parts)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cohort", required=True)
@@ -55,11 +74,24 @@ def main():
                         help="strip the leading '{gene}: ' prefix from each annotation "
                              "before embedding; writes to biobert_embeddings_masked.h5 "
                              "instead of biobert_embeddings.h5")
+    parser.add_argument("--include-go-terms", action="store_true",
+                        help="append GO Biological Process + Cellular Component term "
+                             "labels (from protein_annotations.csv) after the annotation "
+                             "text; combinable with --mask-gene-names")
+    parser.add_argument("--go-bp-only", action="store_true",
+                        help="with --include-go-terms, append only Biological Process "
+                             "terms and skip Cellular Component (which is highly generic "
+                             "-- cytosol/nucleus/cytoplasm each cover 30%%+ of all proteins)")
     args = parser.parse_args()
 
     data_dir = Path(f"data/{args.cohort}")
     annotations_path = data_dir / "protein_annotations.csv"
-    output_filename = "biobert_embeddings_masked.h5" if args.mask_gene_names else "biobert_embeddings.h5"
+    suffix = ""
+    if args.mask_gene_names:
+        suffix += "_masked"
+    if args.include_go_terms:
+        suffix += "_go_bp_only" if args.go_bp_only else "_go"
+    output_filename = f"biobert_embeddings{suffix}.h5"
     output_path = data_dir / output_filename
     # Load protein annotations and drop rows where Sequence or Annotation is missing
     # reset_index is used to reset the DataFrame index after dropping rows, so it goes from 0 to n-1 instead of keeping the original indices
@@ -83,6 +115,18 @@ def main():
         print(f"Gene-name prefix stripped from {n_masked}/{n_proteins} annotations")
     else:
         texts = annotations["Annotation"].tolist()
+
+    if args.include_go_terms:
+        go_bp = annotations.get("GO_Biological_Process", pd.Series([None] * n_proteins))
+        go_cc = annotations.get("GO_Cellular_Component", pd.Series([None] * n_proteins))
+        texts = [append_go_terms(t, bp, cc, include_cc=not args.go_bp_only)
+                 for t, bp, cc in zip(texts, go_bp, go_cc)]
+        if args.go_bp_only:
+            n_with_go = sum(isinstance(bp, str) for bp in go_bp)
+            print(f"GO Biological Process terms appended to {n_with_go}/{n_proteins} annotations (CC skipped)")
+        else:
+            n_with_go = sum(isinstance(bp, str) or isinstance(cc, str) for bp, cc in zip(go_bp, go_cc))
+            print(f"GO terms appended to {n_with_go}/{n_proteins} annotations")
 
     # Open HDF5 file for writing. All datasets inside are written directly to disk.
     mode = "r+" if output_path.exists() else "w"
