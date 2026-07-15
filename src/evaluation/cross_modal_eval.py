@@ -12,8 +12,9 @@ checkpoint as the only variable across a run-to-run comparison.
 
 Usage:
     uv run python src/evaluation/cross_modal_eval.py \\
-        --checkpoint data/runs/.../checkpoint_no_abundance_best.pt \\
-        --biobert-filename biobert_embeddings.h5
+        --checkpoint data/runs/.../checkpoint_full_proteome_masked_best.pt \\
+        --biobert-filename biobert_embeddings_masked.h5 \\
+        --splits-file data/protein_splits_full_proteome.json
 """
 import sys
 import json
@@ -36,8 +37,9 @@ def recall_at_k(sim: torch.Tensor, ks: list[int]) -> dict:
     return {f"r{k}": float((ranks <= k).mean() * 100) for k in ks}
 
 
-def compute_cross_modal_eval(checkpoint_path: str, biobert_filename: str):
-    with open("data/protein_splits.json") as f:
+def compute_cross_modal_eval(checkpoint_path: str, biobert_filename: str,
+                              splits_file: str = "data/protein_splits.json"):
+    with open(splits_file) as f:
         protein_splits = json.load(f)
     test_protein_ids = set(protein_splits["test"])
 
@@ -85,9 +87,11 @@ if __name__ == "__main__":
     parser.add_argument("--biobert-filename", default="biobert_embeddings.h5",
                         help="must match the text variant the checkpoint was trained on, "
                              "e.g. biobert_embeddings_masked.h5 or biobert_embeddings_masked_go.h5")
+    parser.add_argument("--splits-file", default="data/protein_splits.json",
+                        help="e.g. data/protein_splits_full_proteome.json for the full-proteome split")
     args = parser.parse_args()
 
-    metrics = compute_cross_modal_eval(args.checkpoint, args.biobert_filename)
+    metrics = compute_cross_modal_eval(args.checkpoint, args.biobert_filename, args.splits_file)
 
     print(f"\nPool size: {metrics['pool_size']:,}\n")
     print("Text -> Protein (query with annotation text, retrieve protein):")

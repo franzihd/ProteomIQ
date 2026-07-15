@@ -11,9 +11,10 @@ the patient level (see CLAUDE.md's "no-abundance ablation" notes for why).
 Usage:
     uv run python src/model/train_protein_level.py \\
         --cohorts luad brca ccrcc gbm hnscc lscc ov pdac ucec \\
-        --checkpoint data/runs/.../checkpoint_no_abundance_masked_go.pt \\
+        --checkpoint data/runs/.../checkpoint_full_proteome_masked.pt \\
         --epochs 2000 \\
-        --biobert-filename biobert_embeddings_masked_go.h5
+        --biobert-filename biobert_embeddings_masked.h5 \\
+        --splits-file data/protein_splits_full_proteome.json
 """
 import sys
 import argparse
@@ -40,13 +41,14 @@ def infonce_loss(protein_vec, text_vec):
 
 
 def train(cohorts: list[str], checkpoint_path: str, epochs: int,
-          biobert_filename: str = "biobert_embeddings.h5"):
+          biobert_filename: str = "biobert_embeddings.h5",
+          splits_file: str = "data/protein_splits.json"):
     # Fixed seed so repeated runs (e.g. comparing different --epochs values)
     # only differ because of epochs, not because of a different random weight
     # initialization or batch shuffle order each time.
     torch.manual_seed(SEED)
 
-    with open("data/protein_splits.json") as f:
+    with open(splits_file) as f:
         protein_splits = json.load(f)
     val_protein_ids = set(protein_splits["validation"])
     held_out_protein_ids = val_protein_ids | set(protein_splits["test"])
@@ -148,6 +150,8 @@ if __name__ == "__main__":
                              "be set deliberately — watch val_loss and stop once it plateaus")
     parser.add_argument("--biobert-filename", default="biobert_embeddings.h5",
                         help="e.g. biobert_embeddings_masked.h5 for the gene-name-masking ablation")
+    parser.add_argument("--splits-file", default="data/protein_splits.json",
+                        help="e.g. data/protein_splits_full_proteome.json for the full-proteome split")
     args = parser.parse_args()
     train(cohorts=args.cohorts, checkpoint_path=args.checkpoint, epochs=args.epochs,
-          biobert_filename=args.biobert_filename)
+          biobert_filename=args.biobert_filename, splits_file=args.splits_file)

@@ -1,73 +1,118 @@
 """
-Generate a reproducible, GLOBAL protein split (train/validation/test) for the
-no-abundance ablation. Unlike the patient-level split (test_patients_per_cohort.json),
-these proteins are excluded from EVERY cohort during training, so the model
-never sees them in any patient's data.
+Generate a reproducible, GLOBAL, homology-aware protein split (train/
+validation/test) over the full reviewed human UniProt proteome (see
+CLAUDE.md section 11) -- not just the subset of proteins CPTAC happened to
+measure. Supersedes protein_train_validation_test.py's original pure-random
+design (data/protein_splits.json, kept untouched for comparability with the
+existing baseline checkpoint).
+
+Two changes from the original:
+1. One flat protein universe (data/full_proteome/), not a union across 9
+   cohorts -- Stage 1 doesn't need a protein to have been measured by CPTAC
+   at all, only a sequence + UniProt text.
+2. Split by CD-HIT sequence-identity CLUSTER (data/protein_clusters.json,
+   90% identity), not by individual protein -- a near-identical paralog can
+   no longer land on both sides of the split, which pure random assignment
+   didn't guard against.
 
 Validation proteins are used to pick a sane epoch count / watch training
-progress (the deduped, no-abundance dataset needs far more epochs per
-gradient-step budget than the original per-patient dataset, since each epoch
-now iterates over ~11k unique proteins instead of ~1M-13M per-patient pairs).
-Test proteins are touched only once, for the final reported numbers — using
-them to pick the epoch count instead would leak test information into a
-training decision.
-
-Reads the same "shared_proteins" pool ProteomicsDataset uses (ESM2 ∩ BioBERT
-∩ abundance columns) per cohort, takes the union across cohorts, and splits
-80% train / 10% validation / 10% test with random.seed(42). Saves to
-data/protein_splits.json as {"validation": [...], "test": [...]}; train is
-implicitly everything else (dataset.py excludes validation ∪ test).
+progress. Test proteins are touched only once, for the final reported
+numbers -- using them to pick the epoch count would leak test information
+into a training decision.
 
 Usage:
-    uv run python src/model/protein_train_validation_test.py
+    uv run python src/model/protein_train_validation_test.py \\
+        --biobert-filename biobert_embeddings_masked.h5
 """
+import argparse
 import json
 import random
-import h5py
-import pandas as pd
 from pathlib import Path
 
-COHORTS = ["luad", "brca", "ccrcc", "gbm", "hnscc", "lscc", "ov", "pdac", "ucec"]
+import h5py
+
 VAL_FRACTION = 0.10
 TEST_FRACTION = 0.10
-OUT = Path("data/protein_splits.json")
+FULL_PROTEOME_DIR = Path("data/full_proteome")
+CLUSTERS_PATH = Path("data/protein_clusters.json")
+OUT = Path("data/protein_splits_full_proteome.json")
 
-all_proteins = set()
-for cohort in COHORTS:
-    data_dir = Path(f"data/{cohort}")
-    esm2_path = data_dir / "esm2_embeddings.h5"
-    biobert_path = data_dir / "biobert_embeddings.h5"
-    abundance_path = data_dir / "rank_normalized_proteomics.csv"
-    if not (esm2_path.exists() and biobert_path.exists() and abundance_path.exists()):
-        print(f"[skip] {cohort} — missing esm2/biobert/abundance file")
-        continue
 
-    with h5py.File(esm2_path) as f:
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--biobert-filename", default="biobert_embeddings_masked.h5")
+    args = parser.parse_args()
+
+    with h5py.File(FULL_PROTEOME_DIR / "esm2_embeddings.h5") as f:
         esm2_ids = {p.decode() for p in f["protein_ids"][:]}
-    with h5py.File(biobert_path) as f:
+    with h5py.File(FULL_PROTEOME_DIR / args.biobert_filename) as f:
         biobert_ids = {p.decode() for p in f["protein_ids"][:]}
-    abundance_columns = pd.read_csv(abundance_path, header=[0, 1], index_col=0).columns
-    abundance_ids = {col[1] for col in abundance_columns}
 
-    shared = esm2_ids & biobert_ids & abundance_ids
-    print(f"{cohort}: {len(shared)} shared proteins")
-    all_proteins |= shared
+    usable_proteins = esm2_ids & biobert_ids
+    print(f"Usable proteins (ESM2 ∩ BioBERT): {len(usable_proteins)}")
 
-all_proteins = sorted(all_proteins)
-shuffled = all_proteins.copy()
-random.seed(42)
-random.shuffle(shuffled)
+    with open(CLUSTERS_PATH) as f:
+        protein_to_cluster = json.load(f)
 
-n_val = round(len(shuffled) * VAL_FRACTION)
-n_test = round(len(shuffled) * TEST_FRACTION)
+    clusters = {}
+    n_missing_cluster = 0
+    next_singleton_id = max(protein_to_cluster.values(), default=-1) + 1
+    for protein_id in usable_proteins:
+        cluster_id = protein_to_cluster.get(protein_id)
+        if cluster_id is None:
+            # Wasn't in the CD-HIT input (e.g. dropped for missing sequence/
+            # annotation there but present in ESM2+BioBERT some other way) --
+            # treat as its own singleton cluster rather than dropping it.
+            cluster_id = next_singleton_id
+            next_singleton_id += 1
+            n_missing_cluster += 1
+        clusters.setdefault(cluster_id, []).append(protein_id)
+    if n_missing_cluster:
+        print(f"[note] {n_missing_cluster} usable proteins had no CD-HIT cluster; "
+              f"assigned as singletons")
 
-validation = sorted(shuffled[:n_val])
-test = sorted(shuffled[n_val:n_val + n_test])
-train = sorted(shuffled[n_val + n_test:])
+    cluster_ids = list(clusters.keys())
+    random.seed(42)
+    random.shuffle(cluster_ids)
 
-with open(OUT, "w") as f:
-    json.dump({"validation": validation, "test": test}, f, indent=2)
+    n_val_target = round(len(usable_proteins) * VAL_FRACTION)
+    n_test_target = round(len(usable_proteins) * TEST_FRACTION)
 
-print(f"\nTotal proteins across all cohorts: {len(all_proteins)}")
-print(f"Train: {len(train)}  |  Validation: {len(validation)}  |  Test: {len(test)}")
-print(f"Saved to {OUT}")
+    validation, test, train = [], [], []
+    val_count = test_count = 0
+    for cluster_id in cluster_ids:
+        members = clusters[cluster_id]
+        if val_count < n_val_target:
+            validation.extend(members)
+            val_count += len(members)
+        elif test_count < n_test_target:
+            test.extend(members)
+            test_count += len(members)
+        else:
+            train.extend(members)
+
+    validation = sorted(validation)
+    test = sorted(test)
+    train = sorted(train)
+
+    # Sanity checks: no cluster should straddle a split boundary, and no
+    # protein should appear in more than one split.
+    val_clusters = {protein_to_cluster.get(p) for p in validation}
+    test_clusters = {protein_to_cluster.get(p) for p in test}
+    train_clusters = {protein_to_cluster.get(p) for p in train}
+    assert not (val_clusters & test_clusters), "a cluster spans validation and test"
+    assert not (val_clusters & train_clusters), "a cluster spans validation and train"
+    assert not (test_clusters & train_clusters), "a cluster spans test and train"
+    assert not (set(validation) & set(test) & set(train)), "a protein appears in multiple splits"
+
+    with open(OUT, "w") as f:
+        json.dump({"validation": validation, "test": test}, f, indent=2)
+
+    print(f"\nTotal usable proteins: {len(usable_proteins)}")
+    print(f"Total clusters: {len(clusters)}")
+    print(f"Train: {len(train)}  |  Validation: {len(validation)}  |  Test: {len(test)}")
+    print(f"Saved to {OUT}")
+
+
+if __name__ == "__main__":
+    main()

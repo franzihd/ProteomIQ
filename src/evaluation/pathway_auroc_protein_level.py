@@ -21,7 +21,9 @@ Reports two numbers per pathway:
 
 Usage:
     uv run python src/evaluation/pathway_auroc_protein_level.py \\
-        --checkpoint data/runs/.../checkpoint_no_abundance_best.pt
+        --checkpoint data/runs/.../checkpoint_full_proteome_masked_best.pt \\
+        --biobert-filename biobert_embeddings_masked.h5 \\
+        --splits-file data/protein_splits_full_proteome.json
 """
 import sys
 from pathlib import Path
@@ -60,7 +62,8 @@ def build_gene_name_map(cohorts):
     return gene_name
 
 
-def run(checkpoint_path: Path):
+def run(checkpoint_path: Path, splits_file: str = "data/protein_splits.json",
+        biobert_filename: str = "biobert_embeddings.h5"):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     print(f"Checkpoint: {checkpoint_path}\n")
@@ -71,12 +74,12 @@ def run(checkpoint_path: Path):
     pathway_names = set(selection_df["pathway"])
     print(f"  {len(pathway_names)} pathways passed the objective filters\n")
 
-    with open("data/protein_splits.json") as f:
+    with open(splits_file) as f:
         protein_splits = json.load(f)
     test_protein_ids = set(protein_splits["test"])
 
     print("Building global candidate pool ...")
-    dataset = ProteomicsDataset(cohorts=COHORTS, use_abundance=False)
+    dataset = ProteomicsDataset(cohorts=COHORTS, use_abundance=False, biobert_filename=biobert_filename)
     protein_ids = dataset.pairs
     esm2_matrix = torch.stack([dataset.protein_esm2[pid] for pid in protein_ids])
     print(f"  {len(protein_ids):,} proteins "
@@ -161,5 +164,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--checkpoint", required=True,
                         help="e.g. data/runs/.../checkpoint_no_abundance_best.pt")
+    parser.add_argument("--splits-file", default="data/protein_splits.json",
+                        help="e.g. data/protein_splits_full_proteome.json for the full-proteome split")
+    parser.add_argument("--biobert-filename", default="biobert_embeddings.h5",
+                        help="only needs to be a file that exists for this cohort/source -- "
+                             "the candidate pool's own text embeddings aren't scored here "
+                             "(pathway queries are encoded live), so this doesn't need to "
+                             "match the checkpoint's trained text variant for correctness")
     args = parser.parse_args()
-    run(Path(args.checkpoint))
+    run(Path(args.checkpoint), splits_file=args.splits_file, biobert_filename=args.biobert_filename)

@@ -14,7 +14,9 @@ would actually contain.
 
 Usage:
     uv run python src/model/recall_at_k_protein_level.py \\
-        --checkpoint data/runs/.../checkpoint_no_abundance_best.pt
+        --checkpoint data/runs/.../checkpoint_full_proteome_masked_best.pt \\
+        --biobert-filename biobert_embeddings_masked.h5 \\
+        --splits-file data/protein_splits_full_proteome.json
 """
 import sys
 import json
@@ -29,8 +31,9 @@ from src.model.projection_head import ProjectionHead
 COHORTS = ["luad", "brca", "ccrcc", "gbm", "hnscc", "lscc", "ov", "pdac", "ucec"]
 
 
-def compute_ranks(checkpoint_path: str, biobert_filename: str = "biobert_embeddings.h5"):
-    with open("data/protein_splits.json") as f:
+def compute_ranks(checkpoint_path: str, biobert_filename: str = "biobert_embeddings.h5",
+                   splits_file: str = "data/protein_splits.json"):
+    with open(splits_file) as f:
         protein_splits = json.load(f)
     test_protein_ids = set(protein_splits["test"])
 
@@ -87,9 +90,12 @@ if __name__ == "__main__":
     parser.add_argument("--biobert-filename", default="biobert_embeddings.h5",
                         help="must match the text variant the checkpoint was trained on, "
                              "e.g. biobert_embeddings_masked.h5 or biobert_embeddings_masked_go.h5")
+    parser.add_argument("--splits-file", default="data/protein_splits.json",
+                        help="e.g. data/protein_splits_full_proteome.json for the full-proteome split")
     args = parser.parse_args()
 
-    metrics = compute_ranks(args.checkpoint, biobert_filename=args.biobert_filename)
+    metrics = compute_ranks(args.checkpoint, biobert_filename=args.biobert_filename,
+                             splits_file=args.splits_file)
     total = len(metrics["ranks"])
     print(f"\nR@1:   {metrics['r1']:.2f}%")
     print(f"R@10:  {metrics['r10']:.2f}%")
