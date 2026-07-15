@@ -70,62 +70,76 @@ researcher query text → BioBERT → embedding
 
 ## Project layout
 
+**Reading key:** `[MAIN LINE]` = current thesis architecture (protein-level, no abundance, gene-name masked — see section 10 in the Timeline below), actively used. `[SHARED]` = read by both the main line and the ablation baseline, do not fork. `[ABLATION BASELINE]` = old patient-level, with-abundance architecture; kept only as the comparison point for "why we moved to protein-level" (section 10i) — not touched going forward. `[PAUSED]` = built and working, blocked on something external.
+
 ```
 main.py                                        # entry point (stub)
 pyproject.toml                                 # dependencies
 src/
-  import_cptac.py                              # downloads proteomics + clinical data for all 10 CPTAC cohorts
-  text_generation.py                           # converts clinical metadata rows into natural-language patient descriptions; accepts --cohort argument
+  app.py                                       # Streamlit app (in progress) — CSV upload + text query UI, Stage 1 retrieval wired up; Stage 2 (activity_score/abundance annotation) and Stage 3 (LLM interpretation) not yet integrated
+  gseapy_test.py                               # one-off scratch script that dumped KEGG pathway sizes to data/evaluation/kegg_pathways.csv — not part of any pipeline
+
+  # --- data acquisition & preprocessing (shared inputs, feed both architectures) ---
+  import_cptac.py                              # downloads proteomics + clinical data for all 9 usable CPTAC cohorts
+  text_generation.py                           # clinical description generation — NOT part of current training text (dropped, see "drop clinical" decision); descriptions.csv is still kept as candidate input for the future Stage 3 LLM prompt
   Textual/
-    fetch_uniprot.py                           # fetches UniProt annotations + sequences for a cohort's proteins via UniProt REST API; accepts --cohort argument
+    fetch_uniprot.py                           # fetches UniProt annotation + sequence + GO_Biological_Process + GO_Cellular_Component per protein; accepts --cohort
   preprocessing/
-    rank_normalize.py                          # rank-normalizes proteomics_raw.csv within each patient sample to percentiles [0,1]; accepts --cohort argument
+    rank_normalize.py                          # rank-normalizes abundance to within-sample percentiles; still needed for Stage 2 (abundance annotation at inference) even though Stage 1 no longer trains on abundance
   embeddings/
     protein/
-      esm2_embeddings.py                       # pre-computes ESM2 embeddings for a cohort's proteins; accepts --cohort argument
+      esm2_embeddings.py                       # [SHARED] ESM2 embeddings per cohort — identical output used by both architectures
     textual/
-      embed_biobert.py                         # pre-computes BioBERT embeddings for all (protein, patient) pairs in a cohort; accepts --cohort argument
+      embed_biobert.py                         # writes biobert_embeddings{.h5, _masked.h5, _masked_go.h5, _masked_go_bp_only.h5} depending on --mask-gene-names/--include-go-terms/--go-bp-only. [MAIN LINE] uses the _masked variant; the _go variants are the GO-term augmentation ablation (negative result, section 10n), not used going forward
+      fuse_protein_text_llm.py                 # [PAUSED — budget, ~$25-55 needed vs $4 available] LLM-fusion text augmentation, see section 10o. Resume with --full once funded
+
+  # --- MAIN LINE: protein-level architecture (current thesis direction, sections 10a-10p) ---
   model/
-    dataset.py                                 # ProteomicsDataset — PyTorch Dataset that loads ESM2, BioBERT, and abundance data, aligns protein IDs across sources, and serves (protein_emb 641-dim, text_emb 768-dim) pairs for training
-    projection_head.py                         # ProjectionHead — shared MLP architecture (input→hidden→output with LayerNorm + ReLU + L2 norm); protein head: 641→512→256, text head: 768→512→256
-    train.py                                   # trains both projection heads with InfoNCE contrastive loss; holds out 10 LUAD patients for testing; saves checkpoint.pt + test_patients.json
-    evaluate.py                                # loads trained checkpoint, runs a text query against a held-out test patient's proteins, prints ranked nearest-neighbor results (sanity check)
+    protein_train_validation_test.py           # builds the global protein-level split → data/protein_splits.json (80/10/10, seed 42)
+    dataset.py                                 # [SHARED] ProteomicsDataset — use_abundance=True path serves the ablation baseline, use_abundance=False path serves the main line
+    projection_head.py                         # [SHARED] MLP projection head architecture, used by both architectures
+    train_protein_level.py                     # current training script — no patient-level concepts; --epochs required, saves checkpoint.pt + checkpoint_best.pt with val_loss tracked
+    recall_at_k_protein_level.py                # self-ID R@K — diagnostic only, inflated by the name-matching shortcut, not a headline number
+    retrieve_and_annotate.py                    # implements Stage 1 (semantic retrieval, wide top-N) + Stage 2 (per-patient abundance annotation) — see section 10j/10k
+  evaluation/
+    pathway_final_choice.py                     # [SHARED] objective, performance-blind 245-pathway selection (coverage + power filters) — ground truth for every pathway eval, old and new
+    pathway_auroc_protein_level.py               # HEADLINE metric — shortcut-free pathway AUROC (overall + test-only)
+    pathway_recall_at_k_protein_level.py         # HEADLINE companion metric — practical top-K concentration (AUROC alone hides this, section 10l)
+    pathway_nl_queries.py                        # [SHARED] generates the "explanatory" natural-language pathway query rewrites
+    pathway_nl_queries_compact.py                # [SHARED] generates the "compact" natural-language pathway query rewrites
+    pathway_nl_auroc_protein_level.py            # NL query-rewrite diagnostic, protein-level architecture
+    cross_modal_eval.py                          # standard closed-set bidirectional CLIP retrieval sanity check — report it, but it disagrees with pathway AUROC on checkpoint ranking (section 10p) and is NOT the metric to select checkpoints by
+
+  # --- ABLATION BASELINE: patient-level, with-abundance architecture (superseded — kept only for comparison, sections 1-9) ---
+  model/
+    generate_test_splits.py                      # patient-level test split → data/test_patients_per_cohort.json
+    train.py                                      # trains protein_head + text_head with abundance in the protein input, clinical text in the text input
+    evaluate.py / evaluate_masked.py              # inference sanity-check query against one held-out patient
+    query_evaluation.py                           # fixed biological queries → mean percentile rank (section 8b)
+    recall_at_k.py                                # patient-level R@K (section 8a)
+    run_experiments.py / recall_curve.py          # incremental cohort-scaling R@K curve (section 8a)
+  evaluation/
+    pathway_auroc_evaluation.py                   # unfiltered pathway AUROC, first pass (section 8c)
+    pathway_choice.py                             # hand-picked ~20 pathways — rejected by professor as not defensible, superseded by pathway_final_choice.py (section 8d)
+    pathway_final_auroc_evaluation.py             # filtered patient-level pathway AUROC (section 8d)
+    pathway_nl_auroc_evaluation.py / pathway_three_way_auroc_evaluation.py   # patient-level NL query-rewrite experiments (section 8e)
+  plotting/
+    plot_recall_vs_cohorts.py / plot_scaling.py    # scaling-curve plots for the ablation baseline
+
 data/
-  luad/
-    proteomics_raw.csv                         # 213 samples × 13,302 proteins (umich source)
-    clinical.csv                               # 111 samples × 124 clinical variables (mssm source)
-    descriptions.csv                           # 111 patient descriptions generated by text_generation.py
-    protein_annotations.csv                    # 12,906 proteins with UniProt accession, gene name, annotation text, sequence
-    rank_normalized_proteomics.csv             # 213 samples × 13,302 proteins — within-sample percentile ranks [0,1], NaN preserved
-    esm2_embeddings.h5                         # 11,485 proteins × 640-dim ESM2 embeddings
-    biobert_embeddings.h5                      # 111 patients × 11,485 proteins × 768-dim BioBERT embeddings
-    checkpoint.pt                              # trained projection head weights ({"protein_head": ..., "text_head": ...} state_dicts), overwritten each epoch by train.py
-    test_patients.json                         # 10 LUAD patient IDs held out from training for evaluation (random.seed(42), reproducible)
-  brca/
-    proteomics_raw.csv                         # 125 samples × 12,922 proteins
-    clinical.csv                               # 134 samples × 124 clinical variables
-  ccrcc/
-    proteomics_raw.csv                         # 194 samples × 11,889 proteins
-    clinical.csv                               # 110 samples × 124 clinical variables
-  coad/                                        # skipped — all sources broken in cptac library
-  hnscc/
-    proteomics_raw.csv                         # 182 samples × 12,224 proteins
-    clinical.csv                               # 112 samples × 124 clinical variables
-  lscc/
-    proteomics_raw.csv                         # 212 samples × 13,715 proteins
-    clinical.csv                               # 110 samples × 124 clinical variables
-  ucec/
-    proteomics_raw.csv                         # 152 samples × 12,662 proteins
-    clinical.csv                               # 103 samples × 124 clinical variables
-  gbm/
-    proteomics_raw.csv                         # 110 samples × 13,002 proteins
-    clinical.csv                               # 100 samples × 124 clinical variables
-  pdac/
-    proteomics_raw.csv                         # 238 samples × 12,017 proteins
-    clinical.csv                               # 140 samples × 124 clinical variables
-  ov/
-    proteomics_raw.csv                         # 103 samples × 11,099 proteins
-    clinical.csv                               # 110 samples × 124 clinical variables
+  Per-cohort raw + derived files (luad, brca, ccrcc, gbm, hnscc, lscc, ov, pdac, ucec — coad skipped, both cptac sources broken):
+    proteomics_raw.csv                          # patients × proteins abundance matrix (umich source), two header rows
+    clinical.csv                                # patient clinical metadata (mssm source)
+    descriptions.csv                            # patient clinical descriptions — ablation-baseline text input only, see text_generation.py note above
+    protein_annotations.csv                     # UniProt accession, gene name, annotation, sequence, GO_Biological_Process, GO_Cellular_Component
+    rank_normalized_proteomics.csv               # within-sample percentile ranks [0,1], NaN preserved — used by ablation-baseline training AND by Stage 2 abundance annotation
+    esm2_embeddings.h5                           # [SHARED] one 640-dim vector per protein
+    biobert_embeddings.h5                        # ablation baseline: (patient × protein × 768) with clinical text; [MAIN LINE] uses biobert_embeddings_masked.h5 instead — one 768-dim vector per protein, gene name stripped, no clinical text. _masked_go.h5 / _masked_go_bp_only.h5 are the GO-term ablation (not used going forward)
+  protein_splits.json                            # [MAIN LINE] global protein-level 80/10/10 split (union of all 9 cohorts, 15,733 unique proteins after dedup)
+  test_patients_per_cohort.json                  # [ABLATION BASELINE] 10 patients per cohort held out, patient-level split
+  protein_fused_text_sample.csv                  # 10-protein spot-check sample from the paused LLM-fusion experiment (section 10o)
+  runs/<cohort-combo>/                           # one dir per incremental cohort-scaling step; checkpoint.pt + checkpoint_no_clinical.pt in each = ablation-baseline evidence (section 8a scaling curve). The final dir (all 9 cohorts) additionally holds the [MAIN LINE] protein-level checkpoints — current best is checkpoint_no_abundance_masked_e2000_best.pt; the unmasked/GO-variant/epoch-sweep siblings next to it are ablation evidence (sections 10e, 10m, 10n), not meant to be loaded going forward
+  evaluation/                                    # eval output CSVs. NOTE: pathway_auroc_protein_level_results.csv and pathway_recall_at_k_protein_level_results.csv have no checkpoint suffix (predate the naming fix in section 10n) — confirm which checkpoint produced them before citing; every other file in this dir is suffixed with its source checkpoint stem
 ```
 
 ## Data notes
@@ -1006,6 +1020,23 @@ Motivation: 10n's raw GO-term concatenation failed twice (BP+CC, BP-only) — hu
 **Status: paused, not a decision against the approach — a budget constraint.** Available Claude API credit balance is $4, far short of the ~$25–55 needed. Nothing is lost by pausing: the dedup table logic, prompt, and quality-check tooling are done and committed; resuming later is just running `--full` (or building the Batch API variant first, which the cost estimate suggests is worth doing at this volume) once credit is available.
 
 **To resume:** `uv run python src/embeddings/textual/fuse_protein_text_llm.py --full` (or build a Batches-API version first — recommended given the volume), then: embed the fused text globally (one BioBERT embedding per unique protein, not per cohort — analogous to the dedup-before-generation choice in Step 1), train with identical protocol to 10m/10n (2000 epochs, seed 42, same 9 cohorts), then run the full eval suite (self-ID R@K, pathway AUROC raw + both NL styles, pathway recall@K) and compare against masked-only (10m: AUROC 0.6264/0.5952, recall@100/200/400 4.38/7.18/10.97%) and the two failed GO variants (10n).
+
+### 10p. Basic bidirectional cross-modal retrieval eval — closed test-set (2026-07-13)
+Built `src/evaluation/cross_modal_eval.py`: the standard CLIP-style retrieval sanity check — distinct from every other R@K-based eval in this document. `recall_at_k_protein_level.py` (10f) uses a mixed train+val+test candidate pool (realistic-deployment simulation) and only queries text→protein; this script instead restricts **both** the query set and the candidate pool to the closed protein-level test split (`data/protein_splits.json`, ~1,573 proteins) and computes R@1/5/10/50 in **both directions** (text→protein, protein→text) — the closed-set, bidirectional protocol standard CLIP papers report (Flickr30k/COCO-style), and a same-pool basis for comparing the three text-variant checkpoints directly.
+
+**Results (2000-epoch checkpoints, identical protocol, only the text variant differs):**
+
+| Checkpoint | Pool | T→P R@1/5/10/50 | P→T R@1/5/10/50 |
+|---|---|---|---|
+| unmasked | 1,573 | 33.38/49.33/56.20/72.60 | 33.50/50.16/56.71/72.41 |
+| masked | 1,573 | 32.99/49.65/55.24/71.84 | 35.41/51.11/57.09/71.46 |
+| masked+GO (BP+CC) | 1,570 | 33.89/53.18/60.13/76.50 | 35.35/52.93/60.32/75.80 |
+
+**Finding 1 — masking has no visible effect on this metric.** Unmasked and masked land within ~1pp of each other at every K, despite masking clearly improving pathway AUROC (0.6074 → 0.6264, 10g/10m) — this metric is not sensitive to the same thing pathway AUROC is.
+
+**Finding 2 — masked+GO wins this metric outright, the opposite of the pathway-level ranking.** masked+GO beats both other checkpoints at every K past R@1 (R@50: 76.50% vs ~72%), while 10n already showed masked+GO is clearly *worse* on pathway AUROC (0.5823 vs 0.6264) and pathway recall@100 (roughly halved: 2.24% vs 4.38%). Not a contradiction in the data — a **fifth demonstration of the name/shortcut pattern** (after 8a, 8e, 10k/10l, 10n): this eval's closed 1,570–1,573-protein pool is structurally a self-identification task (find your own unique text/embedding among a small closed set of candidates), and extra protein-distinguishing text (GO terms) makes that easier without transferring to open-vocabulary pathway-level generalization — exactly like GO terms already did for self-ID R@K in 10n.
+
+**Why this belongs at the start of the Experiments section:** it's the standard, literature-recognizable CLIP retrieval check, and it shows the contrastive objective clearly works (all three checkpoints far above the ~0.06% random baseline for a ~1,570-protein closed pool). Its disagreement with pathway AUROC on checkpoint ranking is the intended pivot into the harder, shortcut-free evaluation — not a loose end to resolve or hide, mirroring how 8a (R@K) → 8c/8d (pathway AUROC) was already structured for the patient-level work.
 
 ### Next steps from here
 - **`activity_score` validation — done, but concluded differently than planned.** The originally-planned multiplicative re-ranking score turned out to be the wrong mechanism (10j); redesigned into the Stage 1 (wide retrieval) + Stage 2 (abundance annotation) split, implemented and spot-checked (10j/10k). Remaining, smaller: validate Stage 2 on a larger sample of patients (does abundance meaningfully differentiate more than 2 patients; does a generically-high-abundance "albumin problem" protein ever crowd Stage 1's candidate pool — structurally shouldn't, since Stage 2 never adds candidates, but worth a real check).
