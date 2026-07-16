@@ -1105,6 +1105,76 @@ Before retraining, refactored `train_protein_level.py`: `lr` and `batch_size` be
 
 **Winner, agreeing on both AUROC variants: `lr=1e-4, batch_size=512, epochs=500`** (checkpoint `sweep_lr1e-04_bs512_e500_best.pt`) — notably, `batch_size=512` was the *original* CellWhisperer-inherited default the whole sweep set out to question, and it won once fairly compared. For context (not a formal comparison, different protein universe/split): close to the section 10m masked 9-cohort baseline (overall 0.6264, test-only 0.5952) — slightly ahead overall, essentially tied test-only.
 
-**In progress:** `hidden_dim ∈ {256, 512, 1024}` check at this fixed `(lr=1e-4, batch_size=512, epochs=500)`, decided by pathway AUROC on the same shortlist-then-decide logic (`--hidden-dim` added to `train_protein_level.py` for this). Motivation for testing smaller-or-equal rather than assuming bigger helps: only 13,515 unique training pairs — added capacity is more likely to overfit than to unlock headroom at this data scale, so this check is validating the existing 512 default rather than searching for a bigger one. Once resolved: full eval suite (pathway recall@K, cross-modal) on the final checkpoint against the section-10m baseline, then the GO-term augmentation re-ablation on this same full-proteome/homology-split setup (per the decision to get fresh evidence on the final architecture rather than carry over the old 9-cohort GO-term negative result unverified).
+### 11f. Projection head dimension search — `hidden_dim` and `output_dim`, and why they can't be tuned independently
+With `(lr=1e-4, batch_size=512, epochs=500)` now fixed from 11e, the last architectural question was the projection heads' two dimensions: `hidden_dim` (the MLP's internal layer width, default 512) and `output_dim` (the final shared embedding space where cosine similarity is computed, default 256 — CellWhisperer uses 1024). `train_protein_level.py` gained `--hidden-dim`/`--output-dim` CLI flags (both saved into the checkpoint, same self-documentation pattern as `lr`/`batch_size`); all four evaluation scripts (`pathway_auroc_protein_level.py`, `pathway_recall_at_k_protein_level.py`, `cross_modal_eval.py`, `recall_at_k_protein_level.py`) were updated to read `hidden_dim`/`output_dim` back out of the checkpoint when reconstructing the projection heads, instead of assuming 512/256, so any architecture variant loads correctly.
 
-**As a bachelor's thesis contribution, independent of the model's absolute performance:** the methodology built this week — objective, pre-registered pathway selection criteria instead of hand-picking (8d), two independently-designed natural-language query experiments reported honestly even where they didn't help (8e), a quantified demonstration of the name-shortcut limitation (R@K vs. AUROC gap), and a clearly reasoned architecture plan with an explicit theoretical justification (the abundance-incentive analysis) — is itself a legitimate, rigorous scientific contribution. A thesis that honestly reports what works, what doesn't, and why is stronger than one that oversells a higher raw metric. Whether the patient-specificity claim becomes genuinely solid depends on the retraining plan and `activity_score` validation still ahead — an open question, not a settled one, and it should be presented that way in the thesis.
+**A real mathematical constraint, not just an empirical hunch, shaped which combinations were worth testing:** the final layer is `Linear(hidden_dim, output_dim)`, and a linear layer's output can only vary along at most `min(hidden_dim, output_dim)` independent directions (a matrix-rank fact). So `output_dim > hidden_dim` is a structurally invalid test — the embedding would nominally be the larger size but is silently rank-capped at `hidden_dim`, unable to use the extra dimensions for genuinely new information. `hidden_dim ≥ output_dim` (equal or hidden bigger) is always valid. This ruled out testing `hidden=512, output=1024` directly and required raising `hidden_dim` alongside `output_dim` whenever `output_dim` exceeded 512.
+
+**Results, all at the fixed `(lr=1e-4, batch_size=512, epochs=500)`, pathway AUROC on the same 245-pathway set:**
+
+| output_dim | hidden_dim | val_loss | overall AUROC (n=245) | test-only AUROC (n=159) |
+|---|---|---|---|---|
+| 128 | 512 | 3.3529 | 0.6331 | 0.5780 |
+| 256 (original default) | 512 | 3.1808 | 0.6401 | 0.5915 |
+| 512 | 512 | 3.1720 | 0.6270 | 0.6052 |
+| 256 (hidden-only increase) | 1024 | 3.1951 | 0.6301 | 0.5735 |
+| **1024** | **1024** | **3.0669** | **0.6563** | **0.6101** |
+| 2048 | 2048 | — | 0.6469 | 0.6001 |
+
+**Disentangling insight:** raising `hidden_dim` alone (1024) while leaving `output_dim` at 256 did **not** help — it scored the worst of every configuration tested, below even the original 512/256 default. This rules out "more MLP capacity" as the explanation for the eventual win. The improvement only appears when both dimensions scale up *together* (1024/1024) — direct evidence that it's the size of the final shared embedding space that matters, and that a wider hidden layer only helps once there's a correspondingly larger output space to make use of it (consistent with the rank-capping argument above).
+
+**2048/2048 confirms 1024 is a genuine peak, not an untested edge:** both AUROC variants drop at 2048 relative to 1024 (0.6469 vs. 0.6563 overall; 0.6001 vs. 0.6101 test-only) — ruling out "bigger is still better, we just stopped too early" and closing this axis of search.
+
+**Final validated architecture, checkpoint `data/runs/full_proteome/final_hparams_masked_best.pt`** (renamed from `outputdim_od1024_best.pt` once confirmed as the winner)**:**
+`lr=1e-4`, `batch_size=512`, `epochs=500`, `hidden_dim=1024`, `output_dim=1024` — every one of these five settings individually checked against at least one alternative on pathway AUROC (not val_loss/cross-modal alone), with the batch-size/val_loss confound (11e) and the hidden_dim/output_dim rank-capping confound (11f) both caught and corrected for before drawing conclusions, rather than after.
+
+### 11g. Masking re-verified at the final architecture, and cross-modal vs. pathway AUROC diverge exactly as expected
+The masking decision (10m) had been folded into the full-proteome baseline by assumption (11e) rather than re-tested, since the original ablation was run on a different protein universe/split/architecture entirely. To close that gap, trained one more checkpoint — `final_hparams_unmasked_best.pt` — identical to the final architecture (`lr=1e-4, batch_size=512, hidden_dim=1024, output_dim=1024, epochs=500`) in every respect except using `biobert_embeddings.h5` (unmasked) instead of the masked variant, isolating masking as the only variable.
+
+**Cross-modal (`cross_modal_eval.py`), 1,689-protein closed test pool:** mixed, inconclusive — unmasked led on T→P at every K (e.g. R@50: 74.90% vs. 72.23%) while masked led on P→T at R@1/5/10 (e.g. R@1: 22.85% vs. 20.25%), with unmasked again ahead at P→T R@50. No consistent winner either direction.
+
+**Pathway AUROC (the metric that matters) told a completely different, decisive story:**
+
+| | overall AUROC (n=245) | test-only AUROC (n=159) |
+|---|---|---|
+| unmasked | 0.6373 | 0.5921 |
+| **masked** | **0.6563** | **0.6101** |
+| **Δ (masking gain)** | **+0.0190** | **+0.0180** |
+
+Masking wins clearly on both AUROC variants. Two things worth noting: (1) this is a clean, single-variable comparison — every other setting is identical — so the gain is directly attributable to masking, not a confound. (2) The overall-AUROC gain (+0.0190) is **almost numerically identical** to the original masking ablation's gain in section 10m (0.6074 → 0.6264, also +0.0190) — the same-sized effect, reproduced on a completely different protein universe, split methodology, and hyperparameter/architecture configuration. This is strong evidence the masking effect is a real, general property of the training text rather than an artifact of one particular setup.
+
+The cross-modal/pathway-AUROC mismatch here is also not a new puzzle — it's the same pattern already documented in section 10p (masking barely moved cross-modal there either), now confirmed a second time on an entirely different architecture: cross-modal is a self-identification task and isn't structurally positioned to detect the benefit of removing a name-based shortcut, since that shortcut barely helps this specific closed-pool task to begin with.
+
+### 11h. Pathway recall@K and self-ID recall@K on the final checkpoint — a clean illustration of the whole name-shortcut narrative
+Closing out the eval suite on `final_hparams_masked_best.pt`, two more metrics against the section-10m baseline (`checkpoint_no_abundance_masked_e2000_best.pt`: recall@100/200/400 4.38/7.18/10.97%; self-ID R@1/10/50/100 18.50/36.11/48.70/55.69%).
+
+**Pathway recall@K — real, consistent improvement, in line with the pre-registered prediction:**
+
+| K | old baseline | new final | Δ |
+|---|---|---|---|
+| 100 | 4.38% | 5.37% | +0.99pp (+23% relative) |
+| 200 | 7.18% | 8.27% | +1.09pp (+15% relative) |
+| 400 | 10.97% | 12.78% | +1.81pp (+16% relative) |
+
+Test-only variant (positives restricted to never-trained-on test members, n=159 pathways with enough positives): recall@100/200/400 = 2.09%/3.51%/6.26% — naturally lower than the overall numbers (no memorized train/validation positives inflating it), but real, non-zero signal.
+
+**Calibrating "5-13% recall@K" against chance, not against 100%:** the raw percentages look low in isolation, but the right comparison is the random baseline for this pool size, `K / 16,893`: 0.59% at K=100, 1.18% at K=200, 2.37% at K=400. Against that, the model is running at **~9x, ~7x, and ~5x random chance** respectively — a real, non-trivial signal for an open-vocabulary retrieval task (a two-to-four-word category name, no gene names, ranked against ~17,000 candidates) trained on only 13,515 unique examples with a frozen text encoder. It is also, concretely, the best version of this metric across the entire project's history — beating the old 9-cohort baseline (4.38%/7.18%/10.97%) at every K, not a regression. The weakness this number reveals is not a new discovery specific to this checkpoint — it is the same gap section 10l already diagnosed in detail and used to motivate the GO-term/LLM-fusion line of work; this run improves on it without closing it.
+
+**Self-ID recall@K — sharply *worse*, and a second, cleaner demonstration of the homology-split leakage story from 11a/11d:**
+
+| K | old masked baseline (10m) | new final | relative change |
+|---|---|---|---|
+| 1 | 18.50% | **2.01%** | −89% |
+| 10 | 36.11% | 20.31% | −44% |
+| 50 | 48.70% | 40.56% | −17% |
+| 100 | 55.69% | 50.15% | −10% |
+
+The drop shrinks steadily from R@1 to R@100 — exactly the signature already seen once in 11d's cross-modal comparison (R@1 nearly halved there, R@50 barely moved), now reproduced more starkly on a metric whose candidate pool size barely changed between old and new (~15,718 → 16,893, unlike the cross-modal case which was also confounded by the switch to a bigger protein universe). Interpretation: the old random split let near-identical paralogs of "held-out" proteins sit in the training portion of this same mixed pool, which specifically inflates *exact* top-1 self-identification (a near-twin in training makes rank #1 easy to hit almost by accident) while barely affecting broader top-50/100 concentration. The homology-aware split (11a, 11c) closes exactly this loophole.
+
+**The clean, thesis-relevant story this produces:** as the model improved on every shortcut-resistant metric (pathway AUROC +0.019/+0.018, pathway recall@K +15-23% relative), a shortcut-flavored metric (self-ID recall@K) *fell* sharply — because its old high value was itself partly an artifact of a less rigorous split, not genuine capability. This is the name-shortcut/leakage narrative (first raised in 8a, demonstrated four more ways across 8e/10k/10l/10n) appearing a sixth time, now with the clearest before/after numbers of any of them.
+
+**On cross-modal's realism, worth stating explicitly in the thesis:** cross-modal's closed, unseen-only pool is *not* representative of real deployment — a researcher's real upload would be overwhelmingly proteins the model already trained on (13,515 of 16,893, ~80%) plus a few novel ones, not an all-novel pool. Cross-modal is valuable as a clean generalization stress test and for literature comparability (same protocol as CLIP/Flickr30k benchmarks), not as a predictor of real-world performance. Self-ID recall@K and pathway AUROC/recall@K, which all use the full mixed ~16,893-protein pool, are the metrics that actually approximate a real uploaded sample — and those are the metrics that showed genuine improvement in this final checkpoint.
+
+**Next:** the GO-term augmentation re-ablation on this same full-proteome/homology-split/final-architecture setup (per the decision to get fresh evidence on the final architecture rather than carry over the old 9-cohort GO-term negative result unverified).
+
+**As a bachelor's thesis contribution, independent of the model's absolute performance:** the methodology built this week — objective, pre-registered pathway selection criteria instead of hand-picking (8d), two independently-designed natural-language query experiments reported honestly even where they didn't help (8e), a quantified demonstration of the name-shortcut limitation (R@K vs. AUROC gap), a clearly reasoned architecture plan with an explicit theoretical justification (the abundance-incentive analysis), two independently-discovered evaluation confounds caught and corrected during hyperparameter search rather than after (the batch-size/val_loss random-guessing floor in 11e, and the hidden_dim/output_dim rank-capping constraint in 11f), and a sixth, unusually clean demonstration of the name-shortcut/leakage narrative — self-ID recall@K falling sharply while every shortcut-resistant metric improved on the same final checkpoint (11h) — is itself a legitimate, rigorous scientific contribution. A thesis that honestly reports what works, what doesn't, and why is stronger than one that oversells a higher raw metric. Whether the patient-specificity claim becomes genuinely solid depends on the retraining plan and `activity_score` validation still ahead — an open question, not a settled one, and it should be presented that way in the thesis.

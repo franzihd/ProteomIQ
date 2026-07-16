@@ -94,9 +94,12 @@ def run(checkpoint_path: Path, splits_file: str = "data/protein_splits.json",
     biobert_model = AutoModel.from_pretrained(BIOBERT_PATH, local_files_only=True).to(device)
     biobert_model.eval()
 
-    protein_head = ProjectionHead(input_dim=640, hidden_dim=512, output_dim=256).to(device)
-    text_head = ProjectionHead(input_dim=768, hidden_dim=512, output_dim=256).to(device)
     checkpoint = torch.load(checkpoint_path, map_location=device)
+    # Older checkpoints predate saving these keys -- fall back to the original defaults.
+    hidden_dim = checkpoint.get("hidden_dim", 512)
+    output_dim = checkpoint.get("output_dim", 256)
+    protein_head = ProjectionHead(input_dim=640, hidden_dim=hidden_dim, output_dim=output_dim).to(device)
+    text_head = ProjectionHead(input_dim=768, hidden_dim=hidden_dim, output_dim=output_dim).to(device)
     protein_head.load_state_dict(checkpoint["protein_head"])
     text_head.load_state_dict(checkpoint["text_head"])
     protein_head.eval()

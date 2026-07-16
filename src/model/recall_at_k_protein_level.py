@@ -51,9 +51,12 @@ def compute_ranks(checkpoint_path: str, biobert_filename: str = "biobert_embeddi
           f"({len(test_protein_ids):,} of which are held-out test proteins)")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    protein_head = ProjectionHead(input_dim=640, hidden_dim=512, output_dim=256).to(device)
-    text_head = ProjectionHead(input_dim=768, hidden_dim=512, output_dim=256).to(device)
     ckpt = torch.load(checkpoint_path, map_location=device)
+    # Older checkpoints predate saving these keys -- fall back to the original defaults.
+    hidden_dim = ckpt.get("hidden_dim", 512)
+    output_dim = ckpt.get("output_dim", 256)
+    protein_head = ProjectionHead(input_dim=640, hidden_dim=hidden_dim, output_dim=output_dim).to(device)
+    text_head = ProjectionHead(input_dim=768, hidden_dim=hidden_dim, output_dim=output_dim).to(device)
     protein_head.load_state_dict(ckpt["protein_head"])
     text_head.load_state_dict(ckpt["text_head"])
     protein_head.eval()

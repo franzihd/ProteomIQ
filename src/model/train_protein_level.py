@@ -43,7 +43,8 @@ def infonce_loss(protein_vec, text_vec):
 def train(cohorts: list[str], checkpoint_path: str, epochs: int,
           biobert_filename: str = "biobert_embeddings.h5",
           splits_file: str = "data/protein_splits.json",
-          lr: float = MAX_LR, batch_size: int = BATCH_SIZE, hidden_dim: int = 512):
+          lr: float = MAX_LR, batch_size: int = BATCH_SIZE, hidden_dim: int = 512,
+          output_dim: int = 256):
     # Fixed seed so repeated runs (e.g. comparing different --epochs values)
     # only differ because of epochs, not because of a different random weight
     # initialization or batch shuffle order each time.
@@ -59,7 +60,8 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int,
         biobert_filename=biobert_filename,
     )
     print(f"Cohorts: {cohorts}  |  Training pairs (unique proteins): {len(dataset):,}")
-    print(f"BioBERT source: {biobert_filename}  |  lr: {lr}  |  batch_size: {batch_size}  |  hidden_dim: {hidden_dim}")
+    print(f"BioBERT source: {biobert_filename}  |  lr: {lr}  |  batch_size: {batch_size}  |  "
+          f"hidden_dim: {hidden_dim}  |  output_dim: {output_dim}")
 
     shuffle_generator = torch.Generator().manual_seed(SEED)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
@@ -79,8 +81,8 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int,
               f"consider a larger --epochs value")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    protein_head = ProjectionHead(input_dim=640, hidden_dim=hidden_dim, output_dim=256).to(device)
-    text_head = ProjectionHead(input_dim=768, hidden_dim=hidden_dim, output_dim=256).to(device)
+    protein_head = ProjectionHead(input_dim=640, hidden_dim=hidden_dim, output_dim=output_dim).to(device)
+    text_head = ProjectionHead(input_dim=768, hidden_dim=hidden_dim, output_dim=output_dim).to(device)
 
     optimizer = torch.optim.AdamW(
         list(protein_head.parameters()) + list(text_head.parameters()), lr=lr
@@ -136,6 +138,7 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int,
                       "lr": lr,
                       "batch_size": batch_size,
                       "hidden_dim": hidden_dim,
+                      "output_dim": output_dim,
                       "biobert_filename": biobert_filename,
                       "splits_file": splits_file}
         torch.save(checkpoint, out_path)
@@ -164,7 +167,11 @@ if __name__ == "__main__":
                         help=f"default {BATCH_SIZE}")
     parser.add_argument("--hidden-dim", type=int, default=512,
                         help="width of the projection heads' hidden layer (default 512)")
+    parser.add_argument("--output-dim", type=int, default=256,
+                        help="dimension of the final shared embedding space, where cosine "
+                             "similarity is computed (default 256; CellWhisperer uses 1024)")
     args = parser.parse_args()
     train(cohorts=args.cohorts, checkpoint_path=args.checkpoint, epochs=args.epochs,
           biobert_filename=args.biobert_filename, splits_file=args.splits_file,
-          lr=args.lr, batch_size=args.batch_size, hidden_dim=args.hidden_dim)
+          lr=args.lr, batch_size=args.batch_size, hidden_dim=args.hidden_dim,
+          output_dim=args.output_dim)
