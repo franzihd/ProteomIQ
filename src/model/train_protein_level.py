@@ -42,7 +42,8 @@ def infonce_loss(protein_vec, text_vec):
 
 def train(cohorts: list[str], checkpoint_path: str, epochs: int,
           biobert_filename: str = "biobert_embeddings.h5",
-          splits_file: str = "data/protein_splits.json"):
+          splits_file: str = "data/protein_splits.json",
+          lr: float = MAX_LR, batch_size: int = BATCH_SIZE, hidden_dim: int = 512):
     # Fixed seed so repeated runs (e.g. comparing different --epochs values)
     # only differ because of epochs, not because of a different random weight
     # initialization or batch shuffle order each time.
@@ -58,17 +59,17 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int,
         biobert_filename=biobert_filename,
     )
     print(f"Cohorts: {cohorts}  |  Training pairs (unique proteins): {len(dataset):,}")
-    print(f"BioBERT source: {biobert_filename}")
+    print(f"BioBERT source: {biobert_filename}  |  lr: {lr}  |  batch_size: {batch_size}  |  hidden_dim: {hidden_dim}")
 
     shuffle_generator = torch.Generator().manual_seed(SEED)
-    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True,
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
                             generator=shuffle_generator)
 
     val_dataset = ProteomicsDataset(
         cohorts=cohorts, use_abundance=False, restrict_to_protein_ids=val_protein_ids,
         biobert_filename=biobert_filename,
     )
-    val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     print(f"Validation pairs (proteins never trained on): {len(val_dataset):,}")
 
     total_steps = epochs * len(dataloader)
@@ -78,11 +79,11 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int,
               f"consider a larger --epochs value")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    protein_head = ProjectionHead(input_dim=640, hidden_dim=512, output_dim=256).to(device)
-    text_head = ProjectionHead(input_dim=768, hidden_dim=512, output_dim=256).to(device)
+    protein_head = ProjectionHead(input_dim=640, hidden_dim=hidden_dim, output_dim=256).to(device)
+    text_head = ProjectionHead(input_dim=768, hidden_dim=hidden_dim, output_dim=256).to(device)
 
     optimizer = torch.optim.AdamW(
-        list(protein_head.parameters()) + list(text_head.parameters()), lr=MAX_LR
+        list(protein_head.parameters()) + list(text_head.parameters()), lr=lr
     )
     scheduler = get_cosine_schedule_with_warmup(
         optimizer, num_warmup_steps=int(0.03 * total_steps), num_training_steps=total_steps
@@ -131,7 +132,12 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int,
                       "text_head": text_head.state_dict(),
                       "val_loss": val_loss,
                       "epoch": epoch + 1,
-                      "total_epochs": epochs}
+                      "total_epochs": epochs,
+                      "lr": lr,
+                      "batch_size": batch_size,
+                      "hidden_dim": hidden_dim,
+                      "biobert_filename": biobert_filename,
+                      "splits_file": splits_file}
         torch.save(checkpoint, out_path)
         if is_best:
             best_val_loss = val_loss
@@ -152,6 +158,13 @@ if __name__ == "__main__":
                         help="e.g. biobert_embeddings_masked.h5 for the gene-name-masking ablation")
     parser.add_argument("--splits-file", default="data/protein_splits.json",
                         help="e.g. data/protein_splits_full_proteome.json for the full-proteome split")
+    parser.add_argument("--lr", type=float, default=MAX_LR,
+                        help=f"peak learning rate after warmup (default {MAX_LR})")
+    parser.add_argument("--batch-size", type=int, default=BATCH_SIZE,
+                        help=f"default {BATCH_SIZE}")
+    parser.add_argument("--hidden-dim", type=int, default=512,
+                        help="width of the projection heads' hidden layer (default 512)")
     args = parser.parse_args()
     train(cohorts=args.cohorts, checkpoint_path=args.checkpoint, epochs=args.epochs,
-          biobert_filename=args.biobert_filename, splits_file=args.splits_file)
+          biobert_filename=args.biobert_filename, splits_file=args.splits_file,
+          lr=args.lr, batch_size=args.batch_size, hidden_dim=args.hidden_dim)
