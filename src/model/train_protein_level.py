@@ -44,7 +44,16 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int,
           biobert_filename: str = "biobert_embeddings.h5",
           splits_file: str = "data/protein_splits.json",
           lr: float = MAX_LR, batch_size: int = BATCH_SIZE, hidden_dim: int = 512,
-          output_dim: int = 256):
+          output_dim: int = 256, on_epoch_end=None, early_stopping_patience: int | None = None):
+    """
+    on_epoch_end: optional callback(epoch, train_loss, val_loss) -> None,
+    called after every epoch. Lets a caller (e.g. sweep_train.py) hook in
+    external logging without this script needing to know that caller exists.
+    early_stopping_patience: optional int. If set, stop once val_loss hasn't
+    improved for this many consecutive epochs. Default None preserves the
+    original always-run-all-epochs behavior for existing callers.
+    Returns (best_checkpoint_path, best_val_loss).
+    """
     # Fixed seed so repeated runs (e.g. comparing different --epochs values)
     # only differ because of epochs, not because of a different random weight
     # initialization or batch shuffle order each time.
@@ -95,6 +104,7 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int,
     out_path.parent.mkdir(parents=True, exist_ok=True)
     best_path = out_path.with_name(out_path.stem + "_best" + out_path.suffix)
     best_val_loss = float("inf")
+    epochs_since_improvement = 0
 
     for epoch in range(epochs):
         protein_head.train()
@@ -130,6 +140,9 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int,
               f"val_loss: {val_loss:.4f}"
               + ("  <- best so far" if is_best else ""))
 
+        if on_epoch_end is not None:
+            on_epoch_end(epoch, total_loss / len(dataloader), val_loss)
+
         checkpoint = {"protein_head": protein_head.state_dict(),
                       "text_head": text_head.state_dict(),
                       "val_loss": val_loss,
@@ -145,6 +158,16 @@ def train(cohorts: list[str], checkpoint_path: str, epochs: int,
         if is_best:
             best_val_loss = val_loss
             torch.save(checkpoint, best_path)
+            epochs_since_improvement = 0
+        else:
+            epochs_since_improvement += 1
+
+        if early_stopping_patience is not None and epochs_since_improvement >= early_stopping_patience:
+            print(f"Early stopping: no val_loss improvement for {early_stopping_patience} "
+                  f"epochs (stopped after epoch {epoch + 1}/{epochs})")
+            break
+
+    return best_path, best_val_loss
 
 
 if __name__ == "__main__":
@@ -170,8 +193,11 @@ if __name__ == "__main__":
     parser.add_argument("--output-dim", type=int, default=256,
                         help="dimension of the final shared embedding space, where cosine "
                              "similarity is computed (default 256; CellWhisperer uses 1024)")
+    parser.add_argument("--early-stopping-patience", type=int, default=None,
+                        help="stop once val_loss hasn't improved for this many consecutive "
+                             "epochs (default: disabled, always run all --epochs)")
     args = parser.parse_args()
     train(cohorts=args.cohorts, checkpoint_path=args.checkpoint, epochs=args.epochs,
           biobert_filename=args.biobert_filename, splits_file=args.splits_file,
           lr=args.lr, batch_size=args.batch_size, hidden_dim=args.hidden_dim,
-          output_dim=args.output_dim)
+          output_dim=args.output_dim, early_stopping_patience=args.early_stopping_patience)

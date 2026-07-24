@@ -6,3 +6,5 @@ __pycache__/
 *.h5
 *.h5.bak
 .vscode/
+wandb/
+data/runs/*/wandb_sweep*/
