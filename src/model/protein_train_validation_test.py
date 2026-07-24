@@ -41,6 +41,14 @@ OUT = Path("data/protein_splits_full_proteome.json")
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--biobert-filename", default="biobert_embeddings_masked.h5")
+    parser.add_argument("--random-control", action="store_true",
+                        help="diagnostic control split: shuffle individual proteins instead "
+                             "of CD-HIT clusters, over the same full-proteome protein set. "
+                             "Isolates whether the homology-aware split's effect on eval "
+                             "metrics is really about paralog leakage, not a side effect of "
+                             "some other change (protein universe, hyperparameters). Written "
+                             "to data/protein_splits_full_proteome_random.json instead of "
+                             "overwriting the real homology-aware split.")
     args = parser.parse_args()
 
     with h5py.File(FULL_PROTEOME_DIR / "esm2_embeddings.h5") as f:
@@ -51,25 +59,32 @@ def main():
     usable_proteins = esm2_ids & biobert_ids
     print(f"Usable proteins (ESM2 ∩ BioBERT): {len(usable_proteins)}")
 
-    with open(CLUSTERS_PATH) as f:
-        protein_to_cluster = json.load(f)
+    if args.random_control:
+        # Every protein is its own singleton "cluster" -- i.e. no homology
+        # grouping at all, just a pure per-protein random split, over the
+        # exact same protein set as the real homology-aware split.
+        clusters = {i: [protein_id] for i, protein_id in enumerate(sorted(usable_proteins))}
+        protein_to_cluster = {protein_id: i for i, members in clusters.items() for protein_id in members}
+    else:
+        with open(CLUSTERS_PATH) as f:
+            protein_to_cluster = json.load(f)
 
-    clusters = {}
-    n_missing_cluster = 0
-    next_singleton_id = max(protein_to_cluster.values(), default=-1) + 1
-    for protein_id in usable_proteins:
-        cluster_id = protein_to_cluster.get(protein_id)
-        if cluster_id is None:
-            # Wasn't in the CD-HIT input (e.g. dropped for missing sequence/
-            # annotation there but present in ESM2+BioBERT some other way) --
-            # treat as its own singleton cluster rather than dropping it.
-            cluster_id = next_singleton_id
-            next_singleton_id += 1
-            n_missing_cluster += 1
-        clusters.setdefault(cluster_id, []).append(protein_id)
-    if n_missing_cluster:
-        print(f"[note] {n_missing_cluster} usable proteins had no CD-HIT cluster; "
-              f"assigned as singletons")
+        clusters = {}
+        n_missing_cluster = 0
+        next_singleton_id = max(protein_to_cluster.values(), default=-1) + 1
+        for protein_id in usable_proteins:
+            cluster_id = protein_to_cluster.get(protein_id)
+            if cluster_id is None:
+                # Wasn't in the CD-HIT input (e.g. dropped for missing sequence/
+                # annotation there but present in ESM2+BioBERT some other way) --
+                # treat as its own singleton cluster rather than dropping it.
+                cluster_id = next_singleton_id
+                next_singleton_id += 1
+                n_missing_cluster += 1
+            clusters.setdefault(cluster_id, []).append(protein_id)
+        if n_missing_cluster:
+            print(f"[note] {n_missing_cluster} usable proteins had no CD-HIT cluster; "
+                  f"assigned as singletons")
 
     cluster_ids = list(clusters.keys())
     random.seed(42)
@@ -105,13 +120,14 @@ def main():
     assert not (test_clusters & train_clusters), "a cluster spans test and train"
     assert not (set(validation) & set(test) & set(train)), "a protein appears in multiple splits"
 
-    with open(OUT, "w") as f:
+    out_path = Path("data/protein_splits_full_proteome_random.json") if args.random_control else OUT
+    with open(out_path, "w") as f:
         json.dump({"validation": validation, "test": test}, f, indent=2)
 
     print(f"\nTotal usable proteins: {len(usable_proteins)}")
     print(f"Total clusters: {len(clusters)}")
     print(f"Train: {len(train)}  |  Validation: {len(validation)}  |  Test: {len(test)}")
-    print(f"Saved to {OUT}")
+    print(f"Saved to {out_path}")
 
 
 if __name__ == "__main__":

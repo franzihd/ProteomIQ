@@ -10,14 +10,21 @@ recall_at_k_protein_level.py's R@K result — together they show whether any
 observed generalization is more than the model matching a protein's own name
 inside its own annotation text.
 
-Reports two numbers per pathway:
+Reports three numbers per pathway:
   - overall_auroc: standard AUROC over the full candidate pool (all ~15,718
     proteins), same "realistic mixed pool" design as R@K.
   - test_only_auroc: AUROC computed using ONLY test-set (never-trained)
     pathway members as positives, against all negatives — isolating whether
     genuinely novel proteins specifically are being ranked correctly, rather
     than the number being carried entirely by already-memorized train/val
-    members.
+    members. This is the FINAL, frozen number to report once — never use it
+    to pick between hyperparameters/checkpoints (that's tuning on the test
+    set). See validation_only_auroc below for that.
+  - validation_only_auroc: identical logic to test_only_auroc, but restricted
+    to validation-set proteins instead of test-set proteins. This is the
+    metric to use for hyperparameter search / checkpoint selection (sweeps,
+    architecture comparisons, etc.) — it never touches the test split, so
+    test_only_auroc stays an honest, untouched estimate for the final report.
 
 Usage:
     uv run python src/evaluation/pathway_auroc_protein_level.py \\
@@ -63,7 +70,7 @@ def build_gene_name_map(cohorts):
 
 
 def run(checkpoint_path: Path, splits_file: str = "data/protein_splits.json",
-        biobert_filename: str = "biobert_embeddings.h5"):
+        biobert_filename: str = "biobert_embeddings.h5", save_csv: bool = True):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     print(f"Checkpoint: {checkpoint_path}\n")
@@ -77,17 +84,20 @@ def run(checkpoint_path: Path, splits_file: str = "data/protein_splits.json",
     with open(splits_file) as f:
         protein_splits = json.load(f)
     test_protein_ids = set(protein_splits["test"])
+    val_protein_ids = set(protein_splits["validation"])
 
     print("Building global candidate pool ...")
     dataset = ProteomicsDataset(cohorts=COHORTS, use_abundance=False, biobert_filename=biobert_filename)
     protein_ids = dataset.pairs
     esm2_matrix = torch.stack([dataset.protein_esm2[pid] for pid in protein_ids])
     print(f"  {len(protein_ids):,} proteins "
-          f"({len(test_protein_ids):,} held-out test proteins)\n")
+          f"({len(test_protein_ids):,} held-out test proteins, "
+          f"{len(val_protein_ids):,} held-out validation proteins)\n")
 
     gene_name_map = build_gene_name_map(COHORTS)
     protein_labels = [gene_name_map.get(pid, pid) for pid in protein_ids]
     is_test = np.array([pid in test_protein_ids for pid in protein_ids])
+    is_val = np.array([pid in val_protein_ids for pid in protein_ids])
 
     tokenizer = AutoTokenizer.from_pretrained(BIOBERT_PATH, local_files_only=True)
     biobert_model = AutoModel.from_pretrained(BIOBERT_PATH, local_files_only=True).to(device)
@@ -126,7 +136,8 @@ def run(checkpoint_path: Path, splits_file: str = "data/protein_splits.json",
 
         # Test-only positives vs. all negatives: does the model rank never-
         # trained pathway members correctly, isolated from already-memorized
-        # train/validation members?
+        # train/validation members? Report exactly once, at the end, never
+        # to pick between hyperparameters/checkpoints.
         test_positive_mask = (labels == 1) & is_test
         n_test_positives = int(test_positive_mask.sum())
         test_only_auroc = None
@@ -134,33 +145,59 @@ def run(checkpoint_path: Path, splits_file: str = "data/protein_splits.json",
             eval_mask = test_positive_mask | (labels == 0)
             test_only_auroc = roc_auc_score(labels[eval_mask], sims[eval_mask])
 
+        # Same logic, but on validation-set positives instead of test-set
+        # ones -- this is the metric to use for hyperparameter/checkpoint
+        # selection, since it never touches the test split.
+        val_positive_mask = (labels == 1) & is_val
+        n_val_positives = int(val_positive_mask.sum())
+        validation_only_auroc = None
+        if n_val_positives >= MIN_POSITIVES:
+            eval_mask = val_positive_mask | (labels == 0)
+            validation_only_auroc = roc_auc_score(labels[eval_mask], sims[eval_mask])
+
         results.append({
             "pathway": pathway_name,
             "overall_auroc": overall_auroc,
             "n_positives": int(labels.sum()),
             "n_test_positives": n_test_positives,
             "test_only_auroc": test_only_auroc,
+            "n_val_positives": n_val_positives,
+            "validation_only_auroc": validation_only_auroc,
         })
 
     results_df = pd.DataFrame(results).sort_values("overall_auroc", ascending=False)
-    out_path = Path(f"data/evaluation/pathway_auroc_protein_level_results_{checkpoint_path.stem}.csv")
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    results_df.to_csv(out_path, index=False)
-
-    print("=" * 88)
-    print("Protein-level pathway AUROC (no-abundance ablation)")
-    print("=" * 88)
-    print(results_df.to_string(index=False))
-
-    print(f"\nOverall mean AUROC (n={len(results_df)} pathways): "
-          f"{results_df['overall_auroc'].mean():.4f}")
-
+    overall_mean = results_df["overall_auroc"].mean()
     with_test = results_df[results_df["test_only_auroc"].notna()]
-    print(f"\nPathways with enough test-only positives to score separately "
-          f"(n={len(with_test)}): mean test-only AUROC = "
-          f"{with_test['test_only_auroc'].mean():.4f}")
+    test_only_mean = with_test["test_only_auroc"].mean()
+    with_val = results_df[results_df["validation_only_auroc"].notna()]
+    validation_only_mean = with_val["validation_only_auroc"].mean()
 
-    print(f"\nFull results saved to {out_path}")
+    if save_csv:
+        out_path = Path(f"data/evaluation/pathway_auroc_protein_level_results_{checkpoint_path.stem}.csv")
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        results_df.to_csv(out_path, index=False)
+
+        print("=" * 88)
+        print("Protein-level pathway AUROC (no-abundance ablation)")
+        print("=" * 88)
+        print(results_df.to_string(index=False))
+        print(f"\nOverall mean AUROC (n={len(results_df)} pathways): {overall_mean:.4f}")
+        print(f"\nPathways with enough validation-only positives to score separately "
+              f"(n={len(with_val)}): mean validation-only AUROC = {validation_only_mean:.4f}  "
+              f"<- use this one for hyperparameter/checkpoint selection")
+        print(f"\nPathways with enough test-only positives to score separately "
+              f"(n={len(with_test)}): mean test-only AUROC = {test_only_mean:.4f}  "
+              f"<- report this once at the end, don't tune against it")
+        print(f"\nFull results saved to {out_path}")
+
+    return {
+        "overall_auroc_mean": float(overall_mean),
+        "test_only_auroc_mean": float(test_only_mean),
+        "n_pathways_test_only": len(with_test),
+        "validation_only_auroc_mean": float(validation_only_mean),
+        "n_pathways_validation_only": len(with_val),
+        "n_pathways": len(results_df),
+    }
 
 
 if __name__ == "__main__":

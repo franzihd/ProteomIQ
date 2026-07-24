@@ -34,7 +34,9 @@ def recall_at_k(sim: torch.Tensor, ks: list[int]) -> dict:
     n = sim.shape[0]
     diag = sim.diag().unsqueeze(1)
     ranks = (sim > diag).sum(dim=1).cpu().numpy() + 1
-    return {f"r{k}": float((ranks <= k).mean() * 100) for k in ks}
+    metrics = {f"r{k}": float((ranks <= k).mean() * 100) for k in ks}
+    metrics["median_rank"] = float(np.median(ranks))
+    return metrics
 
 
 def compute_cross_modal_eval(checkpoint_path: str, biobert_filename: str,
@@ -100,6 +102,8 @@ if __name__ == "__main__":
     print("Text -> Protein (query with annotation text, retrieve protein):")
     for k in KS:
         print(f"  R@{k}: {metrics['text_to_protein'][f'r{k}']:.2f}%")
+    print(f"  Median rank: {metrics['text_to_protein']['median_rank']:.0f}")
     print("\nProtein -> Text (query with protein embedding, retrieve annotation text):")
     for k in KS:
         print(f"  R@{k}: {metrics['protein_to_text'][f'r{k}']:.2f}%")
+    print(f"  Median rank: {metrics['protein_to_text']['median_rank']:.0f}")
