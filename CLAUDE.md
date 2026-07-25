@@ -806,13 +806,7 @@ Both NL styles land on the identical 0.520 mean — but via completely different
 - **LLM integration (Claude API, prompted — not fine-tuned)** — proof-of-concept: top-K proteins → LLM prompt with abundances + UniProt annotations → biological hypotheses. Confirmed as prompt-based rather than LLaVA-style fine-tuning (see CellWhisperer comparison above) — out of scope to pursue fine-tuning given the 2-month timeline.
 - **Stretch goal, optional:** hierarchical sample-level embedding via abundance-weighted pooling, aligned with clinical description as a second contrastive task — see "Next steps as of 2026-07-07" above. Only attempt if time remains after the core plan.
 
-### Proposed thesis structure
-1. **Introduction** — motivation, CellWhisperer as prior work, thesis title and goals
-2. **Related Work** — CLIP, ESM2, BioBERT, CPTAC, GSEA comparison
-3. **Methods** — data pipeline, architecture, training (covers steps 1–6 above)
-4. **Experiments** — R@K, query evaluation, pathway AUROC (covers step 8)
-5. **Discussion** — what works, what doesn't, known limitations (abundance scalar contribution, name shortcut, within-sample rank)
-6. **Conclusion & Future Work** — GO-term augmentation, BioBERT fine-tuning, LLM integration, dedicated abundance encoding
+### Proposed thesis structure (superseded — see the updated version at the end of section 11, after 11m)
 
 ## Current state of ProteomIQ (as of 2026-07-07)
 
@@ -1236,3 +1230,58 @@ This falls **inside** this project's own independently-derived search range (2,6
 **Citation caveat:** the paper is referred to here as "ProteinCLIP" (bioRxiv, DOI 10.1101/2024.05.14.594226, "ProteinCLIP: enhancing protein language models with natural language") — the exact author list was not independently verified in this session and should be confirmed directly from the paper before citing in the final thesis text. A separate paper, ProtET ("Multi-Modal CLIP-Informed Protein Editing," already referenced in 11a), was initially and incorrectly conflated with ProteinCLIP mid-session (both are protein-text CLIP-style works with similar names and overlapping hyperparameter ranges: ProtET reports `batch_size=128`, `epochs=10`, `lr=5e-5`, `2,000 linear warmup steps`, ESM2-650M + PubMedBERT, `dshared=512`, `temperature=0.01`) — resolved by reading the actual paper text directly rather than trusting an earlier automated web-search summary, which itself also turned out to be imprecise. Lesson: for numbers that matter enough to justify a thesis design choice, verify against primary-source text, not search-tool summaries.
 
 **Status:** sweep infrastructure built, verified, and launched by the user (`uv run wandb sweep sweep_config_v1_lr_only.yaml`, `wandb agent ... --count 30`). This is the tuning approach actually used for the model going forward. Stage A/B (11k)'s files (`sweep_config_stage_a.yaml`, `src/model/sweep_train.py`) were subsequently deleted (not just deprioritized) once this v1 approach was decided on — `pathway_auroc_protein_level.py`'s `validation_only_auroc` addition (11j) is kept regardless, since it is a general-purpose evaluation capability independent of Stage A's now-removed sweep script.
+
+### 11m. DeepLoc zero-shot subcellular-localization classification (2026-07-25)
+A new evaluation type, deliberately different in kind from pathway AUROC (11g/11h): pathway AUROC is a ranking metric computed one pathway at a time, while this is a small, fixed, mutually-exclusive forced-choice classification task — closer to conventional zero-shot image-classification benchmarks (CLIP-style), and a sanity check that doesn't depend on gseapy/KEGG at all.
+
+**Data (`src/evaluation/build_deeploc_eval_set.py` → `data/evaluation/deeploc_human_test_set.csv`):** DeepLoc-1.0 (Almagro Armenteros et al. 2017) is a general eukaryote dataset (~14,000 proteins across many species), not human-specific — using it as-is would let non-human proteins into an eval meant to test a model trained entirely on human CPTAC data. Filtered to human-only by intersecting DeepLoc's UniProt accessions with our own already-vetted `data/full_proteome/protein_annotations.csv` (organism_id:9606, reviewed-only) rather than a fresh taxonomy lookup — any accession that made it into our own human-only pull is human by construction, at the small, accepted cost of missing a handful of proteins whose accession has been merged/updated since DeepLoc's 2017 publication. Also dropped 146 dual-localization entries (e.g. "Cytoplasm-Nucleus") since this is single-label argmax classification, not multi-label. Result: **2,645 human proteins** across DeepLoc's 10 classes. Seen/unseen is assigned relative to *our own* model's protein-level train split (`data/protein_splits_full_proteome.json`) — seen = protein was in training (2,134), unseen = held out in validation/test (511) — not DeepLoc's own original train/test partition (kept only as an uninspected informational column), which is irrelevant here since this is zero-shot: no training on DeepLoc labels happens at all.
+
+**Method (`src/evaluation/zero_shot_deeploc_eval.py`):** standard CLIP zero-shot classification (Radford et al. 2021, sec. 3.1.4) with prompt ensembling — each of the 10 classes gets 3 independently-phrased natural-language templates (e.g. *"A protein located in the nucleus."*, *"This protein is found in the nucleus and carries out its function there."*, *"Subcellular localization: the nucleus."*), each encoded and L2-normalized, averaged, then re-normalized into one class embedding (re-normalizing after averaging matters: skipping it would let classes whose 3 templates happen to agree more end up with larger-norm embeddings, silently biasing the argmax toward them). Test proteins are embedded via the existing protein tower; predicted class = argmax cosine similarity against the 10 class embeddings. Accuracy, macro-F1, and a confusion matrix (fixed label order) are computed separately for seen/unseen/all, plus the generalization gap and two baselines (random = 1/n_classes; majority-class = data-dependent per subset). Results are checkpoint-suffixed CSV/JSON so future checkpoints can be logged and compared without clobbering prior runs — same convention as `pathway_auroc_protein_level.py`.
+
+**Results** (checkpoint `final_v2_dims_masked_best.pt`, `hidden_dim=2048`, `output_dim=1024` — read directly from the checkpoint's own saved metadata; this checkpoint is from a hyperparameter/architecture sweep continuation beyond what 11l documents, provenance not yet written up in this file, flagged here rather than left implicit):
+
+| Variant | Subset | Accuracy | Macro-F1 | Random baseline | Majority baseline |
+|---|---|---|---|---|---|
+| 10-way | all | 17.73% | 0.164 | 10.00% | 36.79% |
+| 10-way | seen | 18.09% | 0.168 | 10.00% | 37.07% |
+| 10-way | unseen | 16.24% | 0.146 | 10.00% | 35.62% |
+| 9-way, human-only (`--drop-chloroplast`) | all | 19.43% | 0.189 | 11.11% | 36.79% |
+| 9-way, human-only | seen | 19.63% | 0.192 | 11.11% | 37.07% |
+| 9-way, human-only | unseen | 18.59% | 0.175 | 11.11% | 35.62% |
+| 9-way + mean-centering calibration (`--calibrate`) | all | 19.58% | 0.187 | — | — |
+| 9-way + mean-centering calibration | seen | 19.87% | 0.191 | — | — |
+| 9-way + mean-centering calibration | unseen | 18.40% | 0.169 | — | — |
+
+Generalization gap (seen − unseen): 1.85pp (10-way) → 1.04pp (9-way) → 1.47pp (calibrated).
+
+**Findings:**
+1. **The model underperforms the majority-class baseline in every variant tested** (best: 19.6% vs. 36.8% for "always guess Nucleus"). Zero-shot subcellular-localization classification is a genuine weak point for this checkpoint, not an artifact of the eval construction.
+2. **Dropping the structurally-impossible "Chloroplast" class (0 human members, so every prediction of it is a guaranteed miss) helped only marginally** (+1.7pp) — most of the gap survives its removal, so it wasn't the primary driver.
+3. **Class-wise mean-centering calibration — tested as a cheap, no-retrain fix, failed to help** (±0.2pp, actually slightly worse on unseen). Diagnosed via the raw prediction distribution before calibration: Nucleus (37% of true labels, the largest class) was predicted only ~5% of the time, while Lysosome/Vacuole and Peroxisome (together <2% of true labels) were over-predicted 10–13x. The natural hypothesis — some class prompts sit at a constant, generically-higher cosine similarity regardless of the protein — did not hold up: per-class mean similarities turned out nearly identical (span of only ~0.03), and the most over-predicted class (Peroxisome) did not even have an above-average mean. This rules out a simple additive per-class bias as the mechanism. The more likely explanation — per-class *variance* rather than mean (a class with more spread-out similarity scores wins argmax disproportionately often on its high tail even with an unremarkable average) — was identified but not tested further; would require z-score standardization instead of centering. Deliberately left as a stopping point rather than pursued further in this session.
+4. **The seen/unseen generalization gap stays small throughout (~1–2pp) across all three variants** — a consistent, real limitation across both trained and never-trained proteins, not a memorization artifact (contrast with the self-ID recall@K leakage story in 11h, where old-split vs. new-split numbers differed sharply).
+5. **Plausible, untested root cause:** Stage 1's training text is UniProt FUNCTION annotation, not dedicated location text — subcellular localization is likely only incidentally present in that text, unlike pathway/function concepts where this model family scores considerably better (pathway AUROC overall ~0.60+, see 11f/11h). Noted as a hypothesis for future investigation, not yet directly tested.
+
+**Status:** both `build_deeploc_eval_set.py` and `zero_shot_deeploc_eval.py` are done and reusable — rerun the eval script against any future checkpoint (`--checkpoint`, `--biobert-filename`, optional `--drop-chloroplast`/`--calibrate`) to log and compare. The z-score-standardization follow-up to finding 3 is the natural next step if this gets revisited.
+
+### Proposed thesis structure (as of 2026-07-25 — supersedes the one earlier in this file)
+**Scope decision:** the thesis narrative starts at section 11 (full human UniProt proteome + homology-aware split) and does not narrate sections 1–10 at all — no patient-level baseline, no per-cohort CPTAC pipeline walkthrough, no ablation-by-ablation history (drop clinical → drop abundance → mask → GO-terms → LLM-fusion), no old pathway-AUROC/NL-query-rewrite results. Section 11 itself already explains why (its opening paragraph, 11a): sections 1–10 were "a sequence of exploratory pivots needed to arrive at a defensible design, not the design itself." Sections 1–10 stay in this file as internal process documentation only — useful if a methodology choice in section 11 needs justifying (e.g. "why gene-name masking" traces back to 10m, "why drop abundance" traces back to 10a–10j), but not thesis content themselves. Any evaluation machinery that originates in sections 1–10 but is actively reused in section 11 (the 245-pathway coverage/power selection criteria from `pathway_final_choice.py`, first built in 8d) should be described in the thesis plainly, as-is, in Methods — not as a narrated history of how it was arrived at.
+
+1. **Introduction** — motivation (protein-level, patient-specific retrieval; the ProteomIQ goal from the top of this file), CellWhisperer as prior work, GSEA as the practical alternative, thesis contributions
+2. **Related Work** — CLIP, ESM2, BioBERT, CPTAC, ProteinCLIP (citation-verified comparison, 11l), GSEA
+3. **Methods**
+   - Data: full reviewed human UniProt proteome — fetch, the multi-isoform ENSP ID-matching fix, citation stripping, 16,893 proteins (11b)
+   - Homology-aware train/validation/test split: CD-HIT clustering at 90% identity, cluster-level (not protein-level) split (11c)
+   - Architecture: frozen ESM2 + frozen BioBERT → trainable projection heads, gene-name masking, InfoNCE loss (11g)
+   - Training procedure & hyperparameter tuning: the batch-size/val_loss random-guessing-floor confound and its `gap_below_random` fix (11e), the hidden_dim/output_dim rank-capping constraint (11f), the W&B-based sweep methodology and its ProteinCLIP-grounded search range (11l)
+   - Evaluation protocol: the validation-only vs. test-only split-integrity fix (`validation_only_auroc`, 11j) and the pre-selected 245-pathway evaluation set (described plainly, not as a discovery narrative)
+4. **Experiments / Results**
+   - Pathway AUROC — overall / test-only / validation-only (11f, 11g, 11h)
+   - Cross-modal closed-set retrieval, and why it disagrees with pathway AUROC on checkpoint ranking (11d, and the general pattern documented at the old-architecture level in 10p)
+   - Pathway recall@K — the practical top-K concentration story AUROC alone hides (11h)
+   - Self-ID recall@K and the homology-split leakage finding, plus the split-control diagnostic that isolates the split's real, independent effect from the hyperparameter sweep's (11h, 11i)
+   - DeepLoc zero-shot subcellular-localization classification — a structurally different, forced-choice evaluation; 10-way / 9-way human-only / mean-centering-calibration results (11m)
+5. **Discussion**
+   - What works: real pathway AUROC/recall@K gains from the homology-aware split, independent of and additive with hyperparameter tuning (11i); gene-name masking helps consistently, re-confirmed at the final architecture (11g)
+   - What doesn't: pathway recall@K remains weak in absolute terms even after all improvements (11h); DeepLoc zero-shot classification underperforms a trivial majority-class baseline, and the calibration fix attempted for it failed for a diagnosable reason (11m) — presented as a clean, honestly-reported negative result, not a loose end
+   - Methodological contributions in their own right: catching test-set leakage in model/architecture selection before it compounded further (11j), a controlled diagnostic that separates two confounded variables' effects (11i)
+6. **Conclusion & Future Work** — the z-score-standardization follow-up to the DeepLoc calibration result (11m), any remaining hyperparameter/architecture search, `activity_score`/Stage 2 validation, Stage 3 LLM interpretation layer
