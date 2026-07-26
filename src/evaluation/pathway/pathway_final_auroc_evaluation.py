@@ -1,27 +1,23 @@
 """
-Re-runs the pathway AUROC evaluation using natural-language query rewrites
-(from pathway_nl_queries.py) instead of raw KEGG pathway names, for the same
-245 objectively-selected pathways used in pathway_final_auroc_evaluation.py.
+Evaluates the trained model's AUROC only on the pathways that survived the
+objective, performance-blind selection criteria in pathway_final_choice.py
+(coverage filter >= 50%, power filter >= 5 measured genes per patient).
 
-Purpose: pathway_final_auroc_results.csv showed cohort-matched cancer
-pathways (Glioma, NSCLC, Pancreatic cancer, Renal cell carcinoma,
-Endometrial cancer) scoring below the overall mean (0.473 vs 0.573, see
-CLAUDE.md Timeline 8d). This script tests whether that gap is a
-query-phrasing problem -- raw KEGG names are database jargon -- or a
-genuine generalization limit, by rerunning AUROC with the natural-language
-rewrites and comparing directly against the raw-name scores, pathway by
-pathway.
+This is the "scientifically defensible" counterpart to pathway_auroc_evaluation.py:
+instead of computing AUROC over all ~320 KEGG pathways (many of which are barely
+measured or under-powered), it restricts to the pre-specified evaluation set and
+reports AUROC alongside the coverage/annotation covariates, plus a pre-specified
+secondary breakdown for cohort-matched cancer-type pathways.
 
-Ground truth (which genes count as pathway members) is unchanged -- only
-the query TEXT fed to the text encoder differs. Gene membership still comes
-from the pathway's real KEGG name, looked up via gseapy.
+Run pathway_final_choice.py first if data/evaluation/pathway/pathway_final_choice.csv
+does not exist yet.
 
 Usage:
-    uv run python src/evaluation/pathway_nl_auroc_evaluation.py [--checkpoint <path>]
+    uv run python src/evaluation/pathway/pathway_final_auroc_evaluation.py [--checkpoint <path>]
 """
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import argparse
 import numpy as np
@@ -38,8 +34,7 @@ from src.model.query_evaluation import encode_query, build_protein_index
 
 DEFAULT_CHECKPOINT = Path("data/runs/luad_brca_ccrcc_gbm_hnscc_lscc_ov_pdac_ucec/checkpoint.pt")
 TEST_PATIENT_PATH = Path("data/test_patients_per_cohort.json")
-NL_QUERIES_PATH = Path("data/evaluation/pathway_nl_queries.csv")
-RAW_RESULTS_PATH = Path("data/evaluation/pathway_final_auroc_results.csv")
+SELECTION_PATH = Path("data/evaluation/pathway/pathway_final_choice.csv")
 BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
 
 MIN_POSITIVES = 5  # must match pathway_final_choice.py's power filter
@@ -58,10 +53,11 @@ def run(checkpoint_path: Path):
     print(f"Using device: {device}")
     print(f"Checkpoint: {checkpoint_path}\n")
 
-    print("Loading natural-language queries ...")
-    nl_df = pd.read_csv(NL_QUERIES_PATH)
-    nl_df = nl_df.dropna(subset=["nl_query"])  # drop any pathways whose query generation failed
-    print(f"  {len(nl_df)} pathways with a usable natural-language query\n")
+    print("Loading pre-selected pathway evaluation set ...")
+    selection_df = pd.read_csv(SELECTION_PATH)
+    selection_df = selection_df[selection_df["passes_all_filters"]].copy()
+    pathway_names = set(selection_df["pathway"])
+    print(f"  {len(pathway_names)} pathways passed the objective filters\n")
 
     tokenizer = AutoTokenizer.from_pretrained(BIOBERT_PATH, local_files_only=True)
     biobert_model = AutoModel.from_pretrained(BIOBERT_PATH, local_files_only=True).to(device)
@@ -79,7 +75,7 @@ def run(checkpoint_path: Path):
         test_patients_per_cohort = json.load(f)
 
     print("Building protein indices for all test patients ...")
-    patient_indices = {}
+    patient_indices = {}  # { patient_id: (protein_vecs, protein_labels) }
 
     for cohort, patient_ids in test_patients_per_cohort.items():
         data_dir = Path(f"data/{cohort}")
@@ -110,17 +106,15 @@ def run(checkpoint_path: Path):
 
     print(f"Done -- {len(patient_indices)} patients ready.\n")
 
-    print("Loading KEGG pathway gene membership ...")
+    print("Loading KEGG pathways from gseapy ...")
     gene_sets = gseapy.get_library("KEGG_2021_Human")
 
-    print(f"Computing AUROC with natural-language queries for {len(nl_df)} pathways ...\n")
-    nl_results = []
-    for _, row in nl_df.iterrows():
-        pathway_name = row["raw_name"]
-        nl_query = row["nl_query"]
+    print(f"Computing AUROC for {len(pathway_names)} pre-selected pathways ...\n")
+    auroc_results = []
+    for pathway_name in pathway_names:
         pathway_genes = set(gene_sets[pathway_name])
 
-        query_vec = encode_query(nl_query, tokenizer, biobert_model, text_head, device)
+        query_vec = encode_query(pathway_name, tokenizer, biobert_model, text_head, device)
 
         patient_aurocs = []
         for patient_id, (protein_vecs, protein_labels) in patient_indices.items():
@@ -132,48 +126,40 @@ def run(checkpoint_path: Path):
         if not patient_aurocs:
             continue
 
-        nl_results.append({
+        auroc_results.append({
             "pathway": pathway_name,
-            "nl_query": nl_query,
-            "nl_auroc": np.mean(patient_aurocs),
+            "mean_auroc": np.mean(patient_aurocs),
+            "n_patients": len(patient_aurocs),
         })
 
-    nl_auroc_df = pd.DataFrame(nl_results)
+    auroc_df = pd.DataFrame(auroc_results)
 
-    print("Merging with raw-name AUROC results for a paired comparison ...")
-    raw_df = pd.read_csv(RAW_RESULTS_PATH)
-    raw_df = raw_df.rename(columns={"mean_auroc": "raw_auroc"})
+    results_df = selection_df.merge(auroc_df, on="pathway", how="inner")
+    results_df = results_df.sort_values("mean_auroc", ascending=False)
 
-    merged = raw_df.merge(nl_auroc_df, on="pathway", how="inner")
-    merged["delta"] = merged["nl_auroc"] - merged["raw_auroc"]
-    merged = merged.sort_values("delta", ascending=False)
-
-    out_path = Path("data/evaluation/pathway_nl_auroc_results.csv")
+    out_path = Path("data/evaluation/pathway/pathway_final_auroc_results.csv")
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    cols = ["pathway", "nl_query", "raw_auroc", "nl_auroc", "delta",
-            "is_cohort_matched", "matched_cohorts"]
-    merged[cols].to_csv(out_path, index=False)
+    results_df.to_csv(out_path, index=False)
+
+    cols = ["pathway", "mean_auroc", "n_patients", "coverage_fraction",
+            "annotation_coverage_fraction", "is_cohort_matched", "matched_cohorts"]
 
     print("=" * 88)
-    print("Natural-language query vs. raw KEGG name -- paired AUROC comparison")
+    print("Pathway AUROC -- pre-specified, objectively-selected evaluation set")
     print("=" * 88)
-    print(f"\nOverall: raw mean = {merged['raw_auroc'].mean():.4f}, "
-          f"nl mean = {merged['nl_auroc'].mean():.4f}, "
-          f"mean delta = {merged['delta'].mean():+.4f}")
-    print(f"Pathways improved by NL phrasing: {(merged['delta'] > 0).sum()} / {len(merged)}")
+    print(results_df[cols].to_string(index=False))
 
-    cohort_matched = merged[merged["is_cohort_matched"]]
-    print(f"\nCohort-matched pathways (n={len(cohort_matched)}):")
-    print(cohort_matched[["pathway", "matched_cohorts", "raw_auroc", "nl_auroc", "delta"]]
-          .to_string(index=False))
-    print(f"\n  raw mean = {cohort_matched['raw_auroc'].mean():.4f}, "
-          f"nl mean = {cohort_matched['nl_auroc'].mean():.4f}, "
-          f"mean delta = {cohort_matched['delta'].mean():+.4f}")
+    print(f"\nOverall mean AUROC (primary result, n={len(results_df)} pathways): "
+          f"{results_df['mean_auroc'].mean():.4f}")
 
-    print(f"\nTop 10 biggest improvements:")
-    print(merged[["pathway", "raw_auroc", "nl_auroc", "delta"]].head(10).to_string(index=False))
-    print(f"\nTop 10 biggest regressions:")
-    print(merged[["pathway", "raw_auroc", "nl_auroc", "delta"]].tail(10).to_string(index=False))
+    cohort_matched = results_df[results_df["is_cohort_matched"]]
+    non_matched = results_df[~results_df["is_cohort_matched"]]
+    print(f"\nSecondary analysis -- cohort-matched cancer-type pathways (n={len(cohort_matched)}):")
+    if len(cohort_matched):
+        print(cohort_matched[["pathway", "matched_cohorts", "mean_auroc"]].to_string(index=False))
+        print(f"  mean AUROC: {cohort_matched['mean_auroc'].mean():.4f}")
+    print(f"\nAll other pathways in the evaluation set (n={len(non_matched)}): "
+          f"mean AUROC = {non_matched['mean_auroc'].mean():.4f}")
 
     print(f"\nFull results saved to {out_path}")
 

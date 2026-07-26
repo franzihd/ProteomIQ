@@ -20,17 +20,17 @@ methodology as the first natural-language experiment (one fixed template,
 applied identically, before seeing any results).
 
 Usage:
-    uv run python src/evaluation/pathway_nl_queries_compact.py
+    uv run python src/evaluation/pathway/pathway_nl_queries_compact.py
 """
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import pandas as pd
 import anthropic
 
-SELECTION_PATH = Path("data/evaluation/pathway_final_choice.csv")
-OUT_PATH = Path("data/evaluation/pathway_nl_queries_compact.csv")
+SELECTION_PATH = Path("data/evaluation/pathway/pathway_final_choice.csv")
+OUT_PATH = Path("data/evaluation/pathway/pathway_nl_queries_compact.csv")
 
 MODEL = "claude-opus-4-8"
 

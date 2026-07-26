@@ -6,7 +6,7 @@ worth evaluating.
 """
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import json
 import numpy as np
@@ -14,7 +14,7 @@ import pandas as pd
 import gseapy
 
 TEST_PATIENT_PATH = Path("data/test_patients_per_cohort.json")
-OUT_PATH = Path("data/evaluation/pathway_choice.csv")
+OUT_PATH = Path("data/evaluation/pathway/pathway_choice.csv")
 OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
 with open(TEST_PATIENT_PATH) as f:

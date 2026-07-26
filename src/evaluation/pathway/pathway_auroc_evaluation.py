@@ -1,6 +1,6 @@
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import argparse
 import numpy as np
@@ -129,7 +129,7 @@ def run(checkpoint_path: Path):
     print(f"\nOverall mean AUROC : {results_df['mean_auroc'].mean():.4f}")
     print(f"Pathways evaluated : {len(results_df)} / {len(gene_sets)}")
 
-    out_path = Path("data/evaluation/pathway_auroc_results.csv")
+    out_path = Path("data/evaluation/pathway/pathway_auroc_results.csv")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     results_df.to_csv(out_path, index=False)
     print(f"\nFull results saved to {out_path}")

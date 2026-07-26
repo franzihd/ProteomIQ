@@ -77,7 +77,6 @@ main.py                                        # entry point (stub)
 pyproject.toml                                 # dependencies
 src/
   app.py                                       # Streamlit app (in progress) — CSV upload + text query UI, Stage 1 retrieval wired up; Stage 2 (activity_score/abundance annotation) and Stage 3 (LLM interpretation) not yet integrated
-  gseapy_test.py                               # one-off scratch script that dumped KEGG pathway sizes to data/evaluation/kegg_pathways.csv — not part of any pipeline
 
   # --- data acquisition & preprocessing (shared inputs, feed both architectures) ---
   import_cptac.py                              # downloads proteomics + clinical data for all 9 usable CPTAC cohorts
@@ -102,13 +101,21 @@ src/
     recall_at_k_protein_level.py                # self-ID R@K — diagnostic only, inflated by the name-matching shortcut, not a headline number
     retrieve_and_annotate.py                    # implements Stage 1 (semantic retrieval, wide top-N) + Stage 2 (per-patient abundance annotation) — see section 10j/10k
   evaluation/
-    pathway_final_choice.py                     # [SHARED] objective, performance-blind 245-pathway selection (coverage + power filters) — ground truth for every pathway eval, old and new
-    pathway_auroc_protein_level.py               # HEADLINE metric — shortcut-free pathway AUROC (overall + test-only)
-    pathway_recall_at_k_protein_level.py         # HEADLINE companion metric — practical top-K concentration (AUROC alone hides this, section 10l)
-    pathway_nl_queries.py                        # [SHARED] generates the "explanatory" natural-language pathway query rewrites
-    pathway_nl_queries_compact.py                # [SHARED] generates the "compact" natural-language pathway query rewrites
-    pathway_nl_auroc_protein_level.py            # NL query-rewrite diagnostic, protein-level architecture
+    pathway/                                     # ALL pathway-based evaluation, both architectures — consolidated into one folder 2026-07-26 for organization (was flat across src/evaluation/, mixed with everything else). Kept for reference/reproducibility, not deleted, but no longer the primary evaluation approach going forward — see DeepLoc (11m) / EC (11n) zero-shot classification evals below for the current direction. Internal cross-references between these scripts (SELECTION_PATH, sys.path depth, etc.) were updated for the new location; nothing about their logic or results changed.
+      pathway_final_choice.py                   # [SHARED] objective, performance-blind 245-pathway selection (coverage + power filters) — ground truth for every pathway eval, old and new
+      pathway_auroc_protein_level.py             # protein-level pathway AUROC (overall + test-only) — was the HEADLINE metric through section 11j–11l, before the pivot to zero-shot classification evals
+      pathway_recall_at_k_protein_level.py       # protein-level pathway recall@K — practical top-K concentration companion metric (section 10l)
+      pathway_nl_queries.py                      # [SHARED] generates the "explanatory" natural-language pathway query rewrites
+      pathway_nl_queries_compact.py              # [SHARED] generates the "compact" natural-language pathway query rewrites
+      pathway_nl_auroc_protein_level.py          # NL query-rewrite diagnostic, protein-level architecture
+      pathway_auroc_evaluation.py                # [ABLATION BASELINE] unfiltered pathway AUROC, first pass (section 8c)
+      pathway_choice.py                          # [ABLATION BASELINE] hand-picked ~20 pathways — rejected by professor as not defensible, superseded by pathway_final_choice.py (section 8d)
+      pathway_final_auroc_evaluation.py          # [ABLATION BASELINE] filtered patient-level pathway AUROC (section 8d)
+      pathway_nl_auroc_evaluation.py / pathway_three_way_auroc_evaluation.py   # [ABLATION BASELINE] patient-level NL query-rewrite experiments (section 8e)
+      gseapy_test.py                             # one-off scratch script that dumped KEGG pathway sizes to data/evaluation/pathway/kegg_pathways.csv — not part of any pipeline
     cross_modal_eval.py                          # standard closed-set bidirectional CLIP retrieval sanity check — report it, but it disagrees with pathway AUROC on checkpoint ranking (section 10p) and is NOT the metric to select checkpoints by
+    build_deeploc_eval_set.py / zero_shot_deeploc_eval.py   # DeepLoc zero-shot subcellular-localization classification (section 11m)
+    build_ec_eval_set.py / zero_shot_ec_eval.py              # EC top-level zero-shot enzyme classification (section 11n)
 
   # --- ABLATION BASELINE: patient-level, with-abundance architecture (superseded — kept only for comparison, sections 1-9) ---
   model/
@@ -119,10 +126,7 @@ src/
     recall_at_k.py                                # patient-level R@K (section 8a)
     run_experiments.py / recall_curve.py          # incremental cohort-scaling R@K curve (section 8a)
   evaluation/
-    pathway_auroc_evaluation.py                   # unfiltered pathway AUROC, first pass (section 8c)
-    pathway_choice.py                             # hand-picked ~20 pathways — rejected by professor as not defensible, superseded by pathway_final_choice.py (section 8d)
-    pathway_final_auroc_evaluation.py             # filtered patient-level pathway AUROC (section 8d)
-    pathway_nl_auroc_evaluation.py / pathway_three_way_auroc_evaluation.py   # patient-level NL query-rewrite experiments (section 8e)
+    pathway/                                      # same consolidated folder as under MAIN LINE evaluation/ above — these ablation-baseline pathway scripts live in the same directory as the protein-level ones now, see that entry for the full listing
   plotting/
     plot_recall_vs_cohorts.py / plot_scaling.py    # scaling-curve plots for the ablation baseline
 
@@ -139,7 +143,8 @@ data/
   test_patients_per_cohort.json                  # [ABLATION BASELINE] 10 patients per cohort held out, patient-level split
   protein_fused_text_sample.csv                  # 10-protein spot-check sample from the paused LLM-fusion experiment (section 10o)
   runs/<cohort-combo>/                           # one dir per incremental cohort-scaling step; checkpoint.pt + checkpoint_no_clinical.pt in each = ablation-baseline evidence (section 8a scaling curve). The final dir (all 9 cohorts) additionally holds the [MAIN LINE] protein-level checkpoints — current best is checkpoint_no_abundance_masked_e2000_best.pt; the unmasked/GO-variant/epoch-sweep siblings next to it are ablation evidence (sections 10e, 10m, 10n), not meant to be loaded going forward
-  evaluation/                                    # eval output CSVs. NOTE: pathway_auroc_protein_level_results.csv and pathway_recall_at_k_protein_level_results.csv have no checkpoint suffix (predate the naming fix in section 10n) — confirm which checkpoint produced them before citing; every other file in this dir is suffixed with its source checkpoint stem
+  evaluation/                                    # eval output CSVs/JSONs. deeploc_*, ec_top_level_*, cross_modal_retrieval/ are the current (2026-07-25/26) evaluation outputs — see sections 11m/11n.
+    pathway/                                     # ALL pathway-based eval outputs (both architectures), consolidated 2026-07-26 out of the flat data/evaluation/ dir — mirrors src/evaluation/pathway/'s reorg. Kept for reference, not deleted, but superseded as the primary evaluation approach (see 11m/11n). Subfolders: pathway_auroc_protein_level/, pathway_recall_at_k/, nl_query_rewrites_results/ (was pathway_nl_queries/ — renamed on move to disambiguate from the loose pathway_nl_queries.csv query-text file next to it), ablation_baseline/ (patient-level pathway_final_auroc_results, with/without clinical text). NOTE: pathway_auroc_protein_level_results.csv and pathway_recall_at_k_protein_level_results.csv (loose, inside pathway_auroc_protein_level/ and pathway_recall_at_k/ respectively) have no checkpoint suffix (predate the naming fix in section 10n) — confirm which checkpoint produced them before citing; every other file in this dir is suffixed with its source checkpoint stem
 ```
 
 ## Data notes
@@ -1263,6 +1268,40 @@ Generalization gap (seen − unseen): 1.85pp (10-way) → 1.04pp (9-way) → 1.4
 
 **Status:** both `build_deeploc_eval_set.py` and `zero_shot_deeploc_eval.py` are done and reusable — rerun the eval script against any future checkpoint (`--checkpoint`, `--biobert-filename`, optional `--drop-chloroplast`/`--calibrate`) to log and compare. The z-score-standardization follow-up to finding 3 is the natural next step if this gets revisited.
 
+### 11n. EC (Enzyme Commission) top-level zero-shot classification (2026-07-26)
+A second forced-choice zero-shot classification eval, same family as DeepLoc (11m) but a harder test of the "name shortcut" concern specifically: the 7 EC top-level classes (Oxidoreductases, Transferases, Hydrolases, Lyases, Isomerases, Ligases, Translocases) are not arbitrary category labels — they are literally the vocabulary UniProt's own FUNCTION annotations use when describing catalytic activity (e.g. "...has serine hydrolase activity"). That makes this eval a natural place to directly compare an explanatory-sentence prompt against a bare-keyword prompt, since a keyword-only query has an unusually direct route to lexical shortcut-matching here.
+
+**Data (`src/evaluation/build_ec_eval_set.py` → `data/evaluation/ec_top_level_test_set.csv`):** EC numbers aren't part of `data/full_proteome/protein_annotations.csv` (11b's fetch never requested that field), so this re-ran the same `organism_id:9606 AND reviewed:true` UniProt REST query, this time asking only for `accession,ec` (cached to `data/full_proteome/uniprot_ec_numbers.csv`). 4,613 / 20,431 reviewed human entries carry at least one EC number; 4,402 of those are in our own vetted proteome pull (merged by UniProt accession, guaranteeing every kept protein already has a resolved ENSP_ID). Each protein's EC numbers are collected via a recursive walk of `proteinDescription` (multi-domain enzymes can have EC numbers attached to more than one name/domain node); protein assigned to its EC top-level class = the leading digit shared by all its EC numbers. 155 proteins whose EC numbers spanned more than one top-level class (ambiguous for single-label classification) were dropped, same spirit as DeepLoc's dual-localization drop. **Result: 4,247 single-class human enzymes**, seen = 3,398 / unseen = 849 (same `protein_splits_full_proteome.json`-relative definition as 11m). Class distribution is heavily skewed toward Transferases (1,700) and Hydrolases (1,578); Isomerases/Ligases/Lyases/Translocases each have well under 150 members.
+
+**Method (`src/evaluation/zero_shot_ec_eval.py`):** same CLIP-style zero-shot recipe as 11m, run as two separate, explicitly compared prompt variants rather than merged into one ensemble:
+- **default** — 3 independently-phrased explanatory templates per class (e.g. for Oxidoreductases: *"An enzyme that catalyzes oxidation-reduction reactions by transferring electrons, hydrogen, or oxygen between molecules."*), averaged + re-normalized.
+- **`--keyword-only`** — a single bare class-name prompt per class (e.g. just *"Oxidoreductases"*), no sentence wrapping.
+
+Both variants otherwise use identical machinery (protein tower, argmax cosine similarity, accuracy/macro-F1/confusion matrix per seen/unseen/all, random + majority-class baselines), and save to separately-suffixed output files (`_keyword_only` vs. unsuffixed) so both are kept side by side.
+
+**Results** (checkpoint `final_v2_dims_masked_best.pt`, same checkpoint as 11m):
+
+| Variant | Subset | Accuracy | Macro-F1 | Random baseline | Majority baseline |
+|---|---|---|---|---|---|
+| 3-template explanatory | all | 19.71% | 0.163 | 14.29% | 40.03% |
+| 3-template explanatory | seen | 19.98% | 0.167 | 14.29% | 39.76% |
+| 3-template explanatory | unseen | 18.61% | 0.148 | 14.29% | 41.11% |
+| keyword-only | all | 20.79% | 0.166 | 14.29% | 40.03% |
+| keyword-only | seen | 20.87% | 0.170 | 14.29% | 39.76% |
+| keyword-only | unseen | 20.49% | 0.148 | 14.29% | 41.11% |
+
+Generalization gap (seen − unseen): 1.37pp (explanatory) vs. 0.37pp (keyword-only).
+
+**Findings:**
+1. **Both variants underperform the majority-class baseline** (best: 20.79% vs. 40.03% for "always guess Transferases") — a third instance of this exact pattern (after DeepLoc, 11m), reinforcing that forced-choice, coarse-category zero-shot classification is a genuine weak point of this checkpoint, not an artifact specific to one eval's construction.
+2. **The keyword-vs-explanatory gap is small and statistically marginal, not a clean shortcut story.** Overall accuracy differs by only 1.08pp (19.71% vs. 20.79%); with n=4,247 and accuracy ≈20%, the binomial standard error is ≈0.6pp, so this is roughly a 1.8σ difference — suggestive, not conclusive. More importantly, the direction contradicts a naive shortcut-inflation hypothesis: if keyword-only were winning mainly by lexically pattern-matching UniProt vocabulary memorized from *training* text, it should show a **larger** seen/unseen gap than the explanatory phrasing, not a **smaller** one (0.37pp vs. 1.37pp). The data doesn't support "keyword-only is shortcutting more than explanatory phrasing does" as a conclusion here.
+3. **The seen/unseen generalization gap stays small for both variants (≤1.4pp)** — consistent with the same finding in DeepLoc (11m finding 4), and again not a memorization artifact in the sense the old random-split self-ID recall@K leakage was (11h).
+4. **Plausible, untested root cause, same shape as DeepLoc finding 5:** Stage 1's training text is UniProt FUNCTION annotation prose, not EC-classification-structured text — coarse catalytic-mechanism category (top-level EC class) is likely only incidentally present in that text, unlike pathway/functional concepts where this model family scores considerably better (pathway AUROC overall ~0.60+, 11f/11h). Not directly tested.
+
+**Interpretation for the thesis:** report this as an honest negative result, structurally parallel to DeepLoc (11m) and the GO-term ablation (10n) — two independently-motivated prompt styles were compared specifically because one of them (bare keyword) was suspected to carry unusual shortcut risk for this particular label set, and neither closes the gap to a trivial baseline. The small, ambiguous-direction difference between the two prompt variants is itself evidence *against* query phrasing being the main lever here, same conclusion 8e already reached for pathway queries — the limitation looks structural (what Stage 1's text was trained on) rather than fixable by how the query is worded.
+
+**Status:** `build_ec_eval_set.py` and `zero_shot_ec_eval.py` are done and reusable — rerun `zero_shot_ec_eval.py` against any future checkpoint (`--checkpoint`, `--biobert-filename`, optional `--keyword-only`) to log and compare both prompt variants.
+
 ### Proposed thesis structure (as of 2026-07-25 — supersedes the one earlier in this file)
 **Scope decision:** the thesis narrative starts at section 11 (full human UniProt proteome + homology-aware split) and does not narrate sections 1–10 at all — no patient-level baseline, no per-cohort CPTAC pipeline walkthrough, no ablation-by-ablation history (drop clinical → drop abundance → mask → GO-terms → LLM-fusion), no old pathway-AUROC/NL-query-rewrite results. Section 11 itself already explains why (its opening paragraph, 11a): sections 1–10 were "a sequence of exploratory pivots needed to arrive at a defensible design, not the design itself." Sections 1–10 stay in this file as internal process documentation only — useful if a methodology choice in section 11 needs justifying (e.g. "why gene-name masking" traces back to 10m, "why drop abundance" traces back to 10a–10j), but not thesis content themselves. Any evaluation machinery that originates in sections 1–10 but is actively reused in section 11 (the 245-pathway coverage/power selection criteria from `pathway_final_choice.py`, first built in 8d) should be described in the thesis plainly, as-is, in Methods — not as a narrated history of how it was arrived at.
 
@@ -1280,8 +1319,9 @@ Generalization gap (seen − unseen): 1.85pp (10-way) → 1.04pp (9-way) → 1.4
    - Pathway recall@K — the practical top-K concentration story AUROC alone hides (11h)
    - Self-ID recall@K and the homology-split leakage finding, plus the split-control diagnostic that isolates the split's real, independent effect from the hyperparameter sweep's (11h, 11i)
    - DeepLoc zero-shot subcellular-localization classification — a structurally different, forced-choice evaluation; 10-way / 9-way human-only / mean-centering-calibration results (11m)
+   - EC top-level zero-shot classification — a second forced-choice evaluation, this one designed to directly test the name-shortcut concern via an explanatory-vs-keyword-only prompt comparison on a label set (enzyme class names) that is unusually likely to be lexically shortcut-able (11n)
 5. **Discussion**
    - What works: real pathway AUROC/recall@K gains from the homology-aware split, independent of and additive with hyperparameter tuning (11i); gene-name masking helps consistently, re-confirmed at the final architecture (11g)
-   - What doesn't: pathway recall@K remains weak in absolute terms even after all improvements (11h); DeepLoc zero-shot classification underperforms a trivial majority-class baseline, and the calibration fix attempted for it failed for a diagnosable reason (11m) — presented as a clean, honestly-reported negative result, not a loose end
+   - What doesn't: pathway recall@K remains weak in absolute terms even after all improvements (11h); DeepLoc zero-shot classification underperforms a trivial majority-class baseline, and the calibration fix attempted for it failed for a diagnosable reason (11m); EC top-level classification also underperforms the majority-class baseline under both an explanatory and a keyword-only prompt, with the small gap between the two prompt styles pointing away from query phrasing as the fix (11n) — three independent forced-choice/ranking evaluations (DeepLoc, EC, pathway recall@K) converging on the same structural limitation, presented as a clean, honestly-reported negative result, not a loose end
    - Methodological contributions in their own right: catching test-set leakage in model/architecture selection before it compounded further (11j), a controlled diagnostic that separates two confounded variables' effects (11i)
 6. **Conclusion & Future Work** — the z-score-standardization follow-up to the DeepLoc calibration result (11m), any remaining hyperparameter/architecture search, `activity_score`/Stage 2 validation, Stage 3 LLM interpretation layer

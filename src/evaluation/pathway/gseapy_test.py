@@ -11,7 +11,7 @@ kegg = gp.get_library(name='KEGG_2021_Human')
 # Wie viele Pathways?
 print(kegg.keys())
 
-with open('data/evaluation/kegg_pathways.csv', 'w', newline='') as csvfile:
+with open('data/evaluation/pathway/kegg_pathways.csv', 'w', newline='') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(['Pathway Name', 'Number of Proteins'])
     for pathway_name, proteins in kegg.items():

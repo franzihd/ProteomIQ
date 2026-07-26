@@ -27,14 +27,14 @@ Reports three numbers per pathway:
     test_only_auroc stays an honest, untouched estimate for the final report.
 
 Usage:
-    uv run python src/evaluation/pathway_auroc_protein_level.py \\
+    uv run python src/evaluation/pathway/pathway_auroc_protein_level.py \\
         --checkpoint data/runs/.../checkpoint_full_proteome_masked_best.pt \\
         --biobert-filename biobert_embeddings_masked.h5 \\
         --splits-file data/protein_splits_full_proteome.json
 """
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import argparse
 import json
@@ -49,7 +49,7 @@ from src.model.dataset import ProteomicsDataset
 from src.model.projection_head import ProjectionHead
 from src.model.query_evaluation import encode_query
 
-SELECTION_PATH = Path("data/evaluation/pathway_final_choice.csv")
+SELECTION_PATH = Path("data/evaluation/pathway/pathway_final_choice.csv")
 BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
 COHORTS = ["luad", "brca", "ccrcc", "gbm", "hnscc", "lscc", "ov", "pdac", "ucec"]
 MIN_POSITIVES = 5  # must match pathway_final_choice.py's power filter
@@ -173,7 +173,7 @@ def run(checkpoint_path: Path, splits_file: str = "data/protein_splits.json",
     validation_only_mean = with_val["validation_only_auroc"].mean()
 
     if save_csv:
-        out_path = Path(f"data/evaluation/pathway_auroc_protein_level_results_{checkpoint_path.stem}.csv")
+        out_path = Path(f"data/evaluation/pathway/pathway_auroc_protein_level/pathway_auroc_protein_level_results_{checkpoint_path.stem}.csv")
         out_path.parent.mkdir(parents=True, exist_ok=True)
         results_df.to_csv(out_path, index=False)
 

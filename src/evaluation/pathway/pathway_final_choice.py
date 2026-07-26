@@ -23,16 +23,16 @@ secondary analysis (not a selection criterion) -- motivated by "these are the
 cancer types the model was trained on", decided in advance either way.
 
 Usage:
-    uv run python src/evaluation/pathway_final_choice.py
+    uv run python src/evaluation/pathway/pathway_final_choice.py
 """
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import pandas as pd
 
-COVERAGE_PATH = Path("data/evaluation/pathway_choice.csv")
-OUT_PATH = Path("data/evaluation/pathway_final_choice.csv")
+COVERAGE_PATH = Path("data/evaluation/pathway/pathway_choice.csv")
+OUT_PATH = Path("data/evaluation/pathway/pathway_final_choice.csv")
 
 COHORTS = ["luad", "brca", "ccrcc", "gbm", "hnscc", "lscc", "ov", "pdac", "ucec"]
 

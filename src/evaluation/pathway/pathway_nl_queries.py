@@ -20,17 +20,17 @@ either way) the cost difference is negligible -- a stuck/slow batch queue
 isn't worth trading for it.
 
 Usage:
-    uv run python src/evaluation/pathway_nl_queries.py
+    uv run python src/evaluation/pathway/pathway_nl_queries.py
 """
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import pandas as pd
 import anthropic
 
-SELECTION_PATH = Path("data/evaluation/pathway_final_choice.csv")
-OUT_PATH = Path("data/evaluation/pathway_nl_queries.csv")
+SELECTION_PATH = Path("data/evaluation/pathway/pathway_final_choice.csv")
+OUT_PATH = Path("data/evaluation/pathway/pathway_nl_queries.csv")
 
 MODEL = "claude-opus-4-8"
 

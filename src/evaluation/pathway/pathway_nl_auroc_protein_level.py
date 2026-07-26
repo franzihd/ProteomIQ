@@ -28,13 +28,13 @@ pathway_auroc_protein_level.py (same candidate pool, same checkpoint
 loading, same AUROC computation).
 
 Usage:
-    uv run python src/evaluation/pathway_nl_auroc_protein_level.py \\
+    uv run python src/evaluation/pathway/pathway_nl_auroc_protein_level.py \\
         --checkpoint data/runs/.../checkpoint_no_abundance_masked_e2000_best.pt \\
         --style explanatory
 """
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 import argparse
 import json
@@ -49,10 +49,10 @@ from src.model.dataset import ProteomicsDataset
 from src.model.projection_head import ProjectionHead
 from src.model.query_evaluation import encode_query
 
-SELECTION_PATH = Path("data/evaluation/pathway_final_choice.csv")
+SELECTION_PATH = Path("data/evaluation/pathway/pathway_final_choice.csv")
 NL_QUERY_FILES = {
-    "explanatory": ("data/evaluation/pathway_nl_queries.csv", "nl_query"),
-    "compact": ("data/evaluation/pathway_nl_queries_compact.csv", "nl_query_compact"),
+    "explanatory": ("data/evaluation/pathway/pathway_nl_queries.csv", "nl_query"),
+    "compact": ("data/evaluation/pathway/pathway_nl_queries_compact.csv", "nl_query_compact"),
 }
 BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
 COHORTS = ["luad", "brca", "ccrcc", "gbm", "hnscc", "lscc", "ov", "pdac", "ucec"]
@@ -158,7 +158,7 @@ def run(checkpoint_path: Path, style: str):
         })
 
     results_df = pd.DataFrame(results).sort_values("overall_auroc", ascending=False)
-    out_path = Path(f"data/evaluation/pathway_nl_auroc_protein_level_results_{style}_{checkpoint_path.stem}.csv")
+    out_path = Path(f"data/evaluation/pathway/nl_query_rewrites_results/pathway_nl_auroc_protein_level_results_{style}_{checkpoint_path.stem}.csv")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     results_df.to_csv(out_path, index=False)
 
