@@ -8,6 +8,7 @@ dependencies = [
     "anthropic>=0.111.0",
     "cptac>=1.5.14",
     "fair-esm>=2.0.0",
+    "goatools>=1.6.5",
     "gseapy>=1.3.0",
     "h5py>=3.16.0",
     "jupyter>=1.1.1",

@@ -1,0 +1,246 @@
+{
+  "target_coverage": 0.8,
+  "n_classes_selected": 10,
+  "achieved_coverage": 0.8229591274650215,
+  "selected_classes": [
+    "hydrolase activity",
+    "transcription regulator activity",
+    "molecular transducer activity",
+    "molecular function regulator activity",
+    "DNA binding",
+    "transporter activity",
+    "transferase activity",
+    "cytoskeletal protein binding",
+    "RNA binding",
+    "receptor ligand activity"
+  ],
+  "full_frequency_table": [
+    {
+      "class": "hydrolase activity",
+      "count": 1006,
+      "frac_of_all": 0.11082956924093863,
+      "cumulative_frac": 0.11082956924093863
+    },
+    {
+      "class": "transcription regulator activity",
+      "count": 978,
+      "frac_of_all": 0.10774484961991848,
+      "cumulative_frac": 0.2185744188608571
+    },
+    {
+      "class": "molecular transducer activity",
+      "count": 878,
+      "frac_of_all": 0.09672799383056076,
+      "cumulative_frac": 0.31530241269141784
+    },
+    {
+      "class": "molecular function regulator activity",
+      "count": 786,
+      "frac_of_all": 0.08659248650435165,
+      "cumulative_frac": 0.40189489919576954
+    },
+    {
+      "class": "DNA binding",
+      "count": 783,
+      "frac_of_all": 0.08626198083067092,
+      "cumulative_frac": 0.4881568800264405
+    },
+    {
+      "class": "transporter activity",
+      "count": 765,
+      "frac_of_all": 0.08427894678858654,
+      "cumulative_frac": 0.572435826815027
+    },
+    {
+      "class": "transferase activity",
+      "count": 762,
+      "frac_of_all": 0.0839484411149058,
+      "cumulative_frac": 0.6563842679299328
+    },
+    {
+      "class": "cytoskeletal protein binding",
+      "count": 623,
+      "frac_of_all": 0.06863501156769858,
+      "cumulative_frac": 0.7250192794976313
+    },
+    {
+      "class": "RNA binding",
+      "count": 544,
+      "frac_of_all": 0.059931695494105985,
+      "cumulative_frac": 0.7849509749917374
+    },
+    {
+      "class": "receptor ligand activity",
+      "count": 345,
+      "frac_of_all": 0.038008152473284124,
+      "cumulative_frac": 0.8229591274650215
+    },
+    {
+      "class": "oxidoreductase activity",
+      "count": 313,
+      "frac_of_all": 0.034482758620689655,
+      "cumulative_frac": 0.8574418860857111
+    },
+    {
+      "class": "molecular adaptor activity",
+      "count": 292,
+      "frac_of_all": 0.03216921890492454,
+      "cumulative_frac": 0.8896111049906357
+    },
+    {
+      "class": "lipid binding",
+      "count": 244,
+      "frac_of_all": 0.02688112812603283,
+      "cumulative_frac": 0.9164922331166685
+    },
+    {
+      "class": "structural molecule activity",
+      "count": 189,
+      "frac_of_all": 0.020821857441886086,
+      "cumulative_frac": 0.9373140905585546
+    },
+    {
+      "class": "GTPase activity",
+      "count": 88,
+      "frac_of_all": 0.009694833094634791,
+      "cumulative_frac": 0.9470089236531893
+    },
+    {
+      "class": "lyase activity",
+      "count": 82,
+      "frac_of_all": 0.009033821747273327,
+      "cumulative_frac": 0.9560427454004627
+    },
+    {
+      "class": "isomerase activity",
+      "count": 68,
+      "frac_of_all": 0.007491461936763248,
+      "cumulative_frac": 0.963534207337226
+    },
+    {
+      "class": "cell adhesion mediator activity",
+      "count": 49,
+      "frac_of_all": 0.005398259336785282,
+      "cumulative_frac": 0.9689324666740112
+    },
+    {
+      "class": "molecular carrier activity",
+      "count": 43,
+      "frac_of_all": 0.004737247989423818,
+      "cumulative_frac": 0.9736697146634351
+    },
+    {
+      "class": "ligase activity",
+      "count": 34,
+      "frac_of_all": 0.003745730968381624,
+      "cumulative_frac": 0.9774154456318167
+    },
+    {
+      "class": "histone binding",
+      "count": 33,
+      "frac_of_all": 0.0036355624104880465,
+      "cumulative_frac": 0.9810510080423047
+    },
+    {
+      "class": "antioxidant activity",
+      "count": 28,
+      "frac_of_all": 0.0030847196210201607,
+      "cumulative_frac": 0.9841357276633249
+    },
+    {
+      "class": "cargo receptor activity",
+      "count": 23,
+      "frac_of_all": 0.002533876831552275,
+      "cumulative_frac": 0.9866696044948772
+    },
+    {
+      "class": "catalytic activity",
+      "count": 22,
+      "frac_of_all": 0.002423708273658698,
+      "cumulative_frac": 0.9890933127685358
+    },
+    {
+      "class": "molecular sequestering activity",
+      "count": 16,
+      "frac_of_all": 0.0017626969262972347,
+      "cumulative_frac": 0.9908560096948331
+    },
+    {
+      "class": "molecular sensor activity",
+      "count": 13,
+      "frac_of_all": 0.0014321912526165032,
+      "cumulative_frac": 0.9922882009474496
+    },
+    {
+      "class": "cyclase activity",
+      "count": 11,
+      "frac_of_all": 0.001211854136829349,
+      "cumulative_frac": 0.993500055084279
+    },
+    {
+      "class": "protein tag activity",
+      "count": 11,
+      "frac_of_all": 0.001211854136829349,
+      "cumulative_frac": 0.9947119092211083
+    },
+    {
+      "class": "protein folding chaperone",
+      "count": 11,
+      "frac_of_all": 0.001211854136829349,
+      "cumulative_frac": 0.9959237633579376
+    },
+    {
+      "class": "catalytic activity, acting on a protein",
+      "count": 10,
+      "frac_of_all": 0.0011016855789357718,
+      "cumulative_frac": 0.9970254489368734
+    },
+    {
+      "class": "general transcription initiation factor activity",
+      "count": 10,
+      "frac_of_all": 0.0011016855789357718,
+      "cumulative_frac": 0.9981271345158091
+    },
+    {
+      "class": "catalytic activity, acting on DNA",
+      "count": 8,
+      "frac_of_all": 0.0008813484631486173,
+      "cumulative_frac": 0.9990084829789578
+    },
+    {
+      "class": "cytoskeletal motor activity",
+      "count": 4,
+      "frac_of_all": 0.00044067423157430867,
+      "cumulative_frac": 0.9994491572105321
+    },
+    {
+      "class": "translation regulator activity",
+      "count": 2,
+      "frac_of_all": 0.00022033711578715433,
+      "cumulative_frac": 0.9996694943263192
+    },
+    {
+      "class": "catalytic activity, acting on RNA",
+      "count": 2,
+      "frac_of_all": 0.00022033711578715433,
+      "cumulative_frac": 0.9998898314421064
+    },
+    {
+      "class": "virus receptor activity",
+      "count": 1,
+      "frac_of_all": 0.00011016855789357717,
+      "cumulative_frac": 1.0
+    }
+  ],
+  "n_proteins_in_our_proteome_pool": 16893,
+  "n_proteins_with_zero_go_mf_terms": 2032,
+  "n_proteins_with_go_mf_term_but_no_slim_mapping": 5784,
+  "n_proteins_before_filter": 9077,
+  "n_proteins_after_filter": 7470,
+  "seen_after_filter": 5973,
+  "n_proteins_with_multiple_valid_classes": 2442,
+  "frac_proteins_with_multiple_valid_classes": 0.3269076305220884,
+  "unseen_after_filter": 1497,
+  "unseen_coverage_pct_of_unseen_pool": 0.8113821138211382,
+  "unseen_warning": null
+}
