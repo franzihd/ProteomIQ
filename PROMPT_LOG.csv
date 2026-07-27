@@ -1,0 +1,6 @@
+date,prompt_number,prompt,purpose
+2026-07-27,1,"Let's continue working on the thesis. I can't decide between building the Streamlit app integration or the Stage 3 LLM interpretation layer next - what would you recommend?","Decide what to work on next"
+2026-07-27,2,"Sounds good, let's do everything step by step together, explain me what you do each step so that I can follow the process.","Set the collaboration style for the session"
+2026-07-27,3,"I just want the proteins embedded that are part of the sample / we decided to not do the activity score","Correct the retrieval design: restrict retrieval to the sample's own proteins, rank by cosine similarity only (not blended with abundance)"
+2026-07-27,4,"Rewrite app.py to the current architecture","Reuse existing retrieval/interpretation functions rather than reimplementing them; put the LLM interpretation step behind an explicit button rather than automatic"
+2026-07-27,5,"Okay, update CLAUDE.md up to now.","Document the session's work in the project's technical reference file"
