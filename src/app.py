@@ -4,151 +4,135 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import streamlit as st
 import torch
-import h5py
 import pandas as pd
-import numpy as np
-from transformers import AutoTokenizer, AutoModel
-from src.model.projection_head import ProjectionHead
-from src.embeddings.textual.embed_biobert import MAX_LENGTH, mean_pool
+import anthropic
+
+from src.model.retrieve_and_annotate import load_model, load_esm2_lookup, build_gene_lookup
+from src.model.interpret import (
+    build_annotation_lookup,
+    retrieve_within_sample,
+    stage3_interpret,
+    DEFAULT_TOP_K,
+)
+from src.preprocessing.normalize_uploaded_sample import normalize_uploaded_sample
 
 
 st.set_page_config(page_title="ProteomIQ", layout="wide")
 st.title("ProteomIQ")
-st.caption("Query your proteomics saple with natural language.")
+st.caption("Query your proteomics sample with natural language.")
 
 with st.sidebar:
     st.header("Sample")
     uploaded = st.file_uploader("Upload proteomics CSV", type="csv")
-    top_k = st.slider("Top K results", min_value=5, max_value=50, value=15)
+    top_k = st.slider("Top K results", min_value=5, max_value=50, value=DEFAULT_TOP_K)
     st.markdown("---")
     st.markdown(
         "**Expected CSV format:**\n"
         "```\n"
-        "EGFR,KRAS,MET,...\n"
-        "sample_001,1.23,0.45,2.67,...\n"
+        "gene,abundance\n"
+        "EGFR,1.23\n"
+        "KRAS,0.45\n"
+        "MET,2.67\n"
         "```\n"
-        "First row: gene names. Second row: sample ID + abundance values."
+        "One row per protein: gene name + raw abundance value."
     )
 
 if uploaded is None:
     st.info("Upload a proteomics CSV in the sidebar to get started")
 
 
-CHECKPOINT_PATH = Path("data/runs/luad_brca_ccrcc_gbm_hnscc_lscc_ov_pdac_ucec/checkpoint.pt")
-ESM2_PATH = Path("data/luad/esm2_embeddings.h5")
-PROTEIN_ANNOTATIONS_PATH = Path("data/luad/protein_annotations.csv")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 @st.cache_resource
-def load_models():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    tokenizer = AutoTokenizer.from_pretrained("dmis-lab/biobert-base-cased-v1.2")
-    biobert = AutoModel.from_pretrained("dmis-lab/biobert-base-cased-v1.2").to(device)
-    biobert.eval()
-    protein_head = ProjectionHead(input_dim=641, hidden_dim=512, output_dim=256).to(device)
-    text_head = ProjectionHead(input_dim=768, hidden_dim=512, output_dim=256).to(device)
-    checkpoint = torch.load(CHECKPOINT_PATH, map_location=device)
-    protein_head.load_state_dict(checkpoint["protein_head"])
-    text_head.load_state_dict(checkpoint["text_head"])
-    protein_head.eval()
-    text_head.eval()
-    return device, tokenizer, biobert, protein_head, text_head
+def get_model(_device):
+    """Trained projection heads (checkpoint) + frozen BioBERT for live query
+    encoding -- reused from retrieve_and_annotate.py, not reimplemented."""
+    return load_model(_device)
+
 
 @st.cache_resource
-def load_esm2():
-    with h5py.File(ESM2_PATH, "r") as h5f:
-        matrix = torch.tensor(h5f["embeddings"][:], dtype=torch.float32)
-        ids = [pid.decode() for pid in h5f["protein_ids"][:]]
-        
-    return matrix, {pid: i for i, pid in enumerate(ids)}
+def get_esm2_lookup():
+    return load_esm2_lookup()
 
-@st.cache_data
-def load_gene_to_ensp():
-    df = pd.read_csv(PROTEIN_ANNOTATIONS_PATH)
-    return dict(zip(df["Gene"], df["ENSP_ID"]))
-                                   
 
-device, tokenizer, biobert, protein_head, text_head = load_models()
-esm2_matrix, esm2_id_to_idx = load_esm2()
-gene_to_ensp = load_gene_to_ensp()
+@st.cache_resource
+def get_gene_lookup():
+    return build_gene_lookup()
 
-def encode_sample(df, esm2_matrix, esm2_id_to_idx, gene_to_ensp, protein_head, device):
-    row = df.iloc[0]
 
-    # rank-normalize abundances within the sample to percentiles [0, 1]
-    ranked = row.rank(pct=True)
+@st.cache_resource
+def get_annotation_lookup():
+    return build_annotation_lookup()
 
-    protein_embs, gene_names = [], []
-    for gene_name, abundance in ranked.items():
-        # skip missing values
-        if pd.isna(abundance):
-            continue
-        # translate gene name to ENSP ID, skip if no match
-        ensp_id = gene_to_ensp.get(gene_name)
-        if ensp_id is None or ensp_id not in esm2_id_to_idx:
-            continue
-        # look up 640-dim ESM2 vector and append abundance scalar → 641-dim
-        esm2_vec= esm2_matrix[esm2_id_to_idx[ensp_id]]
-        protein_emb = torch.cat([esm2_vec, torch.tensor([abundance], dtype=torch.float32)])
-        protein_embs.append(protein_emb)
-        gene_names.append(gene_name)
 
-    # run all protein embeddings through the projection head → 256-dim vectors
-    stacked = torch.stack(protein_embs).to(device)
-    with torch.no_grad():
-        protein_vecs = protein_head(stacked)
-    return protein_vecs.cpu(), gene_names
+@st.cache_resource
+def get_claude_client():
+    return anthropic.Anthropic()
 
-def encode_query(query, tokenizer, biobert, text_head, device):
-    # tokenize the query text
-    encoded = tokenizer(query, padding=True, truncation=True, max_length=MAX_LENGTH, return_tensors="pt")
-    # move to GPU/CPU
-    encoded = {k: v.to(device) for k, v in encoded.items()}
-    # run through BioBERT
-    with torch.no_grad():
-        outputs = biobert(**encoded)
-    # mean-pool token embeddings -> singel 768 dim vector
-    text_emb = mean_pool(outputs.last_hidden_state, encoded["attention_mask"])
-    # project to shared 356-dim space
-    with torch.no_grad():
-        vec = text_head(text_emb)
-    return vec.cpu()
+
+protein_head, text_head, tokenizer, biobert_model = get_model(DEVICE)
+esm2_lookup = get_esm2_lookup()
+gene_lookup = get_gene_lookup()
+annotation_lookup = get_annotation_lookup()
+client = get_claude_client()
+
 
 if uploaded is not None:
-    # process the saple only when a new file is uploaded
+    # process the sample only when a new file is uploaded -- reruns on every
+    # widget interaction otherwise, so this must be guarded
     file_id = (uploaded.name, uploaded.size)
     if st.session_state.get("file_id") != file_id:
-        df = pd.read_csv(uploaded, index_col=0)
         with st.spinner("Processing sample..."):
-            protein_vecs, gene_names = encode_sample(df, esm2_matrix, esm2_id_to_idx, gene_to_ensp, protein_head, device)
-        
+            result_df, unmatched, n_ambiguous = normalize_uploaded_sample(uploaded, "gene", "abundance")
+            measured_proteins = dict(zip(result_df["ENSP_ID"], result_df["percentile"]))
+
         st.session_state["file_id"] = file_id
-        st.session_state["protein_vecs"] = protein_vecs
-        st.session_state["gene_names"] = gene_names
+        st.session_state["measured_proteins"] = measured_proteins
+        st.session_state["match_info"] = (len(result_df), n_ambiguous, len(unmatched))
+        st.session_state["last_query"] = None
+        st.session_state.pop("scored", None)
+        st.session_state.pop("interpretation", None)
 
-    # retrieve stored protein vectors and gene names from session state
-    protein_vecs = st.session_state["protein_vecs"]
-    gene_names = st.session_state["gene_names"]
+    measured_proteins = st.session_state["measured_proteins"]
+    n_matched, n_ambiguous, n_unmatched = st.session_state["match_info"]
+    st.sidebar.success(
+        f"{n_matched} proteins matched"
+        f" ({n_ambiguous} dropped as ambiguous, {n_unmatched} not in our reference set)"
+    )
 
-    # show how many proteins were successfully matched in the sidebar
-    st.sidebar.success(f"{len(gene_names)} proteins matched")
-
-    # text input for the query
-    query = st.text_input("Ask your question about the sample", placeholder="e.g. receptor tyorsine kinase signaling in lung cancer")
+    query = st.text_input("Ask your question about the sample",
+                           placeholder="e.g. receptor tyrosine kinase signaling")
 
     if query:
-        with st.spinner("Retrieving..."):
-            # encode query text → 256-dim vector via BioBERT + text projection head
-            query_vec = encode_query(query, tokenizer, biobert, text_head, device)
-            # cosine similiarity between query and all proteins vectors
-            sims = (protein_vecs @ query_vec.T).squeeze().numpy()
-            top_indices = np.argsort(sims)[::-1][:top_k]
+        # only rerun retrieval when the query text itself changed -- not on
+        # every rerun caused by an unrelated widget (e.g. the top-K slider)
+        if st.session_state.get("last_query") != query:
+            with st.spinner("Retrieving..."):
+                scored = retrieve_within_sample(
+                    query, measured_proteins, esm2_lookup,
+                    protein_head, text_head, tokenizer, biobert_model, DEVICE,
+                )
+            st.session_state["scored"] = scored
+            st.session_state["last_query"] = query
+            st.session_state.pop("interpretation", None)
+        else:
+            scored = st.session_state["scored"]
 
-        # build results table
+        top = scored[:top_k]
         results = pd.DataFrame({
-            "Rank": range(1, top_k + 1),
-            "Gene": [gene_names[i] for i in top_indices],
-            "Similarity": [round(float(sims[i]), 4) for i in top_indices],
+            "Rank": range(1, len(top) + 1),
+            "Gene": [gene_lookup.get(pid, pid) for pid, _, _ in top],
+            "Cosine similarity": [round(cos_sim, 4) for _, cos_sim, _ in top],
+            "Abundance percentile": [round(pct * 100, 1) for _, _, pct in top],
         })
-        # display as interactive table
         st.dataframe(results, use_container_width=True, hide_index=True)
-        
+
+        if st.button("Interpret with Claude"):
+            with st.spinner("Asking Claude..."):
+                text = stage3_interpret(client, query, scored, gene_lookup, annotation_lookup, top_k=top_k)
+            st.session_state["interpretation"] = text
+
+        if "interpretation" in st.session_state:
+            st.markdown("### Interpretation")
+            st.write(st.session_state["interpretation"])
