@@ -36,6 +36,7 @@ import argparse
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import torch
+import h5py
 import pandas as pd
 from transformers import AutoTokenizer, AutoModel
 from src.embeddings.textual.embed_biobert import MAX_LENGTH, mean_pool
@@ -56,11 +57,22 @@ def build_gene_lookup():
     return dict(zip(df["ENSP_ID"], df["Gene"]))
 
 
-def stage1_retrieve(query: str, top_n: int, device):
-    dataset = ProteomicsDataset(cohorts=[], use_abundance=False, biobert_filename=BIOBERT_FILENAME)
-    protein_ids = dataset.pairs
-    esm2_matrix = torch.stack([dataset.protein_esm2[pid] for pid in protein_ids])
+def load_esm2_lookup():
+    """ENSP_ID -> 640-dim ESM2 vector, for every protein in the full human
+    proteome (data/full_proteome/esm2_embeddings.h5). Shared by any retrieval
+    path that needs a protein's sequence embedding by ID, whether ranking
+    against the whole proteome (stage1_retrieve) or a restricted subset
+    (interpret.py's sample-restricted retrieval)."""
+    with h5py.File("data/full_proteome/esm2_embeddings.h5", "r") as h5f:
+        matrix = torch.tensor(h5f["embeddings"][:], dtype=torch.float32)
+        ids = [pid.decode() for pid in h5f["protein_ids"][:]]
+    return dict(zip(ids, matrix))
 
+
+def load_model(device):
+    """Load the trained projection heads (checkpoint) + frozen BioBERT for
+    live query encoding. Shared by any script that needs to embed proteins/
+    text with the current main-line model."""
     ckpt = torch.load(CHECKPOINT_PATH, map_location=device)
     hidden_dim = ckpt.get("hidden_dim", 512)
     output_dim = ckpt.get("output_dim", 256)
@@ -74,17 +86,37 @@ def stage1_retrieve(query: str, top_n: int, device):
     tokenizer = AutoTokenizer.from_pretrained(BIOBERT_PATH, local_files_only=True)
     biobert_model = AutoModel.from_pretrained(BIOBERT_PATH, local_files_only=True).to(device)
     biobert_model.eval()
+    return protein_head, text_head, tokenizer, biobert_model
 
+
+def encode_query_vector(query: str, tokenizer, biobert_model, text_head, device):
+    """Free text -> BioBERT (mean-pooled) -> text_head -> shared-space vector."""
     with torch.no_grad():
-        protein_vecs = protein_head(esm2_matrix.to(device))
-
         enc = tokenizer(query, padding=True, truncation=True,
                          max_length=MAX_LENGTH, return_tensors="pt")
         enc = {k: v.to(device) for k, v in enc.items()}
         out = biobert_model(**enc)
         query_vec = mean_pool(out.last_hidden_state, enc["attention_mask"])
         query_vec = text_head(query_vec)
+    return query_vec
 
+
+def stage1_retrieve(query: str, top_n: int, device):
+    """Wide, patient-invariant retrieval over the WHOLE human proteome
+    (~16,893 proteins) -- built for fair pathway-ground-truth spot-checking
+    (CLAUDE.md 10j/10k), where restricting to one sample's measured proteins
+    would be invalid (see this file's docstring). For the interactive,
+    sample-restricted retrieval used by the researcher-facing tool, see
+    interpret.py's retrieve_within_sample instead."""
+    dataset = ProteomicsDataset(cohorts=[], use_abundance=False, biobert_filename=BIOBERT_FILENAME)
+    protein_ids = dataset.pairs
+    esm2_matrix = torch.stack([dataset.protein_esm2[pid] for pid in protein_ids])
+
+    protein_head, text_head, tokenizer, biobert_model = load_model(device)
+
+    with torch.no_grad():
+        protein_vecs = protein_head(esm2_matrix.to(device))
+        query_vec = encode_query_vector(query, tokenizer, biobert_model, text_head, device)
         sims = (protein_vecs @ query_vec.T).squeeze()
         ranked_idx = torch.argsort(sims, descending=True)[:top_n]
 
