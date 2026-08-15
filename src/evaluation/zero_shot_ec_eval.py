@@ -9,21 +9,43 @@ into one class embedding. Each test protein (already filtered to enzymes
 only -- see build_ec_eval_set.py) is embedded with our protein tower and
 assigned to whichever class embedding it is most cosine-similar to.
 
-Two prompt variants, run and compared separately rather than merged into
-one ensemble:
-  - default: 3 explanatory natural-language prompts per class, averaged +
-    re-normalized ("prompt ensembling", same as zero_shot_deeploc_eval.py)
-  - --keyword-only: a single bare class-name prompt per class (e.g.
-    "Oxidoreductases"), no sentence wrapping
+Three prompt conditions (--condition / --all-conditions), run and compared
+separately rather than merged into one ensemble -- mirrors the ablation
+CLIP's own paper (Radford et al. 2021, section 3.1.4) uses to isolate how
+much prompt engineering and ensembling each contribute individually, on top
+of a bare-label baseline:
+  - label_only (N=0): a single bare class-name prompt per class (e.g.
+    "Oxidoreductases"), no sentence wrapping.
+  - engineered (N=1): the first template from the frozen 5-template pool in
+    data/evaluation/zero_shot_prompt_templates.json (see
+    generate_zero_shot_prompt_templates.py), fixed a priori -- not
+    validation-selected, unlike CLIP's own single-prompt choice for e.g.
+    ImageNet (performance-based template selection is exactly the kind of
+    leakage this project avoids elsewhere, see CLAUDE.md 11j).
+  - ensemble (N=5, default): all 5 templates, embedding-space-averaged +
+    re-normalized ("prompt ensembling", same as zero_shot_deeploc_eval.py).
+    {label} is filled with the lowercased canonical class name
+    ("hydrolases") -- lowercasing is the only transformation EC needs,
+    since CLASSES' plural forms are already correct English nouns once
+    de-capitalized (unlike DeepLoc, which needs real per-class rewording --
+    see zero_shot_deeploc_eval.py).
 
-Comparing the two matters here more than usual: EC class names double as
-the exact vocabulary UniProt's own FUNCTION annotations use to describe
-catalytic activity (e.g. "...has serine hydrolase activity"), so
-keyword-only risks scoring well via lexical shortcut-matching rather than
-genuine understanding -- the "name shortcut" pattern documented throughout
-CLAUDE.md for pathway/gene names (see e.g. section 8e's raw-name vs.
-explanatory-NL pathway query comparison). Running both variants, rather
-than picking one, is how this project has consistently handled that risk.
+Comparing label_only against the other two matters here more than usual: EC
+class names double as the exact vocabulary UniProt's own FUNCTION
+annotations use to describe catalytic activity (e.g. "...has serine
+hydrolase activity"), so label_only risks scoring well via lexical
+shortcut-matching rather than genuine understanding -- the "name shortcut"
+pattern documented throughout CLAUDE.md for pathway/gene names (see e.g.
+section 8e's raw-name vs. explanatory-NL pathway query comparison). Running
+all three conditions, rather than picking one, is how this project has
+consistently handled that risk.
+
+Loading the checkpoint, BioBERT, and embedding every test protein with the
+protein tower is the expensive part of this script -- and none of it
+depends on which prompt condition is being scored (only the class/text side
+does). --all-conditions therefore loads that context ONCE and runs all
+three conditions against it, instead of the ~3x slower approach of invoking
+this script three times with --condition and reloading everything each time.
 
 Run src/evaluation/build_ec_eval_set.py first to build the test set this
 script reads.
@@ -31,7 +53,8 @@ script reads.
 Usage:
     uv run python src/evaluation/zero_shot_ec_eval.py \\
         --checkpoint data/runs/full_proteome/final_hparams_masked_best.pt \\
-        --biobert-filename biobert_embeddings_masked.h5
+        --biobert-filename biobert_embeddings_masked.h5 \\
+        --all-conditions
 """
 import sys
 import argparse
@@ -50,6 +73,7 @@ from src.model.projection_head import ProjectionHead
 from src.model.query_evaluation import encode_query
 
 EVAL_SET_PATH = Path("data/evaluation/ec_top_level_test_set.csv")
+PROMPT_TEMPLATES_PATH = Path("data/evaluation/zero_shot_prompt_templates.json")
 BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
 
 # Fixed class order, reused everywhere (prompt building, argmax, confusion
@@ -59,48 +83,46 @@ CLASSES = [
     "Isomerases", "Ligases", "Translocases",
 ]
 
-# A short description of what each EC top-level class does, filled into the
-# 3 templates below -- these are the standard IUBMB definitions, kept short
-# and gene/example-free so the model can't shortcut on protein names.
-EC_CLASS_PHRASES = {
-    "Oxidoreductases": "catalyzes oxidation-reduction reactions by transferring electrons, hydrogen, or oxygen between molecules",
-    "Transferases": "catalyzes the transfer of a functional group, such as a methyl or phosphate group, from one molecule to another",
-    "Hydrolases": "catalyzes the hydrolysis of a chemical bond by adding a water molecule",
-    "Lyases": "catalyzes the breaking of a chemical bond by a means other than hydrolysis or oxidation, often forming a double bond or a ring",
-    "Isomerases": "catalyzes the rearrangement of atoms within a single molecule to form a structural isomer",
-    "Ligases": "catalyzes the joining of two molecules together, typically coupled to the hydrolysis of ATP",
-    "Translocases": "catalyzes the movement of ions or molecules across a membrane, or their separation within a membrane",
-}
-
-# 3 independent phrasings per class ("prompt ensembling"), applied uniformly
-# across all classes via {phrase} -- same idea and template shape as
-# zero_shot_deeploc_eval.py's TEMPLATES. Only used when keyword_only=False.
-TEMPLATES = [
-    "An enzyme that {phrase}.",
-    "This protein is an enzyme; it {phrase}.",
-    "Enzymatic activity: {phrase}.",
-]
+CONDITION_SUFFIXES = {"label_only": "_label_only", "engineered": "_engineered", "ensemble": ""}
+ALL_CONDITIONS = ("label_only", "engineered", "ensemble")
 
 
-def build_class_embeddings(classes, tokenizer, biobert_model, text_head, device, keyword_only=False):
-    """One embedding per class. Default: encode the 3 explanatory template
+def ec_sentence_label(cls: str) -> str:
+    """Sentence-ready form of a canonical CLASSES entry, used to fill {label}
+    in the templates loaded from PROMPT_TEMPLATES_PATH. Lowercasing is the
+    only transformation EC needs -- CLASSES' plural forms ("Hydrolases") are
+    already correct English nouns once de-capitalized, unlike DeepLoc (see
+    DEEPLOC_SENTENCE_LABELS in zero_shot_deeploc_eval.py), which needs real
+    per-class rewording. Not used for --condition label_only, which encodes
+    the raw canonical CLASSES entry as-is."""
+    return cls.lower()
+
+
+def build_class_embeddings(classes, templates, tokenizer, biobert_model, text_head, device, label_only=False):
+    """One embedding per class. Default: encode each of the given template
     prompts (each already L2-normalized by ProjectionHead), average, then
-    re-normalize -- the standard CLIP prompt-ensembling recipe.
-    Re-normalizing after averaging matters: without it, classes whose
-    templates happen to agree more end up with a larger-norm embedding,
-    which would silently bias the argmax toward them (cosine similarity via
-    dot product scales with norm). keyword_only=True instead encodes just
-    the bare class name as a single prompt -- no averaging needed for a
-    single vector, but still re-normalized for consistency."""
+    re-normalize -- the standard CLIP prompt-ensembling recipe (Radford et
+    al. 2021, section 3.1.4: "we construct the ensemble over the embedding
+    space instead of probability space"). Re-normalizing after averaging
+    matters: without it, classes whose templates happen to agree more end up
+    with a larger-norm embedding, which would silently bias the argmax
+    toward them (cosine similarity via dot product scales with norm).
+    label_only=True instead encodes just the bare class name as a single
+    prompt (the "Label-only" / N=0 condition, run_condition() passes an
+    empty `templates` list in that case) -- no averaging needed for a
+    single vector, but still re-normalized for consistency. Whether
+    `templates` has 1 entry (the "Engineered" condition) or all 5 (the
+    "Ensemble" condition) is decided by the caller, not here -- this
+    function just embeds and averages whatever it's given."""
     class_vecs = {}
     for cls in classes:
-        if keyword_only:
+        if label_only:
             prompt_vecs = [encode_query(cls, tokenizer, biobert_model, text_head, device)]
         else:
-            phrase = EC_CLASS_PHRASES[cls]
+            label = ec_sentence_label(cls)
             prompt_vecs = [
-                encode_query(t.format(phrase=phrase), tokenizer, biobert_model, text_head, device)
-                for t in TEMPLATES
+                encode_query(t.format(label=label), tokenizer, biobert_model, text_head, device)
+                for t in templates
             ]
         averaged = torch.stack(prompt_vecs).mean(dim=0)
         class_vecs[cls] = F.normalize(averaged, dim=-1)
@@ -131,13 +153,18 @@ def compute_subset_metrics(df: pd.DataFrame, classes) -> dict:
     }
 
 
-def run(checkpoint_path: Path, biobert_filename: str = "biobert_embeddings_masked.h5", keyword_only: bool = False):
-    variant_suffix = "_keyword_only" if keyword_only else ""
-
+def load_context(checkpoint_path: Path, biobert_filename: str = "biobert_embeddings_masked.h5") -> dict:
+    """Loads everything that does NOT depend on --condition: the checkpoint,
+    projection heads, BioBERT tokenizer/model, the frozen template pool, and
+    -- since the protein side of this eval never depends on the class
+    prompt at all -- the protein tower's embeddings for every EC test
+    protein, computed once here. This is the expensive part of the script
+    (model loading + embedding ~thousands of proteins); run_all_conditions()
+    calls this once and reuses it for all three conditions instead of
+    reloading it 3 times over."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     print(f"Checkpoint: {checkpoint_path}")
-    print(f"Prompt variant: {'bare keyword only' if keyword_only else '3-template explanatory ensemble'}")
     print(f"Classes (7-way EC top-level): {CLASSES}\n")
 
     print("Loading EC top-level test set ...")
@@ -161,11 +188,10 @@ def run(checkpoint_path: Path, biobert_filename: str = "biobert_embeddings_maske
     biobert_model = AutoModel.from_pretrained(BIOBERT_PATH, local_files_only=True).to(device)
     biobert_model.eval()
 
-    prompt_desc = "bare keyword" if keyword_only else "3 templates each, ensembled"
-    print(f"Embedding the {len(CLASSES)} class prompts ({prompt_desc}) ...")
-    class_vecs = build_class_embeddings(CLASSES, tokenizer, biobert_model, text_head, device, keyword_only=keyword_only)
+    with open(PROMPT_TEMPLATES_PATH) as f:
+        all_templates = json.load(f)["ec"]["templates"]
 
-    print("Embedding EC test proteins with the protein tower ...")
+    print("Embedding EC test proteins with the protein tower (once, shared across all conditions) ...")
     eval_ensp_ids = set(eval_df["ensp_id"])
     dataset = ProteomicsDataset(
         cohorts=[], use_abundance=False,
@@ -183,47 +209,122 @@ def run(checkpoint_path: Path, biobert_filename: str = "biobert_embeddings_maske
     esm2_matrix = torch.stack([dataset.protein_esm2[pid] for pid in eval_df["ensp_id"]])
     with torch.no_grad():
         protein_vecs = protein_head(esm2_matrix.to(device))
-        sims = (protein_vecs @ class_vecs.T).cpu().numpy()  # (n_proteins, len(CLASSES))
+
+    return {
+        "device": device,
+        "checkpoint_path": checkpoint_path,
+        "biobert_filename": biobert_filename,
+        "eval_df": eval_df,
+        "protein_vecs": protein_vecs,
+        "tokenizer": tokenizer,
+        "biobert_model": biobert_model,
+        "text_head": text_head,
+        "all_templates": all_templates,
+    }
+
+
+def run_condition(ctx: dict, condition: str) -> dict:
+    """Runs one prompt condition against an already-loaded context (see
+    load_context) -- only builds the class-side text embeddings and scores;
+    the expensive part (BioBERT/ESM2/checkpoint loading, protein tower
+    embeddings) is assumed already done."""
+    variant_suffix = CONDITION_SUFFIXES[condition]
+    all_templates = ctx["all_templates"]
+    # "engineered" (N=1) uses template[0] from the frozen pool -- fixed a
+    # priori, not validation-selected (unlike CLIP's own single-prompt
+    # choice for e.g. ImageNet, which they picked by iterating against a
+    # held-out set). Deliberately different from CLIP here: performance-based
+    # template selection is exactly the kind of leakage this project has
+    # avoided elsewhere (see CLAUDE.md 11j).
+    if condition == "label_only":
+        templates_used = []
+    elif condition == "engineered":
+        templates_used = all_templates[:1]
+    else:
+        templates_used = all_templates
+
+    prompt_desc = {"label_only": "bare keyword", "engineered": "1 template (engineered, N=1)",
+                   "ensemble": f"{len(all_templates)} templates, ensembled"}[condition]
+    print(f"\n[{condition}] Embedding the {len(CLASSES)} class prompts ({prompt_desc}) ...")
+    class_vecs = build_class_embeddings(CLASSES, templates_used, ctx["tokenizer"], ctx["biobert_model"],
+                                         ctx["text_head"], ctx["device"], label_only=(condition == "label_only"))
+
+    eval_df = ctx["eval_df"].copy()
+    with torch.no_grad():
+        sims = (ctx["protein_vecs"] @ class_vecs.T).cpu().numpy()  # (n_proteins, len(CLASSES))
 
     predicted_idx = sims.argmax(axis=1)
     eval_df["predicted_class"] = [CLASSES[i] for i in predicted_idx]
     eval_df["correct"] = eval_df["true_class"] == eval_df["predicted_class"]
 
-    print("Computing metrics for seen / unseen / all ...\n")
+    # build_ec_eval_set.py (2026-08-15 revision) now assigns "split" as one
+    # of seen / unseen_validation / unseen_test rather than a single combined
+    # "unseen" bucket. "unseen" is kept here (validation+test combined) for
+    # backward compatibility with earlier reported numbers; "unseen_test" is
+    # the new, strict, once-touched figure -- never seen by anything,
+    # including the validation-loss-based hyperparameter/architecture
+    # selection in 11l/11p -- and is the one to prefer when a clean
+    # test-only claim matters (same discipline as validation_only_auroc /
+    # test_only_auroc in pathway_auroc_protein_level.py, CLAUDE.md 11j).
     subsets = {
         "all": eval_df,
         "seen": eval_df[eval_df["split"] == "seen"],
-        "unseen": eval_df[eval_df["split"] == "unseen"],
+        "unseen": eval_df[eval_df["split"] != "seen"],
+        "unseen_validation": eval_df[eval_df["split"] == "unseen_validation"],
+        "unseen_test": eval_df[eval_df["split"] == "unseen_test"],
     }
     metrics = {name: compute_subset_metrics(subset_df, CLASSES) for name, subset_df in subsets.items()}
     metrics["generalization_gap"] = metrics["seen"]["accuracy"] - metrics["unseen"]["accuracy"]
-    metrics["checkpoint"] = str(checkpoint_path)
-    metrics["biobert_filename"] = biobert_filename
+    metrics["generalization_gap_test_only"] = metrics["seen"]["accuracy"] - metrics["unseen_test"]["accuracy"]
+    metrics["checkpoint"] = str(ctx["checkpoint_path"])
+    metrics["biobert_filename"] = ctx["biobert_filename"]
     metrics["classes"] = CLASSES
-    metrics["keyword_only"] = keyword_only
+    metrics["condition"] = condition
 
-    predictions_path = Path(f"data/evaluation/ec_zero_shot_predictions_{checkpoint_path.stem}{variant_suffix}.csv")
-    summary_path = Path(f"data/evaluation/ec_zero_shot_summary_{checkpoint_path.stem}{variant_suffix}.json")
+    checkpoint_stem = ctx["checkpoint_path"].stem
+    predictions_path = Path(f"data/evaluation/ec_zero_shot_predictions_{checkpoint_stem}{variant_suffix}.csv")
+    summary_path = Path(f"data/evaluation/ec_zero_shot_summary_{checkpoint_stem}{variant_suffix}.json")
     predictions_path.parent.mkdir(parents=True, exist_ok=True)
     eval_df.to_csv(predictions_path, index=False)
     with open(summary_path, "w") as f:
         json.dump(metrics, f, indent=2)
 
     print("=" * 88)
-    print(f"Zero-shot EC top-level classification (7-way, {prompt_desc})")
+    print(f"Zero-shot EC top-level classification (7-way, condition={condition}, {prompt_desc})")
     print("=" * 88)
-    for name in ["all", "seen", "unseen"]:
+    for name in ["all", "seen", "unseen", "unseen_validation", "unseen_test"]:
         m = metrics[name]
         print(f"\n[{name}]  n={m['n']}")
         print(f"  accuracy:   {m['accuracy']*100:.2f}%  "
               f"(random baseline: {m['random_baseline_accuracy']*100:.2f}%, "
               f"majority-class baseline ['{m['majority_class']}']: {m['majority_baseline_accuracy']*100:.2f}%)")
         print(f"  macro-F1:   {m['macro_f1']:.4f}")
-    print(f"\nGeneralization gap (seen accuracy - unseen accuracy): {metrics['generalization_gap']*100:.2f}pp")
+    print(f"\nGeneralization gap, test-only (seen accuracy - unseen_test accuracy): "
+          f"{metrics['generalization_gap_test_only']*100:.2f}pp")
+    print(f"Generalization gap (seen accuracy - unseen accuracy): {metrics['generalization_gap']*100:.2f}pp")
     print(f"\nPer-protein predictions saved to {predictions_path}")
     print(f"Summary + confusion matrices saved to {summary_path}")
 
     return metrics
+
+
+def run(checkpoint_path: Path, biobert_filename: str = "biobert_embeddings_masked.h5", condition: str = "ensemble") -> dict:
+    """Single-condition entry point (backward compatible). For all three
+    conditions, prefer run_all_conditions() -- it loads the checkpoint/
+    BioBERT/protein-tower context once instead of reloading it per call."""
+    ctx = load_context(checkpoint_path, biobert_filename)
+    return run_condition(ctx, condition)
+
+
+def run_all_conditions(checkpoint_path: Path, biobert_filename: str = "biobert_embeddings_masked.h5",
+                        conditions=ALL_CONDITIONS) -> dict:
+    """Loads the checkpoint/BioBERT/protein-tower context ONCE, then runs
+    every given condition against it -- the expensive setup (model loading,
+    embedding every test protein) only happens once instead of once per
+    condition, since none of it depends on which prompt condition is being
+    scored (only the class/text side does)."""
+    ctx = load_context(checkpoint_path, biobert_filename)
+    return {condition: run_condition(ctx, condition) for condition in conditions}
 
 
 if __name__ == "__main__":
@@ -234,11 +335,21 @@ if __name__ == "__main__":
                         help="only needs to exist for data/full_proteome -- class prompts are "
                              "encoded live, so this doesn't need to exactly match the "
                              "checkpoint's trained text variant, same as pathway_auroc_protein_level.py")
-    parser.add_argument("--keyword-only", action="store_true",
-                        help="use a single bare class-name prompt per class (e.g. 'Oxidoreductases') "
-                             "instead of the default 3-template explanatory ensemble. Run both and "
-                             "compare -- keyword-only risks inflating accuracy via lexical shortcut-"
-                             "matching against UniProt's own annotation vocabulary. Output files get "
-                             "a '_keyword_only' suffix so both variants' results are kept side by side.")
+    parser.add_argument("--condition", choices=["label_only", "engineered", "ensemble"], default="ensemble",
+                        help="'label_only' (N=0): bare class name only, e.g. 'Oxidoreductases' -- risks "
+                             "inflating accuracy via lexical shortcut-matching against UniProt's own "
+                             "annotation vocabulary. 'engineered' (N=1): the first template from the "
+                             "frozen 5-template pool, fixed a priori (not validation-selected, unlike "
+                             "CLIP's own single-prompt choice). 'ensemble' (N=5, default): all 5 "
+                             "templates, embedding-space-averaged. Ignored if --all-conditions is set.")
+    parser.add_argument("--all-conditions", action="store_true",
+                        help="run label_only, engineered, and ensemble in one process, loading the "
+                             "checkpoint/BioBERT/protein embeddings only once instead of three times "
+                             "-- much faster than invoking this script three times with --condition. "
+                             "Output files get a matching suffix ('_label_only' / '_engineered' / none) "
+                             "so all three are kept side by side.")
     args = parser.parse_args()
-    run(Path(args.checkpoint), biobert_filename=args.biobert_filename, keyword_only=args.keyword_only)
+    if args.all_conditions:
+        run_all_conditions(Path(args.checkpoint), biobert_filename=args.biobert_filename)
+    else:
+        run(Path(args.checkpoint), biobert_filename=args.biobert_filename, condition=args.condition)

@@ -242,5 +242,8 @@
   "frac_proteins_with_multiple_valid_classes": 0.3269076305220884,
   "unseen_after_filter": 1497,
   "unseen_coverage_pct_of_unseen_pool": 0.8113821138211382,
-  "unseen_warning": null
+  "unseen_warning": null,
+  "unseen_validation_after_filter": 748,
+  "unseen_test_after_filter": 749,
+  "unseen_test_warning": null
 }

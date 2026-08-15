@@ -1,11 +1,15 @@
 """
 Bar charts comparing the three zero-shot forced-choice classification evals
 (DeepLoc subcellular location, EC top-level enzyme class, GO-Slim-MF
-molecular function) against their own random and majority-class baselines.
+molecular function) against their own random and majority-class baselines,
+across the three prompt conditions (Label-only / Engineered / Ensemble --
+see zero_shot_*_eval.py's --condition, mirrors the ablation CLIP's own paper
+uses to isolate how much prompt engineering and ensembling each contribute).
 
 Reads the summary JSONs these three evals already produce (`build_*_eval_set.py`
-+ `zero_shot_*_eval.py` must be run first for a given checkpoint) -- this script
-does no computation of its own, just visualizes what's already on disk, so
++ `zero_shot_*_eval.py --condition {label_only,engineered,ensemble}` must be
+run first, all three conditions, for a given checkpoint) -- this script does
+no computation of its own, just visualizes what's already on disk, so
 rerunning it after a new checkpoint's evals finish reproduces the comparison
 with no manual number-copying. See CLAUDE.md section 11o for the discussion
 these plots support: GO-MF is the only one of the three that clears its
@@ -33,24 +37,30 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-BAR_COLOR = "#0F6E56"       # matches plot_scaling.py's R@1 green -- the headline metric color
+BAR_COLOR = "#16B3B3"
 RANDOM_COLOR = "#A6A49B"    # muted gray -- weaker reference line
 MAJORITY_COLOR = "#3C3489"  # matches plot_cross_modal_eval.py's purple -- the harder-to-beat reference line
 TEXT = "#26215C"
 
-# (output filename stem, title, [(variant label, summary json suffix), ...])
+# (output filename stem, title, [(condition label, summary json suffix), ...])
+# Ordered Label-only -> Engineered -> Ensemble (N=0 -> N=1 -> N=5), matching
+# the increasing-sophistication order of CLIP's own prompt-engineering
+# ablation. Suffixes match zero_shot_*_eval.py's CONDITION_SUFFIXES.
 EVAL_SPECS = [
     ("deeploc", "DeepLoc (subcellular location)", [
-        ("10-way", ""),
-        ("9-way (human-only)", "_9way_human"),
+        ("Label-only", "_9way_human_label_only"),
+        ("Engineered", "_9way_human_engineered"),
+        ("Ensemble", "_9way_human"),
     ], "deeploc"),
     ("ec_top_level", "EC top-level (enzyme class)", [
-        ("Explanatory", ""),
-        ("Keyword-only", "_keyword_only"),
+        ("Label-only", "_label_only"),
+        ("Engineered", "_engineered"),
+        ("Ensemble", ""),
     ], "ec"),
     ("go_mf", "GO-Slim-MF (molecular function)", [
-        ("Explanatory", ""),
-        ("Keyword-only", "_keyword_only"),
+        ("Label-only", "_label_only"),
+        ("Engineered", "_engineered"),
+        ("Ensemble", ""),
     ], "go_mf"),
 ]
 
@@ -61,8 +71,8 @@ def load_summary(path: Path) -> dict:
 
 
 def build_panels(checkpoint_stem: str) -> list[dict]:
-    """One panel per eval: its two prompt/label variants, and its own
-    random/majority baselines (majority baseline doesn't vary by variant,
+    """One panel per eval: its three prompt conditions, and its own
+    random/majority baselines (majority baseline doesn't vary by condition,
     since it depends only on the class distribution, not the prompt)."""
     eval_dir = Path("data/evaluation")
     panels = []
@@ -102,7 +112,12 @@ def plot_one_panel(ax, panel: dict, wrap_title: bool = False):
 
     ax.set_xticks(list(x))
     title = panel["title"].replace(" (", "\n(") if wrap_title else panel["title"]
-    ax.set_xticklabels(labels, fontsize=9.5)
+    # 3 conditions ("Label-only" / "Engineered" / "Ensemble") need more
+    # horizontal room than the old 2-variant labels did -- rotated labels
+    # with right-alignment stop them from overlapping into each other,
+    # especially in the narrower combined-figure panels (see
+    # plot_combined's 3-panels-in-13-inches layout).
+    ax.set_xticklabels(labels, fontsize=9, rotation=20, ha="right", rotation_mode="anchor")
     ax.set_title(title, fontsize=11.5, fontweight="bold", color=TEXT, pad=10)
     ax.tick_params(axis="both", which="both", length=0, labelcolor=TEXT)
     for spine in ax.spines.values():

@@ -26,9 +26,11 @@ set instead of free text."
   patients* — not actionable. Querying at protein granularity returns
   *EGFR, MET, KRAS* — directly actionable. State this contrast explicitly,
   it's the cleanest one-liner of the whole motivation.
-- One-line comparison to the closest prior work: CellWhisperer does the
-  same idea for single-cell transcriptomics; ProteomIQ targets
-  mass-spec proteomics, at protein (not sample) granularity.
+- CellWhisperer is the direct inspiration for this project, not just the
+  closest prior work found afterward — my professor's idea for ProteomIQ
+  came from seeing CellWhisperer do this for single-cell transcriptomics;
+  ProteomIQ asks the same question for mass-spec proteomics, at protein
+  (not sample) granularity.
 
 ## 2. Related work (~2 min, brief — don't over-invest here)
 - CLIP (contrastive image-text pretraining) — the general recipe being
@@ -121,7 +123,41 @@ set instead of free text."
   *is* close to what the training text describes. This is a stated
   hypothesis, not yet directly tested — say that honestly if asked.
 
-## 5. Working prototype — live demo or screenshots (~2-3 min)
+## 5. Honest self-assessment: doubts about performance, scale as the
+   leading suspect (~1-2 min)
+- State this plainly, before the committee asks: the weak forced-choice
+  numbers (DeepLoc, EC) are more likely explained by dataset scale than by
+  a flaw in the architecture or training recipe — the architecture side
+  was already checked carefully (masking ablation, lr/batch-size/epochs
+  and hidden/output-dim swept on held-out validation loss) and each of
+  those levers behaved as expected, which points *away* from "the
+  architecture is wrong" and *toward* "there isn't enough data to learn
+  more from."
+- The concrete number: after deduping to one row per protein (patient-
+  invariant text), training has only ~13,515 unique protein-text pairs
+  `[§11c, §11l]` — small by contrastive-learning standards.
+- Verified scale comparisons already on record, not guessed: this is
+  roughly **30,000x smaller** than CLIP's original ~400M image-text pairs,
+  and roughly **34x smaller** than ProteinCLIP's 465,770 sequence-
+  annotation pairs `[§11l]`. Both numbers were checked against primary
+  sources, following the same discipline as the ProteinCLIP/ProtET
+  citation correction already made in this project.
+- CellWhisperer specifically: cite the batch-size/hyperparameter
+  comparisons already made (`[§11l]` — this project's `lr`/`batch_size`
+  search range was set to bracket CellWhisperer's own defaults), but be
+  upfront that an exact training-pair-count comparison to CellWhisperer
+  was not independently verified before this talk — say "I'd want to
+  confirm that number before putting it in the thesis" rather than citing
+  an unverified figure, consistent with how every other cross-paper number
+  in this project was fact-checked before use.
+- Why this framing matters for the thesis: it turns "why are two of four
+  evals weak" from an open question into a stated, reasoned hypothesis —
+  the same honesty already applied to the DeepLoc/EC/GO-MF result pattern
+  in section 4 — and it's the direct motivation for the "more positive
+  pairs" future-work item in section 7 (LLM-fusion / paraphrase
+  augmentation) rather than that item appearing out of nowhere.
+
+## 6. Working prototype — live demo or screenshots (~2-3 min)
 - Show the three-stage pipeline end to end: upload a sample → Stage 1
   (semantic retrieval, restricted to that sample's own measured proteins)
   → Stage 2 (real abundance percentile attached per protein) → Stage 3
@@ -134,11 +170,23 @@ set instead of free text."
   on real patients/queries, fact-checked against the underlying numbers),
   deliberately *not* part of the four formally reported evaluations above.
 
-## 6. Remaining work + timeline (~2 min)
+## 7. Remaining work + timeline (~2 min)
 - Possible follow-up: a linear-probe check on the frozen protein
   embeddings, to separate "bad protein representation" from "bad
   text-prompt alignment" for the two weak evals (DeepLoc, EC) — named as
   future work, not yet done.
+- New training methods to try for raw performance improvement, distinct
+  from the diagnostic/eval work above: the deduped training set is small
+  (12,574–13,515 unique protein-text pairs, one per protein once
+  patient-invariant), so the main lever left is increasing the number/
+  diversity of *positive pairs* per protein rather than more architecture
+  tuning. Concretely: resuming the paused LLM-fusion text augmentation
+  (built and spot-checked, blocked only on API budget) and reconsidering
+  LLM-paraphrase augmentation (multiple differently-worded positives per
+  protein) — flagged in project notes as worth a fresh look now that
+  GO-term concatenation was ruled out as a fix. Framed honestly as
+  "possibilities to explore," not a committed plan — time-boxed by the
+  2026-10-10 hand-in.
 - Hand-in: 2026-10-10. State concretely what's left: writing up the
   thesis text itself (structure already drafted), any follow-up
   experiments time allows.
@@ -175,3 +223,10 @@ set instead of free text."
 - *"Does the tool actually work for a real researcher?"* → Promising,
   spot-checked proof-of-concept; not yet formally/at-scale validated —
   say this plainly, don't oversell it.
+- *"Why not just get more training data?"* → CPTAC cohort count is
+  already maxed out (9/10 usable, COAD structurally broken), and the
+  full-proteome move already uses every reviewed human protein UniProt
+  has — the ceiling isn't cohort count, it's unique protein-text pairs
+  (~13,515). The real lever left is more/better *positive pairs* per
+  protein (LLM-fusion/paraphrase augmentation, §5 and §7), not more raw
+  proteomics data.

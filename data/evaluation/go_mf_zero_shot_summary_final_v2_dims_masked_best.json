@@ -1,7 +1,7 @@
 {
   "all": {
     "n": 7470,
-    "accuracy": 0.4151271753681392,
+    "accuracy": 0.40522088353413654,
     "majority_class": "DNA binding",
     "majority_baseline_accuracy": 0.24029451137884872,
     "random_baseline_accuracy": 0.1372021419009371,
@@ -9,7 +9,7 @@
   },
   "seen": {
     "n": 5973,
-    "accuracy": 0.41503432111166916,
+    "accuracy": 0.4056587979239913,
     "majority_class": "DNA binding",
     "majority_baseline_accuracy": 0.24008036162732296,
     "random_baseline_accuracy": 0.13668173447178972,
@@ -17,13 +17,13 @@
   },
   "unseen": {
     "n": 1497,
-    "accuracy": 0.41549766199064797,
+    "accuracy": 0.4034736138944556,
     "majority_class": "DNA binding",
     "majority_baseline_accuracy": 0.24114896459585838,
     "random_baseline_accuracy": 0.13927855711422846,
     "mean_valid_classes_per_protein": 1.3927855711422845
   },
-  "generalization_gap": -0.00046334087897881293,
+  "generalization_gap": 0.002185184029535714,
   "checkpoint": "data/runs/full_proteome/final_v2_dims_masked_best.pt",
   "biobert_filename": "biobert_embeddings_masked.h5",
   "classes": [
@@ -38,7 +38,7 @@
     "RNA binding",
     "receptor ligand activity"
   ],
-  "keyword_only": false,
+  "condition": "ensemble",
   "achieved_coverage": 0.8229591274650215,
   "unseen_warning": null
 }

@@ -1,0 +1,44 @@
+{
+  "all": {
+    "n": 7470,
+    "accuracy": 0.3895582329317269,
+    "majority_class": "DNA binding",
+    "majority_baseline_accuracy": 0.24029451137884872,
+    "random_baseline_accuracy": 0.1372021419009371,
+    "mean_valid_classes_per_protein": 1.372021419009371
+  },
+  "seen": {
+    "n": 5973,
+    "accuracy": 0.39059099280093756,
+    "majority_class": "DNA binding",
+    "majority_baseline_accuracy": 0.24008036162732296,
+    "random_baseline_accuracy": 0.13668173447178972,
+    "mean_valid_classes_per_protein": 1.3668173447178973
+  },
+  "unseen": {
+    "n": 1497,
+    "accuracy": 0.385437541750167,
+    "majority_class": "DNA binding",
+    "majority_baseline_accuracy": 0.24114896459585838,
+    "random_baseline_accuracy": 0.13927855711422846,
+    "mean_valid_classes_per_protein": 1.3927855711422845
+  },
+  "generalization_gap": 0.0051534510507705855,
+  "checkpoint": "data/runs/full_proteome/final_v2_dims_masked_best.pt",
+  "biobert_filename": "biobert_embeddings_masked.h5",
+  "classes": [
+    "hydrolase activity",
+    "transcription regulator activity",
+    "molecular transducer activity",
+    "molecular function regulator activity",
+    "DNA binding",
+    "transporter activity",
+    "transferase activity",
+    "cytoskeletal protein binding",
+    "RNA binding",
+    "receptor ligand activity"
+  ],
+  "condition": "engineered",
+  "achieved_coverage": 0.8229591274650215,
+  "unseen_warning": null
+}

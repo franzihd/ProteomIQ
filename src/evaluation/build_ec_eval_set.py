@@ -168,10 +168,28 @@ def run(force_fetch: bool = False):
     print("Step 4: assigning seen/unseen relative to our model's own train split ...")
     with open(SPLITS_FILE) as f:
         splits = json.load(f)
-    unseen_ensp_ids = set(splits["validation"]) | set(splits["test"])
+    # Split into unseen_validation / unseen_test rather than one combined
+    # "unseen" bucket -- the final checkpoint's hyperparameters/architecture
+    # were chosen via validation LOSS during contrastive training (11l/11p),
+    # so validation-split proteins were "seen" by the model-selection
+    # process, just never by this eval's own labels. Reporting unseen_test
+    # separately gives a clean, once-touched figure, same discipline as
+    # validation_only_auroc vs. test_only_auroc in pathway_auroc_protein_level.py
+    # (CLAUDE.md 11j). "unseen" (validation+test combined) is still assigned
+    # too, purely for backward compatibility with existing seen/unseen
+    # reporting -- see split_bucket().
+    validation_ensp_ids = set(splits["validation"])
+    test_ensp_ids = set(splits["test"])
+
+    def split_bucket(ensp_id: str) -> str:
+        if ensp_id in validation_ensp_ids:
+            return "unseen_validation"
+        if ensp_id in test_ensp_ids:
+            return "unseen_test"
+        return "seen"
 
     for r in rows:
-        r["split"] = "unseen" if r["ensp_id"] in unseen_ensp_ids else "seen"
+        r["split"] = split_bucket(r["ensp_id"])
 
     result_df = pd.DataFrame(rows).sort_values(["true_class", "uniprot_accession"]).reset_index(drop=True)
 
@@ -179,7 +197,9 @@ def run(force_fetch: bool = False):
     result_df.to_csv(OUTPUT_PATH, index=False)
 
     print(f"  seen: {(result_df['split'] == 'seen').sum()}, "
-          f"unseen: {(result_df['split'] == 'unseen').sum()}\n")
+          f"unseen: {(result_df['split'] != 'seen').sum()} "
+          f"(unseen_validation: {(result_df['split'] == 'unseen_validation').sum()}, "
+          f"unseen_test: {(result_df['split'] == 'unseen_test').sum()})\n")
     print("Class distribution:")
     print(result_df.groupby(["true_class", "split"]).size().unstack(fill_value=0))
     print(f"\nSaved {len(result_df)} human enzymes to {OUTPUT_PATH}")

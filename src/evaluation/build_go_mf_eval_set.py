@@ -253,9 +253,29 @@ def run(force_fetch: bool = False, force_obo: bool = False, target_coverage: flo
     print("Step 4: assigning seen/unseen relative to our model's own train split ...")
     with open(SPLITS_FILE) as f:
         splits = json.load(f)
-    unseen_ensp_ids = set(splits["validation"]) | set(splits["test"])
-    all_df["split"] = all_df["ensp_id"].apply(lambda e: "unseen" if e in unseen_ensp_ids else "seen")
-    print(f"  {(all_df['split'] == 'seen').sum()} seen, {(all_df['split'] == 'unseen').sum()} unseen\n")
+    # Split into unseen_validation / unseen_test rather than one combined
+    # "unseen" bucket -- the final checkpoint's hyperparameters/architecture
+    # were chosen via validation LOSS during contrastive training (11l/11p),
+    # so validation-split proteins were "seen" by the model-selection
+    # process, just never by this eval's own labels. Reporting unseen_test
+    # separately gives a clean, once-touched figure, same discipline as
+    # validation_only_auroc vs. test_only_auroc in pathway_auroc_protein_level.py
+    # (CLAUDE.md 11j).
+    validation_ensp_ids = set(splits["validation"])
+    test_ensp_ids = set(splits["test"])
+
+    def split_bucket(ensp_id: str) -> str:
+        if ensp_id in validation_ensp_ids:
+            return "unseen_validation"
+        if ensp_id in test_ensp_ids:
+            return "unseen_test"
+        return "seen"
+
+    all_df["split"] = all_df["ensp_id"].apply(split_bucket)
+    print(f"  {(all_df['split'] == 'seen').sum()} seen, "
+          f"{(all_df['split'] != 'seen').sum()} unseen "
+          f"(unseen_validation: {(all_df['split'] == 'unseen_validation').sum()}, "
+          f"unseen_test: {(all_df['split'] == 'unseen_test').sum()})\n")
 
     print("Step 5: class frequency distribution over the FULL seen+unseen pool "
           "(NOT test-only -- see module docstring for why) ...")
@@ -325,8 +345,8 @@ def run(force_fetch: bool = False, force_obo: bool = False, target_coverage: flo
     print("Step 7: seen/unseen breakdown of the SELECTED classes (diagnostic, not a filter) ...")
     breakdown = filtered_df.groupby(["true_class", "split"]).size().unstack(fill_value=0)
     print(breakdown)
-    n_unseen_after_filter = int((filtered_df["split"] == "unseen").sum())
-    unseen_total_before_filter = int((all_df["split"] == "unseen").sum())
+    n_unseen_after_filter = int((filtered_df["split"] != "seen").sum())
+    unseen_total_before_filter = int((all_df["split"] != "seen").sum())
     unseen_coverage_pct = n_unseen_after_filter / unseen_total_before_filter if unseen_total_before_filter else 0.0
     print(f"\n  Unseen proteins remaining after class filtering: {n_unseen_after_filter} "
           f"({unseen_coverage_pct:.2%} of the {unseen_total_before_filter} unseen proteins "
@@ -339,6 +359,21 @@ def run(force_fetch: bool = False, force_obo: bool = False, target_coverage: flo
             f"zero_shot_go_mf_eval.py may not be statistically meaningful."
         )
         print(f"\n  {unseen_warning}")
+
+    # unseen_test specifically -- the strict figure, never touched by
+    # anything (not even the validation-loss-based hyperparameter/
+    # architecture selection in 11l/11p). Checked separately since it's a
+    # smaller pool than the combined unseen bucket and more likely to trip
+    # the significance floor on its own.
+    n_unseen_test_after_filter = int((filtered_df["split"] == "unseen_test").sum())
+    unseen_test_warning = None
+    if n_unseen_test_after_filter < MIN_UNSEEN_FOR_SIGNIFICANCE:
+        unseen_test_warning = (
+            f"WARNING: only {n_unseen_test_after_filter} unseen_test proteins survive class "
+            f"filtering (< {MIN_UNSEEN_FOR_SIGNIFICANCE}) -- the unseen_test-subset "
+            f"accuracy/F1 in zero_shot_go_mf_eval.py may not be statistically meaningful."
+        )
+        print(f"  {unseen_test_warning}")
     print()
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -361,6 +396,9 @@ def run(force_fetch: bool = False, force_obo: bool = False, target_coverage: flo
         "unseen_after_filter": n_unseen_after_filter,
         "unseen_coverage_pct_of_unseen_pool": unseen_coverage_pct,
         "unseen_warning": unseen_warning,
+        "unseen_validation_after_filter": int((filtered_df["split"] == "unseen_validation").sum()),
+        "unseen_test_after_filter": n_unseen_test_after_filter,
+        "unseen_test_warning": unseen_test_warning,
     }
     with open(CLASS_SELECTION_PATH, "w") as f:
         json.dump(selection_info, f, indent=2)

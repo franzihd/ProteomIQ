@@ -26,8 +26,8 @@ def plot(checkpoint_path: str, biobert_filename: str, splits_file: str, output_p
     w = 0.35
 
     fig, ax = plt.subplots(figsize=(7, 4.5))
-    bars1 = ax.bar(x - w / 2, t2p, w, label="Text → Protein", color="#3C3489")  # AI/language side
-    bars2 = ax.bar(x + w / 2, p2t, w, label="Protein → Text", color="#0F6E56")  # biology/data side
+    bars1 = ax.bar(x - w / 2, t2p, w, label="Text → Protein", color="#BD98CF")
+    bars2 = ax.bar(x + w / 2, p2t, w, label="Protein → Text", color="#16B3B4")
 
     ax.set_xticks(x)
     ax.set_xticklabels([f"R@{k}" for k in KS])

@@ -1,0 +1,40 @@
+{
+  "validation_pool_size": 1689,
+  "validation_pool_size_with_accession": 1689,
+  "per_branch": {
+    "mf": {
+      "n_terms_total": 1568,
+      "n_obsolete_or_unmapped": 9,
+      "threshold_checkpoints": {
+        "1": 1559,
+        "5": 190,
+        "10": 91,
+        "20": 47,
+        "50": 13
+      }
+    },
+    "bp": {
+      "n_terms_total": 4098,
+      "n_obsolete_or_unmapped": 47,
+      "threshold_checkpoints": {
+        "1": 4051,
+        "5": 414,
+        "10": 132,
+        "20": 42,
+        "50": 9
+      }
+    },
+    "cc": {
+      "n_terms_total": 837,
+      "n_obsolete_or_unmapped": 1,
+      "threshold_checkpoints": {
+        "1": 836,
+        "5": 203,
+        "10": 112,
+        "20": 55,
+        "50": 19
+      }
+    }
+  },
+  "note": "This report does NOT choose a minimum-positive-count threshold. The threshold is a required argument on zero_shot_go_retrieval_eval.py, chosen only after reviewing these distributions, never after reviewing retrieval performance."
+}
