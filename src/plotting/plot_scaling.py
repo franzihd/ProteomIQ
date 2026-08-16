@@ -66,7 +66,7 @@ ax.grid(axis="y", color="#E2E8F0", linewidth=1.2)
 ax.legend(fontsize=11, frameon=False, loc="lower right")
 
 plt.tight_layout()
-out = Path("data/plots/scaling_rk.png")
+out = Path("data/plots/ablation_baseline/scaling_rk.png")
 out.parent.mkdir(parents=True, exist_ok=True)
 plt.savefig(out, dpi=150, bbox_inches="tight")
 print(f"Saved to {out}")

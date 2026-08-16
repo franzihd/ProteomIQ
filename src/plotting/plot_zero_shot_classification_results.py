@@ -29,7 +29,7 @@ rendered onto its own figure so each can be used/shared independently).
 Usage:
     uv run python src/plotting/plot_zero_shot_classification_results.py \\
         --checkpoint-stem final_v2_dims_masked_best \\
-        --output-dir data/plots
+        --output-dir data/plots/zero_shot_classification
 """
 import argparse
 import json
@@ -51,17 +51,17 @@ EVAL_SPECS = [
         ("Label-only", "_9way_human_label_only"),
         ("Engineered", "_9way_human_engineered"),
         ("Ensemble", "_9way_human"),
-    ], "deeploc"),
+    ]),
     ("ec_top_level", "EC top-level (enzyme class)", [
         ("Label-only", "_label_only"),
         ("Engineered", "_engineered"),
         ("Ensemble", ""),
-    ], "ec"),
+    ]),
     ("go_mf", "GO-Slim-MF (molecular function)", [
         ("Label-only", "_label_only"),
         ("Engineered", "_engineered"),
         ("Ensemble", ""),
-    ], "go_mf"),
+    ]),
 ]
 
 
@@ -74,11 +74,16 @@ def build_panels(checkpoint_stem: str) -> list[dict]:
     """One panel per eval: its three prompt conditions, and its own
     random/majority baselines (majority baseline doesn't vary by condition,
     since it depends only on the class distribution, not the prompt)."""
-    eval_dir = Path("data/evaluation")
+    # Files live under data/evaluation/zero_shot_classification/<eval>/, one
+    # subfolder per eval, no eval-name filename prefix -- see CLAUDE.md
+    # section 11w (2026-08-16 housekeeping reorg). This script predates that
+    # move and was missed when the other 9 scripts were updated; fixed here.
+    base_dir = Path("data/evaluation/zero_shot_classification")
     panels = []
-    for out_stem, title, variant_specs, file_prefix in EVAL_SPECS:
+    for out_stem, title, variant_specs in EVAL_SPECS:
+        eval_dir = base_dir / out_stem
         variants = [
-            (label, load_summary(eval_dir / f"{file_prefix}_zero_shot_summary_{checkpoint_stem}{suffix}.json"))
+            (label, load_summary(eval_dir / f"summary_{checkpoint_stem}{suffix}.json"))
             for label, suffix in variant_specs
         ]
         panels.append({"out_stem": out_stem, "title": title, "variants": variants})
@@ -170,9 +175,14 @@ def plot(checkpoint_stem: str, output_dir: str):
     panels = build_panels(checkpoint_stem)
     out_dir = Path(output_dir)
 
-    plot_combined(panels, checkpoint_stem, out_dir / "zero_shot_classification_results.png")
+    # Checkpoint-suffixed filenames -- an earlier version of this function
+    # used a fixed filename regardless of checkpoint_stem, so plotting a new
+    # checkpoint silently overwrote the previous checkpoint's plot (the same
+    # bug category already found and fixed once for the pathway eval CSVs,
+    # see CLAUDE.md section 10n). Fixed 2026-08-16.
+    plot_combined(panels, checkpoint_stem, out_dir / f"zero_shot_classification_results_{checkpoint_stem}.png")
     for panel in panels:
-        plot_standalone(panel, checkpoint_stem, out_dir / f"zero_shot_{panel['out_stem']}.png")
+        plot_standalone(panel, checkpoint_stem, out_dir / f"zero_shot_{panel['out_stem']}_{checkpoint_stem}.png")
 
 
 if __name__ == "__main__":
@@ -181,6 +191,6 @@ if __name__ == "__main__":
                         help="checkpoint filename stem used to build the summary JSON filenames "
                              "(e.g. 'final_v2_dims_masked_best' -> "
                              "deeploc_zero_shot_summary_final_v2_dims_masked_best.json, etc.)")
-    parser.add_argument("--output-dir", default="data/plots")
+    parser.add_argument("--output-dir", default="data/plots/zero_shot_classification")
     args = parser.parse_args()
     plot(args.checkpoint_stem, args.output_dir)

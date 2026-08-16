@@ -212,7 +212,7 @@ ax.grid(axis="y", color="#E2E8F0", linewidth=1.0)
 ax.tick_params(labelcolor=TEXT)
 
 plt.tight_layout()
-out = Path("data/plots/masked_rank_histogram.png")
+out = Path("data/plots/ablation_baseline/masked_rank_histogram.png")
 out.parent.mkdir(parents=True, exist_ok=True)
 plt.savefig(out, dpi=150, bbox_inches="tight")
 print(f"\nPlot saved to {out}")

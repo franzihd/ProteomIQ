@@ -48,6 +48,28 @@ def strip_gene_name(gene, annotation):
     return annotation
 
 
+def append_family_location(text, family, location, include_family, include_location):
+    # Family/Location come from data/full_proteome/protein_annotations.csv's
+    # Family/Location columns (added by src/Textual/fetch_family_location.py).
+    # Empty cells round-trip through CSV as NaN (pandas turns empty strings
+    # into NaN on read), not '' -- the isinstance(x, str) checks below guard
+    # against that ("nan" leaking into the text as a literal word).
+    # Comma-separated, no field labels (e.g. no "Family: ..." prefix) --
+    # deliberate choice, see CLAUDE.md "Next steps as of 2026-08-16":
+    # avoids the label-prefixed, term-list-like format that was diagnosed
+    # as a self-ID shortcut in the (abandoned) GO-term augmentation ablation
+    # (section 10n). Family/Location text is already full sentences (e.g.
+    # "Belongs to the small GTPase superfamily. Arf family." / "Located in
+    # Cell membrane, Golgi apparatus."), so plain comma-joining reads as one
+    # flowing description rather than a labeled field dump.
+    parts = [text]
+    if include_family and isinstance(family, str) and family.strip():
+        parts.append(family.strip())
+    if include_location and isinstance(location, str) and location.strip():
+        parts.append(location.strip())
+    return ", ".join(parts)
+
+
 def append_go_terms(text, go_bp, go_cc, include_cc=True):
     # go_bp/go_cc are "; "-joined GO term label strings from fetch_uniprot.py
     # (already capped at MAX_GO_TERMS_PER_CATEGORY there), or NaN when a
@@ -82,6 +104,21 @@ def main():
                         help="with --include-go-terms, append only Biological Process "
                              "terms and skip Cellular Component (which is highly generic "
                              "-- cytosol/nucleus/cytoplasm each cover 30%%+ of all proteins)")
+    parser.add_argument("--include-family", action="store_true",
+                        help="append the Family field (UniProt SIMILARITY comment, "
+                             "protein family/superfamily membership), comma-separated, "
+                             "no label prefix. Independent of --include-location -- "
+                             "combine freely (e.g. to test field order/subsets later). "
+                             "Requires a Family column in protein_annotations.csv "
+                             "(see fetch_family_location.py)")
+    parser.add_argument("--include-location", action="store_true",
+                        help="append the Location field (UniProt SUBCELLULAR LOCATION, "
+                             "top-level compartment names only, deduplicated), "
+                             "comma-separated. Independent of --include-family -- can "
+                             "be used alone or combined; the default appended ORDER is "
+                             "always Function -> Family -> Location regardless of which "
+                             "flags are set (see append_family_location) -- there is no "
+                             "flag yet to reorder fields, only to include/exclude them")
     args = parser.parse_args()
 
     data_dir = Path(f"data/{args.cohort}")
@@ -91,6 +128,10 @@ def main():
         suffix += "_masked"
     if args.include_go_terms:
         suffix += "_go_bp_only" if args.go_bp_only else "_go"
+    if args.include_family:
+        suffix += "_family"
+    if args.include_location:
+        suffix += "_location"
     output_filename = f"biobert_embeddings{suffix}.h5"
     output_path = data_dir / output_filename
     # Load protein annotations and drop rows where Sequence or Annotation is missing
@@ -127,6 +168,22 @@ def main():
         else:
             n_with_go = sum(isinstance(bp, str) or isinstance(cc, str) for bp, cc in zip(go_bp, go_cc))
             print(f"GO terms appended to {n_with_go}/{n_proteins} annotations")
+
+    if args.include_family or args.include_location:
+        for col in (["Family"] if args.include_family else []) + (["Location"] if args.include_location else []):
+            if col not in annotations.columns:
+                raise SystemExit(f"--include-{col.lower()} requires a '{col}' column in {annotations_path} "
+                                 f"(run src/Textual/fetch_family_location.py first)")
+        family_col = annotations.get("Family", pd.Series([None] * n_proteins))
+        location_col = annotations.get("Location", pd.Series([None] * n_proteins))
+        texts = [append_family_location(t, fam, loc, args.include_family, args.include_location)
+                 for t, fam, loc in zip(texts, family_col, location_col)]
+        if args.include_family:
+            n_with_family = sum(isinstance(f, str) for f in family_col)
+            print(f"Family appended to {n_with_family}/{n_proteins} annotations")
+        if args.include_location:
+            n_with_location = sum(isinstance(l, str) for l in location_col)
+            print(f"Location appended to {n_with_location}/{n_proteins} annotations")
 
     # Open HDF5 file for writing. All datasets inside are written directly to disk.
     mode = "r+" if output_path.exists() else "w"

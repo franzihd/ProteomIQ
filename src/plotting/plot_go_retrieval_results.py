@@ -37,7 +37,7 @@ Usage:
     uv run python src/plotting/plot_go_retrieval_results.py \\
         --checkpoint-stem final_v2_dims_masked_best \\
         --min-positives 10 \\
-        --output-dir data/plots
+        --output-dir data/plots/go_retrieval
 """
 import argparse
 import json
@@ -106,8 +106,14 @@ def plot_map(summaries: dict, checkpoint_stem: str, min_positives: int, output_p
         ax.grid(axis="y", color="#E2E8F0", linewidth=1.0, zorder=0)
 
     axes[0].set_ylabel("mAP (%)", fontsize=11, color=TEXT)
-    ymax = max(summaries[b]["query_types"][qt]["mAP"] for b, _ in BRANCHES for qt in ("name", "definition")) * 100
-    axes[0].set_ylim(0, ymax * 1.35)
+    # Fixed, not data-dependent, y-limit -- an earlier version computed ymax
+    # from this checkpoint's own data, which meant every checkpoint's plot
+    # used a different scale (e.g. M0 0-14%, M1 0-12%), making bars
+    # visually incomparable across checkpoints even when the underlying
+    # values were close. Fixed 2026-08-16, same fix already applied to
+    # plot_recall_at_k's y-axis. 15% comfortably covers every mAP seen so
+    # far (max ~11%); revisit only if a future checkpoint's mAP exceeds it.
+    axes[0].set_ylim(0, 15)
 
     fig.suptitle("GO-term zero-shot text-to-protein retrieval — mean Average Precision",
                  fontsize=13.5, fontweight="bold", color=TEXT, y=1.03)
@@ -221,11 +227,10 @@ def plot_precision_at_k(summaries: dict, checkpoint_stem: str, min_positives: in
         ax.grid(axis="y", color="#E2E8F0", linewidth=1.0, zorder=0)
 
     axes[0].set_ylabel("Precision@K (%)", fontsize=11, color=TEXT)
-    ymax = max(
-        summaries[b]["query_types"][qt]["mean_P_at_K"][str(k)]
-        for b, _ in BRANCHES for qt in ("name", "definition") for k in k_values
-    ) * 100
-    axes[0].set_ylim(0, ymax * 1.3)
+    # Fixed, not data-dependent, y-limit -- same cross-checkpoint-comparability
+    # fix as plot_map above (2026-08-16). 20% comfortably covers every P@K
+    # seen so far (max ~13%); revisit only if a future checkpoint exceeds it.
+    axes[0].set_ylim(0, 20)
     axes[-1].legend(loc="upper right", frameon=False, fontsize=9, labelcolor=TEXT)
 
     fig.suptitle("GO-term zero-shot text-to-protein retrieval — Precision@K",
@@ -246,9 +251,13 @@ def plot_precision_at_k(summaries: dict, checkpoint_stem: str, min_positives: in
 def plot(checkpoint_stem: str, min_positives: int, output_dir: str):
     summaries = load_summaries(checkpoint_stem, min_positives)
     out_dir = Path(output_dir)
-    plot_map(summaries, checkpoint_stem, min_positives, out_dir / "go_retrieval_map.png")
-    plot_recall_at_k(summaries, checkpoint_stem, min_positives, out_dir / "go_retrieval_recall_at_k.png")
-    plot_precision_at_k(summaries, checkpoint_stem, min_positives, out_dir / "go_retrieval_precision_at_k.png")
+    # Checkpoint-suffixed filenames -- an earlier version used a fixed name
+    # regardless of checkpoint_stem, so plotting a new checkpoint silently
+    # overwrote the previous one's plot (same bug found and fixed in
+    # plot_zero_shot_classification_results.py, 2026-08-16).
+    plot_map(summaries, checkpoint_stem, min_positives, out_dir / f"go_retrieval_map_{checkpoint_stem}.png")
+    plot_recall_at_k(summaries, checkpoint_stem, min_positives, out_dir / f"go_retrieval_recall_at_k_{checkpoint_stem}.png")
+    plot_precision_at_k(summaries, checkpoint_stem, min_positives, out_dir / f"go_retrieval_precision_at_k_{checkpoint_stem}.png")
 
 
 if __name__ == "__main__":
@@ -256,6 +265,6 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint-stem", default="final_v2_dims_masked_best",
                         help="checkpoint filename stem used to build the summary JSON filenames")
     parser.add_argument("--min-positives", type=int, default=10)
-    parser.add_argument("--output-dir", default="data/plots")
+    parser.add_argument("--output-dir", default="data/plots/go_retrieval")
     args = parser.parse_args()
     plot(args.checkpoint_stem, args.min_positives, args.output_dir)

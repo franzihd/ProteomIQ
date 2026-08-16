@@ -25,7 +25,7 @@ args = parser.parse_args()
 if args.results_path is None:
     args.results_path = "data/scaling_results_no_clinical.json" if args.no_clinical else "data/scaling_results_v2.json"
 if args.out is None:
-    args.out = "data/plots/scaling_rk_no_clinical.png" if args.no_clinical else "data/plots/scaling_rk_v2.png"
+    args.out = "data/plots/ablation_baseline/scaling_rk_no_clinical.png" if args.no_clinical else "data/plots/ablation_baseline/scaling_rk_v2.png"
 
 RESULTS_PATH = Path(args.results_path)
 COHORT_ORDER = ["luad", "brca", "ccrcc", "gbm", "hnscc", "lscc", "ov", "pdac", "ucec"]
