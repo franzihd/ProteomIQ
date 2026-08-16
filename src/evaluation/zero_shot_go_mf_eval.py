@@ -8,7 +8,7 @@ build_go_mf_eval_set.py): the smallest set of GO-Slim-MF classes covering
 ~75-80% of GO-MF-annotated proteins, selected over the FULL seen+unseen pool
 to avoid tailoring the class list to the held-out split. The class list and
 per-class training-pool frequency are loaded from
-data/evaluation/go_mf_class_selection.json (not hardcoded), since they are a
+data/evaluation/zero_shot_classification/go_mf/class_selection.json (not hardcoded), since they are a
 function of that data-derived selection, not a fixed external taxonomy.
 
 Scoring is deliberately NOT single-label exact-match. Most proteins genuinely
@@ -33,7 +33,7 @@ pattern as zero_shot_ec_eval.py:
   - label_only (N=0): a single bare class-name prompt per class (e.g.
     "hydrolase activity"), no sentence wrapping.
   - engineered (N=1): the first template from the frozen 5-template pool in
-    data/evaluation/zero_shot_prompt_templates.json (see
+    data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json (see
     generate_zero_shot_prompt_templates.py), fixed a priori -- not
     validation-selected, unlike CLIP's own single-prompt choice.
   - ensemble (N=5, default): all 5 templates, embedding-space-averaged +
@@ -72,9 +72,9 @@ from src.model.dataset import ProteomicsDataset
 from src.model.projection_head import ProjectionHead
 from src.model.query_evaluation import encode_query
 
-EVAL_SET_PATH = Path("data/evaluation/go_mf_test_set.csv")
-CLASS_SELECTION_PATH = Path("data/evaluation/go_mf_class_selection.json")
-PROMPT_TEMPLATES_PATH = Path("data/evaluation/zero_shot_prompt_templates.json")
+EVAL_SET_PATH = Path("data/evaluation/zero_shot_classification/go_mf/test_set.csv")
+CLASS_SELECTION_PATH = Path("data/evaluation/zero_shot_classification/go_mf/class_selection.json")
+PROMPT_TEMPLATES_PATH = Path("data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json")
 BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
 
 # Templates come from the frozen 5-prompt pool in PROMPT_TEMPLATES_PATH (see
@@ -312,8 +312,8 @@ def run_condition(ctx: dict, condition: str) -> dict:
     metrics["unseen_test_warning"] = class_selection.get("unseen_test_warning")
 
     checkpoint_stem = ctx["checkpoint_path"].stem
-    predictions_path = Path(f"data/evaluation/go_mf_zero_shot_predictions_{checkpoint_stem}{variant_suffix}.csv")
-    summary_path = Path(f"data/evaluation/go_mf_zero_shot_summary_{checkpoint_stem}{variant_suffix}.json")
+    predictions_path = Path(f"data/evaluation/zero_shot_classification/go_mf/predictions_{checkpoint_stem}{variant_suffix}.csv")
+    summary_path = Path(f"data/evaluation/zero_shot_classification/go_mf/summary_{checkpoint_stem}{variant_suffix}.json")
     predictions_path.parent.mkdir(parents=True, exist_ok=True)
     eval_df.to_csv(predictions_path, index=False)
     with open(summary_path, "w") as f:

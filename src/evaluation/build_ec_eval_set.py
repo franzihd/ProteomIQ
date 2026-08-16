@@ -37,7 +37,7 @@ import requests
 FULL_PROTEOME_ANNOTATIONS = Path("data/full_proteome/protein_annotations.csv")
 SPLITS_FILE = Path("data/protein_splits_full_proteome.json")
 RAW_EC_PATH = Path("data/full_proteome/uniprot_ec_numbers.csv")
-OUTPUT_PATH = Path("data/evaluation/ec_top_level_test_set.csv")
+OUTPUT_PATH = Path("data/evaluation/zero_shot_classification/ec_top_level/test_set.csv")
 
 EC_TOP_LEVEL_NAMES = {
     "1": "Oxidoreductases",

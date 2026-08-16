@@ -136,7 +136,7 @@ from go_retrieval_utils import (
 )
 
 BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
-OUTPUT_DIR = Path("data/evaluation/go_retrieval")
+OUTPUT_DIR = Path("data/evaluation/go_retrieval/results")
 
 QUERY_TYPES = ("name", "definition")
 
@@ -392,8 +392,8 @@ def run_branch(ctx: dict, branch: str, min_positives: int, k_values: list[int]) 
         print()
 
     checkpoint_stem = ctx["checkpoint_path"].stem
-    predictions_path = OUTPUT_DIR / f"go_retrieval_{branch}_predictions_{checkpoint_stem}_min{min_positives}.csv"
-    summary_path = OUTPUT_DIR / f"go_retrieval_{branch}_summary_{checkpoint_stem}_min{min_positives}.json"
+    predictions_path = OUTPUT_DIR / f"predictions_{branch}_{checkpoint_stem}_min{min_positives}.csv"
+    summary_path = OUTPUT_DIR / f"summary_{branch}_{checkpoint_stem}_min{min_positives}.json"
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     results_df.to_csv(predictions_path, index=False)
     with open(summary_path, "w") as f:

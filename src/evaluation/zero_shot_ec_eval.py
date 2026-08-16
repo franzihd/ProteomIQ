@@ -17,7 +17,7 @@ of a bare-label baseline:
   - label_only (N=0): a single bare class-name prompt per class (e.g.
     "Oxidoreductases"), no sentence wrapping.
   - engineered (N=1): the first template from the frozen 5-template pool in
-    data/evaluation/zero_shot_prompt_templates.json (see
+    data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json (see
     generate_zero_shot_prompt_templates.py), fixed a priori -- not
     validation-selected, unlike CLIP's own single-prompt choice for e.g.
     ImageNet (performance-based template selection is exactly the kind of
@@ -72,8 +72,8 @@ from src.model.dataset import ProteomicsDataset
 from src.model.projection_head import ProjectionHead
 from src.model.query_evaluation import encode_query
 
-EVAL_SET_PATH = Path("data/evaluation/ec_top_level_test_set.csv")
-PROMPT_TEMPLATES_PATH = Path("data/evaluation/zero_shot_prompt_templates.json")
+EVAL_SET_PATH = Path("data/evaluation/zero_shot_classification/ec_top_level/test_set.csv")
+PROMPT_TEMPLATES_PATH = Path("data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json")
 BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
 
 # Fixed class order, reused everywhere (prompt building, argmax, confusion
@@ -282,8 +282,8 @@ def run_condition(ctx: dict, condition: str) -> dict:
     metrics["condition"] = condition
 
     checkpoint_stem = ctx["checkpoint_path"].stem
-    predictions_path = Path(f"data/evaluation/ec_zero_shot_predictions_{checkpoint_stem}{variant_suffix}.csv")
-    summary_path = Path(f"data/evaluation/ec_zero_shot_summary_{checkpoint_stem}{variant_suffix}.json")
+    predictions_path = Path(f"data/evaluation/zero_shot_classification/ec_top_level/predictions_{checkpoint_stem}{variant_suffix}.csv")
+    summary_path = Path(f"data/evaluation/zero_shot_classification/ec_top_level/summary_{checkpoint_stem}{variant_suffix}.json")
     predictions_path.parent.mkdir(parents=True, exist_ok=True)
     eval_df.to_csv(predictions_path, index=False)
     with open(summary_path, "w") as f:

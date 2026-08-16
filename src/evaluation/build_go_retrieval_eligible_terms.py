@@ -67,7 +67,7 @@ from go_retrieval_utils import (
     load_validation_ensp_ids,
 )
 
-OUTPUT_DIR = Path("data/evaluation/go_retrieval")
+OUTPUT_DIR = Path("data/evaluation/go_retrieval/eligible_terms")
 THRESHOLD_CHECKPOINTS = [1, 5, 10, 20, 50]
 
 
@@ -123,7 +123,7 @@ def run():
                 "has_usable_text": has_text[go_id],
             })
         table = pd.DataFrame(rows)
-        out_path = OUTPUT_DIR / f"go_{branch}_validation_term_counts.csv"
+        out_path = OUTPUT_DIR / f"validation_term_counts_{branch}.csv"
         table.to_csv(out_path, index=False)
         print(f"  Saved full per-term table ({len(table)} terms) to {out_path}\n")
 
@@ -133,7 +133,7 @@ def run():
             "threshold_checkpoints": checkpoint_counts,
         }
 
-    summary_path = OUTPUT_DIR / "go_retrieval_eligible_terms_summary.json"
+    summary_path = OUTPUT_DIR / "eligible_terms_summary.json"
     with open(summary_path, "w") as f:
         json.dump({
             "validation_pool_size": len(validation_ensp_ids),

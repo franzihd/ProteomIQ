@@ -81,8 +81,8 @@ SPLITS_FILE = Path("data/protein_splits_full_proteome.json")
 RAW_GO_MF_PATH = Path("data/full_proteome/uniprot_go_mf_terms.csv")
 GO_OBO_PATH = Path("data/go/go-basic.obo")
 GOSLIM_OBO_PATH = Path("data/go/goslim_generic.obo")
-OUTPUT_PATH = Path("data/evaluation/go_mf_test_set.csv")
-CLASS_SELECTION_PATH = Path("data/evaluation/go_mf_class_selection.json")
+OUTPUT_PATH = Path("data/evaluation/zero_shot_classification/go_mf/test_set.csv")
+CLASS_SELECTION_PATH = Path("data/evaluation/zero_shot_classification/go_mf/class_selection.json")
 
 GO_OBO_URL = "https://current.geneontology.org/ontology/go-basic.obo"
 GOSLIM_OBO_URL = "https://current.geneontology.org/ontology/subsets/goslim_generic.obo"

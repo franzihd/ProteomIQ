@@ -58,7 +58,7 @@ import requests
 
 DEEPLOC_URL = "https://services.healthtech.dtu.dk/services/DeepLoc-1.0/deeploc_data.fasta"
 RAW_FASTA_PATH = Path("data/deeploc/deeploc_data.fasta")
-OUTPUT_PATH = Path("data/evaluation/deeploc_human_test_set.csv")
+OUTPUT_PATH = Path("data/evaluation/zero_shot_classification/deeploc/test_set.csv")
 FULL_PROTEOME_ANNOTATIONS = Path("data/full_proteome/protein_annotations.csv")
 SPLITS_FILE = Path("data/protein_splits_full_proteome.json")
 

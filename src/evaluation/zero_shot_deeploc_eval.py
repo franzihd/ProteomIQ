@@ -17,7 +17,7 @@ bare-label baseline: label_only (N=0, bare class name), engineered (N=1,
 the first template from the frozen pool below, fixed a priori -- not
 validation-selected, unlike CLIP's own single-prompt choice), ensemble
 (N=5, default, all 5 templates averaged). Templates come from the frozen
-5-prompt pool in data/evaluation/zero_shot_prompt_templates.json (see
+5-prompt pool in data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json (see
 generate_zero_shot_prompt_templates.py), generated once via a fixed LLM
 meta-prompt before any evaluation was run. {label} is filled with
 DEEPLOC_SENTENCE_LABELS, a dedicated sentence-ready phrase per class (not
@@ -65,8 +65,8 @@ from src.model.dataset import ProteomicsDataset
 from src.model.projection_head import ProjectionHead
 from src.model.query_evaluation import encode_query
 
-EVAL_SET_PATH = Path("data/evaluation/deeploc_human_test_set.csv")
-PROMPT_TEMPLATES_PATH = Path("data/evaluation/zero_shot_prompt_templates.json")
+EVAL_SET_PATH = Path("data/evaluation/zero_shot_classification/deeploc/test_set.csv")
+PROMPT_TEMPLATES_PATH = Path("data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json")
 BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
 
 # Fixed class order -- reused everywhere (prompt building, argmax, confusion
@@ -330,8 +330,8 @@ def run_condition(ctx: dict, condition: str, calibrate: bool = False) -> dict:
         metrics["class_mean_similarity"] = dict(zip(classes, class_mean_sim.tolist()))
 
     checkpoint_stem = ctx["checkpoint_path"].stem
-    predictions_path = Path(f"data/evaluation/deeploc_zero_shot_predictions_{checkpoint_stem}{variant_suffix}.csv")
-    summary_path = Path(f"data/evaluation/deeploc_zero_shot_summary_{checkpoint_stem}{variant_suffix}.json")
+    predictions_path = Path(f"data/evaluation/zero_shot_classification/deeploc/predictions_{checkpoint_stem}{variant_suffix}.csv")
+    summary_path = Path(f"data/evaluation/zero_shot_classification/deeploc/summary_{checkpoint_stem}{variant_suffix}.json")
     predictions_path.parent.mkdir(parents=True, exist_ok=True)
     eval_df.to_csv(predictions_path, index=False)
     with open(summary_path, "w") as f:

@@ -5,7 +5,7 @@ zero_shot_deeploc_eval.py / zero_shot_ec_eval.py / zero_shot_go_mf_eval.py
 for the "Engineered" (N=1) and "Ensemble" (N=5) prompt conditions.
 
 *** FROZEN as of revision 2026-08-15d -- do not run this script again to
-regenerate data/evaluation/zero_shot_prompt_templates.json. *** The three
+regenerate data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json. *** The three
 tasks' final templates include small manual semantic/grammatical
 corrections (2026-08-15d, see each task's "revisions" list in the JSON)
 made directly in the JSON file, on top of what this script's own
@@ -41,7 +41,7 @@ name ("the hydrolase class"), while {label} is always filled with the
 plural canonical class name ("Hydrolases", same value used for the
 Label-only condition) -- producing "the Hydrolases class", which is
 ungrammatical. Hand-patched template #5 only, directly in
-data/evaluation/zero_shot_prompt_templates.json -- a one-line, targeted
+data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json -- a one-line, targeted
 grammar fix, not a full regeneration. Superseded by the 2026-08-15b full
 regeneration below, kept here for the audit trail.
 
@@ -78,7 +78,7 @@ revision:
    DEEPLOC_SENTENCE_LABELS.values() / [c.lower() for c in CLASSES] in the
    respective eval scripts; duplicated rather than imported, to keep this
    script free of the eval scripts' torch/transformers dependency.
-   GO_MF_LABELS is loaded live from data/evaluation/go_mf_class_selection.json
+   GO_MF_LABELS is loaded live from data/evaluation/zero_shot_classification/go_mf/class_selection.json
    instead of duplicated, since that file is already the single source of
    truth for GO-MF's data-derived label list and needs no separate sync)
    and explicitly instructs it to check every one before finalizing.
@@ -131,8 +131,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 import anthropic
 
-OUT_PATH = Path("data/evaluation/zero_shot_prompt_templates.json")
-GO_MF_CLASS_SELECTION_PATH = Path("data/evaluation/go_mf_class_selection.json")
+OUT_PATH = Path("data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json")
+GO_MF_CLASS_SELECTION_PATH = Path("data/evaluation/zero_shot_classification/go_mf/class_selection.json")
 
 MODEL = "claude-sonnet-5"
 N_TEMPLATES = 5
