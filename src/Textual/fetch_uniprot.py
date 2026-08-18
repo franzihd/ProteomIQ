@@ -39,7 +39,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--cohort", required=True)
 args = parser.parse_args()
 
-proteomics = pd.read_csv(f'data/{args.cohort}/proteomics_raw.csv', header=[0,1])
+proteomics = pd.read_csv(f'data/cptac/{args.cohort}/proteomics_raw.csv', header=[0,1])
 database_ID = proteomics.columns.get_level_values(1)[1:].astype(str).tolist()
 
 print(database_ID[:10])
@@ -126,5 +126,5 @@ for entry in data['results']:
     })
 
 df_proteins = pd.DataFrame(rows)
-df_proteins.to_csv(f"data/{args.cohort}/protein_annotations.csv", index=False)
-print(f"Saved annotations for {len(df_proteins)} proteins to data/{args.cohort}/protein_annotations.csv")
+df_proteins.to_csv(f"data/cptac/{args.cohort}/protein_annotations.csv", index=False)
+print(f"Saved annotations for {len(df_proteins)} proteins to data/cptac/{args.cohort}/protein_annotations.csv")

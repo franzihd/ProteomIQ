@@ -82,7 +82,7 @@ def run(checkpoint_path: Path):
     patient_indices = {}
 
     for cohort, patient_ids in test_patients_per_cohort.items():
-        data_dir = Path(f"data/{cohort}")
+        data_dir = Path(f"data/cptac/{cohort}")
         esm2_path = data_dir / "esm2_embeddings.h5"
         abundance_path = data_dir / "rank_normalized_proteomics.csv"
 

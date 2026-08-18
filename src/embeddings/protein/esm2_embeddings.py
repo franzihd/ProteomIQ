@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--cohort", required=True)
 args = parser.parse_args()
 
-DATA_DIR = Path(f"data/{args.cohort}")
+DATA_DIR = Path(f"data/cptac/{args.cohort}")
 ANNOTATIONS_PATH = DATA_DIR/"protein_annotations.csv"
 OUTPUT_PATH = DATA_DIR/"esm2_embeddings.h5"
 BATCH_SIZE = 32  # number of proteins processed at once — limited by GPU memory

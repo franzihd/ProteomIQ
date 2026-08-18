@@ -25,7 +25,7 @@ print("Loading measured genes per test patient ...")
 patient_genes: dict[str, set] = {}
 
 for cohort, patient_ids in test_patients_per_cohort.items():
-    abundance_path = Path(f"data/{cohort}/rank_normalized_proteomics.csv")
+    abundance_path = Path(f"data/cptac/{cohort}/rank_normalized_proteomics.csv")
     if not abundance_path.exists():
         print(f"  Skipping {cohort} — missing abundance file")
         continue

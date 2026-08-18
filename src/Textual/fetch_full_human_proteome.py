@@ -88,7 +88,7 @@ def load_abundance_ensp_ids():
     shared by the most cohorts, instead of picking arbitrarily."""
     counts = {}
     for cohort in COHORTS:
-        path = f'data/{cohort}/rank_normalized_proteomics.csv'
+        path = f'data/cptac/{cohort}/rank_normalized_proteomics.csv'
         try:
             df = pd.read_csv(path, header=[0, 1], nrows=0)
         except FileNotFoundError:

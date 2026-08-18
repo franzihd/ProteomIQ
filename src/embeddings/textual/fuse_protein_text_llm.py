@@ -77,7 +77,7 @@ def build_global_protein_table(cohorts):
     cohort wins, matching the existing cross-cohort dedup convention."""
     seen = {}
     for cohort in cohorts:
-        path = Path(f"data/{cohort}/protein_annotations.csv")
+        path = Path(f"data/cptac/{cohort}/protein_annotations.csv")
         if not path.exists():
             continue
         df = pd.read_csv(path)

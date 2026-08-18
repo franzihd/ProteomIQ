@@ -98,10 +98,10 @@ def build_annotation_lookup():
 def get_patient_measured_proteins(patient_id: str, cohort: str) -> dict[str, float]:
     """ENSP_ID -> abundance percentile for every protein actually measured
     (non-NaN) in one real CPTAC patient."""
-    abundance_df = pd.read_csv(f"data/{cohort}/rank_normalized_proteomics.csv",
+    abundance_df = pd.read_csv(f"data/cptac/{cohort}/rank_normalized_proteomics.csv",
                                 header=[0, 1], index_col=0)
     if patient_id not in abundance_df.index:
-        raise ValueError(f"Patient {patient_id} not found in data/{cohort}/rank_normalized_proteomics.csv")
+        raise ValueError(f"Patient {patient_id} not found in data/cptac/{cohort}/rank_normalized_proteomics.csv")
     patient_row = abundance_df.loc[patient_id]
     return {ensp_id: float(val) for (_, ensp_id), val in patient_row.items() if not pd.isna(val)}
 

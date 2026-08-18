@@ -19,8 +19,8 @@ OUT     = Path("data/test_patients_per_cohort.json")
 
 splits = {}
 for cohort in COHORTS:
-    h5_path  = Path(f"data/{cohort}/biobert_embeddings.h5")
-    csv_path = Path(f"data/{cohort}/rank_normalized_proteomics.csv")
+    h5_path  = Path(f"data/cptac/{cohort}/biobert_embeddings.h5")
+    csv_path = Path(f"data/cptac/{cohort}/rank_normalized_proteomics.csv")
     if not h5_path.exists():
         print(f"[skip] {cohort} — biobert_embeddings.h5 not found")
         continue

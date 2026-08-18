@@ -60,7 +60,7 @@ def build_gene_name_map(cohorts):
     are keyed by gene symbol, not ENSP id)."""
     gene_name = {}
     for cohort in cohorts:
-        path = Path(f"data/{cohort}/rank_normalized_proteomics.csv")
+        path = Path(f"data/cptac/{cohort}/rank_normalized_proteomics.csv")
         if not path.exists():
             continue
         columns = pd.read_csv(path, header=[0, 1], index_col=0, nrows=0).columns

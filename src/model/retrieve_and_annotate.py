@@ -133,12 +133,12 @@ def get_kegg_members(query: str):
 
 
 def stage2_annotate(candidates, patient_id: str, cohort: str):
-    abundance_df = pd.read_csv(f"data/{cohort}/rank_normalized_proteomics.csv",
+    abundance_df = pd.read_csv(f"data/cptac/{cohort}/rank_normalized_proteomics.csv",
                                 header=[0, 1], index_col=0)
     protein_id_to_col = {ensp_id: (gene, ensp_id) for gene, ensp_id in abundance_df.columns}
 
     if patient_id not in abundance_df.index:
-        raise ValueError(f"Patient {patient_id} not found in data/{cohort}/rank_normalized_proteomics.csv")
+        raise ValueError(f"Patient {patient_id} not found in data/cptac/{cohort}/rank_normalized_proteomics.csv")
 
     patient_row = abundance_df.loc[patient_id]
 

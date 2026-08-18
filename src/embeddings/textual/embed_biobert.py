@@ -92,6 +92,22 @@ def append_go_terms(text, go_bp, go_cc, include_cc=True):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--cohort", required=True)
+    parser.add_argument("--field", choices=["family", "location"], default=None,
+                        help="embed ONLY this field's raw text as the sole input (not "
+                             "appended to Function), restricted to proteins that have a "
+                             "non-null value for it -- for the multi-view random-selection "
+                             "experiment (see CLAUDE.md), where Function/Family/Location "
+                             "are three separate, independently-embedded text sources and "
+                             "one is picked at random per protein per training sample, "
+                             "rather than concatenated as in M0-M3. Not combinable with "
+                             "--mask-gene-names/--include-go-terms/--include-family/"
+                             "--include-location (those all build appended Function-based "
+                             "text). Writes to biobert_embeddings_family_view.h5 or "
+                             "biobert_embeddings_location_view.h5. Gene names are NOT "
+                             "masked out of Family text for this mode (14.1% of Family "
+                             "values contain the protein's own gene symbol, e.g. "
+                             "'Belongs to the UBR4 family.' for gene UBR4 -- checked and "
+                             "left in deliberately, unlike Function text's masking)")
     parser.add_argument("--mask-gene-names", action="store_true",
                         help="strip the leading '{gene}: ' prefix from each annotation "
                              "before embedding; writes to biobert_embeddings_masked.h5 "
@@ -121,23 +137,43 @@ def main():
                              "flag yet to reorder fields, only to include/exclude them")
     args = parser.parse_args()
 
-    data_dir = Path(f"data/{args.cohort}")
+    if args.field and (args.mask_gene_names or args.include_go_terms or args.include_family or args.include_location):
+        raise SystemExit("--field is not combinable with --mask-gene-names/--include-go-terms/"
+                          "--include-family/--include-location -- it builds a solo-field "
+                          "embedding, those all build appended Function-based text")
+
+    data_dir = Path(f"data/cptac/{args.cohort}")
     annotations_path = data_dir / "protein_annotations.csv"
-    suffix = ""
-    if args.mask_gene_names:
-        suffix += "_masked"
-    if args.include_go_terms:
-        suffix += "_go_bp_only" if args.go_bp_only else "_go"
-    if args.include_family:
-        suffix += "_family"
-    if args.include_location:
-        suffix += "_location"
-    output_filename = f"biobert_embeddings{suffix}.h5"
+    if args.field:
+        output_filename = f"biobert_embeddings_{args.field}_view.h5"
+    else:
+        suffix = ""
+        if args.mask_gene_names:
+            suffix += "_masked"
+        if args.include_go_terms:
+            suffix += "_go_bp_only" if args.go_bp_only else "_go"
+        if args.include_family:
+            suffix += "_family"
+        if args.include_location:
+            suffix += "_location"
+        output_filename = f"biobert_embeddings{suffix}.h5"
     output_path = data_dir / output_filename
     # Load protein annotations and drop rows where Sequence or Annotation is missing
     # reset_index is used to reset the DataFrame index after dropping rows, so it goes from 0 to n-1 instead of keeping the original indices
     annotations = pd.read_csv(annotations_path)
     annotations = annotations.dropna(subset=["Sequence", "Annotation"]).reset_index(drop=True)
+
+    if args.field:
+        # Solo-field mode: further restrict to proteins that actually HAVE this
+        # field (Family 75.4% / Location 92.6% coverage of the base set) -- the
+        # resulting .h5 has fewer rows than the standard Function-based files,
+        # by design. dataset.py's multi-view random selection checks per-protein
+        # which view-files contain that protein_id rather than assuming all
+        # three always have the same coverage.
+        field_col = "Family" if args.field == "family" else "Location"
+        n_before = len(annotations)
+        annotations = annotations.dropna(subset=[field_col]).reset_index(drop=True)
+        print(f"{field_col} coverage: {len(annotations)}/{n_before} ({len(annotations)/n_before*100:.1f}%)")
 
     n_proteins = len(annotations)
     print(f"Proteins: {n_proteins}")
@@ -150,7 +186,13 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
     model = AutoModel.from_pretrained(MODEL_NAME).to(device).eval()
 
-    if args.mask_gene_names:
+    if args.field:
+        # Raw field text is the sole embedded input -- no masking (gene names
+        # deliberately left in for Family, see --field's help text above), no
+        # appending, no GO terms.
+        field_col = "Family" if args.field == "family" else "Location"
+        texts = annotations[field_col].tolist()
+    elif args.mask_gene_names:
         texts = [strip_gene_name(g, a) for g, a in zip(annotations["Gene"], annotations["Annotation"])]
         n_masked = sum(t != a for t, a in zip(texts, annotations["Annotation"]))
         print(f"Gene-name prefix stripped from {n_masked}/{n_proteins} annotations")

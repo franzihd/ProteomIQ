@@ -124,7 +124,8 @@ def train(checkpoint_path: str, epochs: int,
           splits_file: str = "data/protein_splits.json",
           lr: float = MAX_LR, batch_size: int = BATCH_SIZE, hidden_dim: int = 512,
           output_dim: int = 256, on_epoch_end=None, early_stopping_patience: int | None = None,
-          unfreeze_biobert_layers: int = 0, biobert_lr: float = DEFAULT_BIOBERT_LR):
+          unfreeze_biobert_layers: int = 0, biobert_lr: float = DEFAULT_BIOBERT_LR,
+          view_biobert_filenames: list[str] | None = None):
     """
     No `cohorts` parameter -- this script always trains on the full,
     homology-aware-split proteome (ProteomicsDataset(use_abundance=False)
@@ -148,6 +149,19 @@ def train(checkpoint_path: str, epochs: int,
     unfrozen parameters (separate optimizer param group from the
     projection heads, which keep using `lr`); unused when
     unfreeze_biobert_layers == 0.
+    view_biobert_filenames: optional list of biobert_embeddings*.h5 filenames
+    (e.g. [masked Function, Family-view, Location-view]) -- when given, the
+    TRAINING dataset picks one at random per protein per __getitem__ call
+    instead of reading `biobert_filename` (multi-view random-selection
+    experiment, see CLAUDE.md; motivated by 11z finding that concatenating
+    more distinguishing text, as M0-M3 did, helps closed-set self-ID tasks
+    while hurting open-vocabulary generalization -- this varies WHICH text is
+    shown instead of adding more content per example). VALIDATION deliberately
+    keeps using the single, fixed `biobert_filename` (not randomized) so
+    val_loss stays comparable across epochs and across runs -- augmentation
+    applies to training only, same principle as random-crop-train/
+    center-crop-val in vision. Not combinable with unfreeze_biobert_layers > 0
+    (see ProteomicsDataset's own guard).
     Returns (best_checkpoint_path, best_val_loss).
     """
     # Fixed seed so repeated runs (e.g. comparing different --epochs values)
@@ -166,15 +180,23 @@ def train(checkpoint_path: str, epochs: int,
     dataset = ProteomicsDataset(
         cohorts=[], use_abundance=False, held_out_protein_ids=held_out_protein_ids,
         biobert_filename=biobert_filename, live_text=live_text, text_flags=text_flags,
+        view_biobert_filenames=view_biobert_filenames,
     )
     print(f"Training data: data/full_proteome/  |  Training pairs (unique proteins): {len(dataset):,}")
-    print(f"BioBERT source: {biobert_filename}  |  lr: {lr}  |  batch_size: {batch_size}  |  "
-          f"hidden_dim: {hidden_dim}  |  output_dim: {output_dim}")
+    if view_biobert_filenames:
+        print(f"Multi-view training text: {view_biobert_filenames}  |  "
+              f"validation text (fixed): {biobert_filename}  |  lr: {lr}  |  batch_size: {batch_size}  |  "
+              f"hidden_dim: {hidden_dim}  |  output_dim: {output_dim}")
+    else:
+        print(f"BioBERT source: {biobert_filename}  |  lr: {lr}  |  batch_size: {batch_size}  |  "
+              f"hidden_dim: {hidden_dim}  |  output_dim: {output_dim}")
 
     shuffle_generator = torch.Generator().manual_seed(SEED)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
                             generator=shuffle_generator)
 
+    # Validation always uses the single fixed biobert_filename, never
+    # view_biobert_filenames -- see the docstring note above.
     val_dataset = ProteomicsDataset(
         cohorts=[], use_abundance=False, restrict_to_protein_ids=val_protein_ids,
         biobert_filename=biobert_filename, live_text=live_text, text_flags=text_flags,
@@ -303,7 +325,8 @@ def train(checkpoint_path: str, epochs: int,
                       "unfreeze_biobert_layers": unfreeze_biobert_layers,
                       "biobert_n_layers": biobert_n_layers,
                       "unfrozen_layer_indices": unfrozen_indices,
-                      "biobert_lr": biobert_lr if live_text else None}
+                      "biobert_lr": biobert_lr if live_text else None,
+                      "view_biobert_filenames": view_biobert_filenames}
         if live_text:
             # Only the unfrozen layers' weights need saving -- the frozen
             # embeddings + lower layers are always exactly the pretrained
@@ -364,9 +387,18 @@ if __name__ == "__main__":
                         help=f"learning rate for BioBERT's unfrozen layers, as a separate "
                              f"optimizer param group from the projection heads (default "
                              f"{DEFAULT_BIOBERT_LR}); unused when --unfreeze-biobert-layers 0")
+    parser.add_argument("--view-biobert-filenames", nargs="+", default=None,
+                        help="multi-view random-selection experiment: space-separated list of "
+                             "biobert_embeddings*.h5 filenames (e.g. "
+                             "biobert_embeddings_masked.h5 biobert_embeddings_family_view.h5 "
+                             "biobert_embeddings_location_view.h5) -- TRAINING picks one at "
+                             "random per protein per sample instead of --biobert-filename; "
+                             "VALIDATION still uses --biobert-filename alone, unrandomized. "
+                             "Not combinable with --unfreeze-biobert-layers > 0")
     args = parser.parse_args()
     train(checkpoint_path=args.checkpoint, epochs=args.epochs,
           biobert_filename=args.biobert_filename, splits_file=args.splits_file,
           lr=args.lr, batch_size=args.batch_size, hidden_dim=args.hidden_dim,
           output_dim=args.output_dim, early_stopping_patience=args.early_stopping_patience,
-          unfreeze_biobert_layers=args.unfreeze_biobert_layers, biobert_lr=args.biobert_lr)
+          unfreeze_biobert_layers=args.unfreeze_biobert_layers, biobert_lr=args.biobert_lr,
+          view_biobert_filenames=args.view_biobert_filenames)

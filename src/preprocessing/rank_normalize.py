@@ -3,7 +3,7 @@ import pandas as pd
 import argparse
 
 def rank_normalize(cohort):
-    data_dir = Path(f"data/{cohort}")
+    data_dir = Path(f"data/cptac/{cohort}")
     df = pd.read_csv(data_dir / "proteomics_raw.csv", header=[0,1], index_col=0)
     df_ranked = df.rank(axis=1, pct=True, na_option='keep')
     df_ranked.to_csv(data_dir / "rank_normalized_proteomics.csv")

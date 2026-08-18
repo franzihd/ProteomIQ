@@ -21,7 +21,7 @@ def _load_heads(checkpoint_path: str, device):
 
 
 def _ranks_for_cohort(cohort, test_ids, protein_head, text_head, device):
-    data_dir = Path(f"data/{cohort}")
+    data_dir = Path(f"data/cptac/{cohort}")
     abundance_df = pd.read_csv(data_dir / "rank_normalized_proteomics.csv",
                                header=[0, 1], index_col=0)
     with h5py.File(data_dir / "esm2_embeddings.h5") as f:

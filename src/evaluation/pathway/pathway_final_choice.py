@@ -59,7 +59,7 @@ def load_annotated_genes() -> set[str]:
     """Union, across all cohorts, of gene symbols with a real UniProt annotation."""
     annotated = set()
     for cohort in COHORTS:
-        path = Path(f"data/{cohort}/protein_annotations.csv")
+        path = Path(f"data/cptac/{cohort}/protein_annotations.csv")
         if not path.exists():
             print(f"  Skipping {cohort} -- protein_annotations.csv missing")
             continue

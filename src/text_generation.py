@@ -256,7 +256,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     cancer_type = CANCER_TYPES[args.cohort]
-    clinical_df = pd.read_csv(f"data/{args.cohort}/clinical.csv", index_col=0)
+    clinical_df = pd.read_csv(f"data/cptac/{args.cohort}/clinical.csv", index_col=0)
     descriptions = generate_descriptions(clinical_df, cancer_type)
-    save_descriptions(descriptions, f"data/{args.cohort}/clinical_descriptions.csv")
-    print(f"Saved {len(descriptions)} descriptions to data/{args.cohort}/descriptions.csv")
+    save_descriptions(descriptions, f"data/cptac/{args.cohort}/clinical_descriptions.csv")
+    print(f"Saved {len(descriptions)} descriptions to data/cptac/{args.cohort}/descriptions.csv")

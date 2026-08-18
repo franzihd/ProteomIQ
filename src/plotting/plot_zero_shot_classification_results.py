@@ -70,6 +70,27 @@ def load_summary(path: Path) -> dict:
         return json.load(f)
 
 
+def find_summary(eval_dir: Path, filename: str) -> Path:
+    """Locates a summary JSON either directly under eval_dir (baseline
+    checkpoints, never sorted into an experiment subfolder) or one level
+    down inside an experiment subfolder (unfreeze_experiment/, text_experiment/,
+    multiview_experiment/, ... -- see CLAUDE.md 11aa: the eval scripts still
+    write flat, so files only end up in a subfolder via manual re-sorting
+    after the fact). Searches rather than hardcoding a stem->subfolder
+    mapping, so a future experiment's subfolder needs no change here."""
+    flat = eval_dir / filename
+    if flat.exists():
+        return flat
+    matches = list(eval_dir.glob(f"*/{filename}"))
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        raise FileNotFoundError(f"{filename} found in multiple subfolders of {eval_dir}: "
+                                 f"{[str(m) for m in matches]} -- ambiguous, resolve by hand")
+    raise FileNotFoundError(f"{filename} not found directly under {eval_dir} or in any of its "
+                             f"immediate subfolders")
+
+
 def build_panels(checkpoint_stem: str) -> list[dict]:
     """One panel per eval: its three prompt conditions, and its own
     random/majority baselines (majority baseline doesn't vary by condition,
@@ -83,7 +104,7 @@ def build_panels(checkpoint_stem: str) -> list[dict]:
     for out_stem, title, variant_specs in EVAL_SPECS:
         eval_dir = base_dir / out_stem
         variants = [
-            (label, load_summary(eval_dir / f"summary_{checkpoint_stem}{suffix}.json"))
+            (label, load_summary(find_summary(eval_dir, f"summary_{checkpoint_stem}{suffix}.json")))
             for label, suffix in variant_specs
         ]
         panels.append({"out_stem": out_stem, "title": title, "variants": variants})
@@ -128,11 +149,26 @@ def plot_one_panel(ax, panel: dict, wrap_title: bool = False):
     for spine in ax.spines.values():
         spine.set_visible(False)
     ax.grid(axis="y", color="#E2E8F0", linewidth=1.0, zorder=0)
-    ax.set_ylim(0, 55)
+    # Dynamic per-panel headroom instead of a fixed 0-55 -- was hardcoded for
+    # the original M0-M3 range (max ~44%) and silently clipped later
+    # checkpoints scoring higher (e.g. multiview DeepLoc 64.08%, see
+    # CLAUDE.md 11ac). 15% headroom above the tallest bar/baseline line so
+    # the value annotation above each bar always has room to render.
+    highest = max(max(accuracies), random_baseline, majority_baseline)
+    ax.set_ylim(0, highest * 1.15)
 
 
 def plot_combined(panels: list[dict], checkpoint_stem: str, output_path: Path):
-    fig, axes = plt.subplots(1, len(panels), figsize=(13, 5.5), sharey=True)
+    # sharey=False (default) -- each panel gets its own dynamic y-limit from
+    # plot_one_panel. sharey=True previously forced one common scale across
+    # all three, and since axes.set_ylim() on a shared-y group applies to the
+    # whole group (last call wins), GO-MF's smaller range was silently
+    # clipping DeepLoc's taller bars whenever DeepLoc scored much higher (see
+    # multiview_best, DeepLoc ~64% clipped under GO-MF's ~58% shared cap).
+    # Panels aren't a single unified metric anyway (see this file's own
+    # caption text below), so an independent scale per panel is correct, not
+    # just a workaround.
+    fig, axes = plt.subplots(1, len(panels), figsize=(13, 5.5), sharey=False)
     fig.patch.set_facecolor("white")
 
     for ax, panel in zip(axes, panels):

@@ -1,3 +1,4 @@
+import random
 from pathlib import Path
 import pandas as pd
 import h5py
@@ -5,6 +6,14 @@ import torch
 import numpy as np
 from torch.utils.data import Dataset
 from src.embeddings.textual.embed_biobert import strip_gene_name, append_family_location, append_go_terms
+
+# Same seed=42 convention used throughout this project (train_protein_level.py,
+# protein_train_validation_test.py, ...). Seeds the multi-view random-selection
+# RNG below -- reproducible given the same __getitem__ call order (this project
+# does not use multi-process DataLoader workers, so a single Dataset-owned
+# random.Random instance is sufficient; see CLAUDE.md 11y for why plain set
+# iteration order was NOT sufficient for a similar determinism concern).
+MULTI_VIEW_SEED = 42
 
 
 def parse_biobert_text_flags(biobert_filename: str) -> dict:
@@ -75,6 +84,7 @@ class ProteomicsDataset(Dataset):
         biobert_filename: str = "biobert_embeddings.h5",
         live_text: bool = False,
         text_flags: dict | None = None,
+        view_biobert_filenames: list[str] | None = None,
     ):
         if test_patient_ids is None:
             test_patient_ids = set()
@@ -83,6 +93,13 @@ class ProteomicsDataset(Dataset):
 
         self.use_abundance = use_abundance
         self.live_text = live_text
+        self.multi_view = view_biobert_filenames is not None
+        if self.multi_view and live_text:
+            raise ValueError("view_biobert_filenames (precomputed multi-view random "
+                              "selection) and live_text (live BioBERT unfreeze encoding) "
+                              "are not combinable -- not needed for either experiment as "
+                              "currently scoped, would add live-encoding complexity to "
+                              "every one of the (up to 3) views per sample")
 
         if not use_abundance:
             # Patient-invariant path (Stage 1, see CLAUDE.md section 11):
@@ -99,6 +116,49 @@ class ProteomicsDataset(Dataset):
                 esm2_matrix = torch.tensor(h5f["embeddings"][:], dtype=torch.float32)
                 esm2_protein_ids = [pid.decode() for pid in h5f["protein_ids"][:]]
             esm2_id_to_idx = {pid: i for i, pid in enumerate(esm2_protein_ids)}
+
+            if self.multi_view:
+                # Multi-view random selection: Function/Family/Location are
+                # three SEPARATE, independently-embedded text sources (unlike
+                # M0-M3, which concatenate them into one string) -- one is
+                # picked at random per protein PER __getitem__ CALL (not fixed
+                # once per training run), the same "vary what's shown, don't
+                # add more content per example" principle as image augmentation
+                # (random crop/flip), motivated by 11z's finding that
+                # concatenating more distinguishing text helps closed-set
+                # self-ID tasks while hurting open-vocabulary generalization.
+                # Coverage differs per view (Function ~100%, Family 75.4%,
+                # Location 92.6% of the base set) -- a protein's available
+                # views are whichever of the given files actually contain its
+                # protein_id, checked per-protein below, NOT assumed uniform.
+                view_matrices = []
+                view_id_to_idx = []
+                view_ids_union = set()
+                for fname in view_biobert_filenames:
+                    with h5py.File(data_dir / fname, "r") as h5f:
+                        view_matrices.append(torch.tensor(h5f["embeddings"][:], dtype=torch.float32))
+                        ids = [pid.decode() for pid in h5f["protein_ids"][:]]
+                    view_id_to_idx.append({pid: i for i, pid in enumerate(ids)})
+                    view_ids_union |= set(ids)
+
+                usable_proteins = (set(esm2_protein_ids) & view_ids_union) - held_out_protein_ids
+                if restrict_to_protein_ids is not None:
+                    usable_proteins = usable_proteins & restrict_to_protein_ids
+                usable_proteins = sorted(usable_proteins)  # see 11y -- deterministic base order
+
+                self.protein_esm2 = {pid: esm2_matrix[esm2_id_to_idx[pid]] for pid in usable_proteins}
+                self.protein_text_views = {
+                    pid: [matrix[id_to_idx[pid]] for matrix, id_to_idx in zip(view_matrices, view_id_to_idx)
+                          if pid in id_to_idx]
+                    for pid in usable_proteins
+                }
+                n_with_all_views = sum(1 for v in self.protein_text_views.values() if len(v) == len(view_biobert_filenames))
+                print(f"Multi-view dataset: {len(usable_proteins):,} proteins, "
+                      f"{n_with_all_views:,} ({n_with_all_views / len(usable_proteins) * 100:.1f}%) "
+                      f"have all {len(view_biobert_filenames)} views available")
+                self._view_rng = random.Random(MULTI_VIEW_SEED)
+                self.pairs = list(self.protein_esm2.keys())
+                return
 
             if live_text:
                 # BioBERT-unfreezing experiment: text must be encoded live
@@ -145,7 +205,7 @@ class ProteomicsDataset(Dataset):
         self.cohort_data = []  # per-cohort lookup structures
 
         for cohort_idx, cohort in enumerate(cohorts):
-            data_dir = Path(f"data/{cohort}")
+            data_dir = Path(f"data/cptac/{cohort}")
 
             abundance_df = pd.read_csv(
                 data_dir / "rank_normalized_proteomics.csv",
@@ -211,6 +271,14 @@ class ProteomicsDataset(Dataset):
             esm2_vec = cd["esm2_matrix"][cd["esm2_id_to_idx"][protein_id]]
             protein_emb = torch.cat([esm2_vec, torch.tensor([abundance], dtype=torch.float32)])
             text_emb = cd["biobert_matrix"][cd["biobert_protein_id_to_idx"][protein_id]]
+        elif self.multi_view:
+            protein_id = self.pairs[idx]
+            protein_emb = self.protein_esm2[protein_id]
+            views = self.protein_text_views[protein_id]
+            # Re-drawn on every call (not fixed once per protein/epoch) --
+            # the same protein can show a different view across epochs and
+            # across duplicate draws within an epoch.
+            text_emb = self._view_rng.choice(views)
         else:
             protein_id = self.pairs[idx]
             protein_emb = self.protein_esm2[protein_id]
