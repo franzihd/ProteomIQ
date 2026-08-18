@@ -37,7 +37,6 @@ import wandb
 from src.model.train_protein_level import train
 
 FIXED = {
-    "cohorts": ["full_proteome"],
     "hidden_dim": 512,
     "output_dim": 128,  # matches ProteinCLIP's dshared=128 (Lucas et al., 2024) -- not swept here
     "early_stopping_patience": 10,
@@ -70,7 +69,6 @@ def main():
         }, step=epoch)
 
     train(
-        cohorts=FIXED["cohorts"],
         checkpoint_path=checkpoint_path,
         epochs=config.epochs,
         biobert_filename=FIXED["biobert_filename"],

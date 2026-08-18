@@ -34,7 +34,6 @@ import wandb
 from src.model.train_protein_level import train
 
 FIXED = {
-    "cohorts": ["full_proteome"],
     "lr": 0.00011598207492707353,
     "batch_size": 512,
     "epochs": 100,
@@ -55,7 +54,6 @@ def main():
         wandb.log({"train_loss": train_loss, "val_loss": val_loss}, step=epoch)
 
     best_path, best_val_loss = train(
-        cohorts=FIXED["cohorts"],
         checkpoint_path=checkpoint_path,
         epochs=FIXED["epochs"],
         biobert_filename=FIXED["biobert_filename"],

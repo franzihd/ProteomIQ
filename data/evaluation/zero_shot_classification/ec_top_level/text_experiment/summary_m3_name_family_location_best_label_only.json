@@ -1,0 +1,426 @@
+{
+  "all": {
+    "n": 4247,
+    "accuracy": 0.21968448316458677,
+    "macro_f1": 0.17891161856269308,
+    "confusion_matrix": [
+      [
+        215,
+        19,
+        89,
+        79,
+        49,
+        34,
+        16
+      ],
+      [
+        225,
+        194,
+        279,
+        107,
+        202,
+        400,
+        293
+      ],
+      [
+        173,
+        104,
+        397,
+        108,
+        122,
+        231,
+        443
+      ],
+      [
+        12,
+        5,
+        37,
+        43,
+        5,
+        8,
+        5
+      ],
+      [
+        16,
+        6,
+        18,
+        18,
+        13,
+        38,
+        31
+      ],
+      [
+        3,
+        4,
+        7,
+        59,
+        3,
+        35,
+        4
+      ],
+      [
+        16,
+        0,
+        20,
+        21,
+        2,
+        3,
+        36
+      ]
+    ],
+    "confusion_matrix_labels": [
+      "Oxidoreductases",
+      "Transferases",
+      "Hydrolases",
+      "Lyases",
+      "Isomerases",
+      "Ligases",
+      "Translocases"
+    ],
+    "majority_class": "Transferases",
+    "majority_baseline_accuracy": 0.4002825523899223,
+    "random_baseline_accuracy": 0.14285714285714285
+  },
+  "seen": {
+    "n": 3398,
+    "accuracy": 0.21954090641553856,
+    "macro_f1": 0.1793832341932862,
+    "confusion_matrix": [
+      [
+        177,
+        15,
+        67,
+        67,
+        39,
+        26,
+        14
+      ],
+      [
+        178,
+        152,
+        224,
+        89,
+        153,
+        320,
+        235
+      ],
+      [
+        139,
+        85,
+        315,
+        87,
+        94,
+        186,
+        353
+      ],
+      [
+        12,
+        4,
+        30,
+        34,
+        4,
+        6,
+        5
+      ],
+      [
+        13,
+        6,
+        10,
+        15,
+        13,
+        31,
+        25
+      ],
+      [
+        3,
+        4,
+        4,
+        52,
+        3,
+        28,
+        3
+      ],
+      [
+        14,
+        0,
+        14,
+        18,
+        2,
+        3,
+        27
+      ]
+    ],
+    "confusion_matrix_labels": [
+      "Oxidoreductases",
+      "Transferases",
+      "Hydrolases",
+      "Lyases",
+      "Isomerases",
+      "Ligases",
+      "Translocases"
+    ],
+    "majority_class": "Transferases",
+    "majority_baseline_accuracy": 0.3975868157739847,
+    "random_baseline_accuracy": 0.14285714285714285
+  },
+  "unseen": {
+    "n": 849,
+    "accuracy": 0.22025912838633688,
+    "macro_f1": 0.17838747529641405,
+    "confusion_matrix": [
+      [
+        38,
+        4,
+        22,
+        12,
+        10,
+        8,
+        2
+      ],
+      [
+        47,
+        42,
+        55,
+        18,
+        49,
+        80,
+        58
+      ],
+      [
+        34,
+        19,
+        82,
+        21,
+        28,
+        45,
+        90
+      ],
+      [
+        0,
+        1,
+        7,
+        9,
+        1,
+        2,
+        0
+      ],
+      [
+        3,
+        0,
+        8,
+        3,
+        0,
+        7,
+        6
+      ],
+      [
+        0,
+        0,
+        3,
+        7,
+        0,
+        7,
+        1
+      ],
+      [
+        2,
+        0,
+        6,
+        3,
+        0,
+        0,
+        9
+      ]
+    ],
+    "confusion_matrix_labels": [
+      "Oxidoreductases",
+      "Transferases",
+      "Hydrolases",
+      "Lyases",
+      "Isomerases",
+      "Ligases",
+      "Translocases"
+    ],
+    "majority_class": "Transferases",
+    "majority_baseline_accuracy": 0.4110718492343934,
+    "random_baseline_accuracy": 0.14285714285714285
+  },
+  "unseen_validation": {
+    "n": 414,
+    "accuracy": 0.21497584541062803,
+    "macro_f1": 0.18073020414071098,
+    "confusion_matrix": [
+      [
+        18,
+        3,
+        9,
+        9,
+        3,
+        6,
+        1
+      ],
+      [
+        24,
+        19,
+        28,
+        8,
+        19,
+        40,
+        36
+      ],
+      [
+        14,
+        8,
+        37,
+        11,
+        13,
+        17,
+        46
+      ],
+      [
+        0,
+        0,
+        3,
+        6,
+        1,
+        1,
+        0
+      ],
+      [
+        2,
+        0,
+        1,
+        2,
+        0,
+        5,
+        3
+      ],
+      [
+        0,
+        0,
+        1,
+        4,
+        0,
+        4,
+        0
+      ],
+      [
+        2,
+        0,
+        4,
+        1,
+        0,
+        0,
+        5
+      ]
+    ],
+    "confusion_matrix_labels": [
+      "Oxidoreductases",
+      "Transferases",
+      "Hydrolases",
+      "Lyases",
+      "Isomerases",
+      "Ligases",
+      "Translocases"
+    ],
+    "majority_class": "Transferases",
+    "majority_baseline_accuracy": 0.42028985507246375,
+    "random_baseline_accuracy": 0.14285714285714285
+  },
+  "unseen_test": {
+    "n": 435,
+    "accuracy": 0.22528735632183908,
+    "macro_f1": 0.17447934422587177,
+    "confusion_matrix": [
+      [
+        20,
+        1,
+        13,
+        3,
+        7,
+        2,
+        1
+      ],
+      [
+        23,
+        23,
+        27,
+        10,
+        30,
+        40,
+        22
+      ],
+      [
+        20,
+        11,
+        45,
+        10,
+        15,
+        28,
+        44
+      ],
+      [
+        0,
+        1,
+        4,
+        3,
+        0,
+        1,
+        0
+      ],
+      [
+        1,
+        0,
+        7,
+        1,
+        0,
+        2,
+        3
+      ],
+      [
+        0,
+        0,
+        2,
+        3,
+        0,
+        3,
+        1
+      ],
+      [
+        0,
+        0,
+        2,
+        2,
+        0,
+        0,
+        4
+      ]
+    ],
+    "confusion_matrix_labels": [
+      "Oxidoreductases",
+      "Transferases",
+      "Hydrolases",
+      "Lyases",
+      "Isomerases",
+      "Ligases",
+      "Translocases"
+    ],
+    "majority_class": "Transferases",
+    "majority_baseline_accuracy": 0.40229885057471265,
+    "random_baseline_accuracy": 0.14285714285714285
+  },
+  "generalization_gap": -0.0007182219707983217,
+  "generalization_gap_test_only": -0.0057464499063005214,
+  "checkpoint": "data/runs/full_proteome/m3_name_family_location_best.pt",
+  "biobert_filename": "biobert_embeddings_family_location.h5",
+  "classes": [
+    "Oxidoreductases",
+    "Transferases",
+    "Hydrolases",
+    "Lyases",
+    "Isomerases",
+    "Ligases",
+    "Translocases"
+  ],
+  "condition": "label_only"
+}

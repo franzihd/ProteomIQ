@@ -54,7 +54,6 @@ def main():
                 checkpoint_path = out_dir / f"{tag}.pt"
                 print(f"\n=== {tag} ===")
                 train(
-                    cohorts=["full_proteome"],
                     checkpoint_path=str(checkpoint_path),
                     epochs=epochs,
                     biobert_filename=args.biobert_filename,

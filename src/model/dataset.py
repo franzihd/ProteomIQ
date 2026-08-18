@@ -4,6 +4,64 @@ import h5py
 import torch
 import numpy as np
 from torch.utils.data import Dataset
+from src.embeddings.textual.embed_biobert import strip_gene_name, append_family_location, append_go_terms
+
+
+def parse_biobert_text_flags(biobert_filename: str) -> dict:
+    """
+    Recovers the embed_biobert.py CLI flags that would reproduce the raw text
+    underlying a given biobert_embeddings*.h5 filename, from its suffix
+    naming convention (see embed_biobert.py's own suffix-building logic in
+    main()) -- so live/on-the-fly BioBERT encoding (BioBERT-unfreezing
+    experiment, train_protein_level.py) can build the exact same text a
+    precomputed .h5 file would have been built from, without a second,
+    hand-maintained flag surface that could drift out of sync with the
+    filenames.
+    """
+    stem = biobert_filename.removeprefix("biobert_embeddings").removesuffix(".h5")
+    return {
+        "mask_gene_names": "_masked" in stem,
+        "include_go_terms": "_go" in stem,
+        "go_bp_only": "_go_bp_only" in stem,
+        "include_family": "_family" in stem,
+        "include_location": "_location" in stem,
+    }
+
+
+def build_live_protein_texts(mask_gene_names: bool = False, include_go_terms: bool = False,
+                              go_bp_only: bool = False, include_family: bool = False,
+                              include_location: bool = False) -> dict:
+    """
+    Builds the same per-protein text strings embed_biobert.py would embed,
+    keyed by ENSP_ID, for on-the-fly BioBERT encoding instead of reading a
+    precomputed embedding from disk (needed when BioBERT Transformer layers
+    are unfrozen and require a live forward pass with gradients). Mirrors
+    embed_biobert.py's main() text-construction logic exactly (same order:
+    mask -> GO terms -> family/location).
+    """
+    annotations_path = Path("data/full_proteome/protein_annotations.csv")
+    annotations = pd.read_csv(annotations_path)
+    annotations = annotations.dropna(subset=["Sequence", "Annotation"]).reset_index(drop=True)
+    n_proteins = len(annotations)
+
+    if mask_gene_names:
+        texts = [strip_gene_name(g, a) for g, a in zip(annotations["Gene"], annotations["Annotation"])]
+    else:
+        texts = annotations["Annotation"].tolist()
+
+    if include_go_terms:
+        go_bp = annotations.get("GO_Biological_Process", pd.Series([None] * n_proteins))
+        go_cc = annotations.get("GO_Cellular_Component", pd.Series([None] * n_proteins))
+        texts = [append_go_terms(t, bp, cc, include_cc=not go_bp_only)
+                 for t, bp, cc in zip(texts, go_bp, go_cc)]
+
+    if include_family or include_location:
+        family_col = annotations.get("Family", pd.Series([None] * n_proteins))
+        location_col = annotations.get("Location", pd.Series([None] * n_proteins))
+        texts = [append_family_location(t, fam, loc, include_family, include_location)
+                 for t, fam, loc in zip(texts, family_col, location_col)]
+
+    return dict(zip(annotations["ENSP_ID"], texts))
 
 
 class ProteomicsDataset(Dataset):
@@ -15,6 +73,8 @@ class ProteomicsDataset(Dataset):
         held_out_protein_ids: set[str] | None = None,
         restrict_to_protein_ids: set[str] | None = None,
         biobert_filename: str = "biobert_embeddings.h5",
+        live_text: bool = False,
+        text_flags: dict | None = None,
     ):
         if test_patient_ids is None:
             test_patient_ids = set()
@@ -22,6 +82,7 @@ class ProteomicsDataset(Dataset):
             held_out_protein_ids = set()
 
         self.use_abundance = use_abundance
+        self.live_text = live_text
 
         if not use_abundance:
             # Patient-invariant path (Stage 1, see CLAUDE.md section 11):
@@ -37,20 +98,42 @@ class ProteomicsDataset(Dataset):
             with h5py.File(data_dir / "esm2_embeddings.h5", "r") as h5f:
                 esm2_matrix = torch.tensor(h5f["embeddings"][:], dtype=torch.float32)
                 esm2_protein_ids = [pid.decode() for pid in h5f["protein_ids"][:]]
-
-            with h5py.File(data_dir / biobert_filename, "r") as h5f:
-                biobert_matrix = torch.tensor(h5f["embeddings"][:], dtype=torch.float32)
-                biobert_protein_ids = [pid.decode() for pid in h5f["protein_ids"][:]]
-
             esm2_id_to_idx = {pid: i for i, pid in enumerate(esm2_protein_ids)}
-            biobert_id_to_idx = {pid: i for i, pid in enumerate(biobert_protein_ids)}
+
+            if live_text:
+                # BioBERT-unfreezing experiment: text must be encoded live
+                # (with gradients) rather than looked up from a precomputed
+                # .h5 file, so build the same raw text strings that file
+                # would have been embedded from instead.
+                protein_text_map = build_live_protein_texts(**(text_flags or {}))
+                biobert_protein_ids = list(protein_text_map.keys())
+            else:
+                with h5py.File(data_dir / biobert_filename, "r") as h5f:
+                    biobert_matrix = torch.tensor(h5f["embeddings"][:], dtype=torch.float32)
+                    biobert_protein_ids = [pid.decode() for pid in h5f["protein_ids"][:]]
+                biobert_id_to_idx = {pid: i for i, pid in enumerate(biobert_protein_ids)}
 
             usable_proteins = (set(esm2_protein_ids) & set(biobert_protein_ids)) - held_out_protein_ids
             if restrict_to_protein_ids is not None:
                 usable_proteins = usable_proteins & restrict_to_protein_ids
+            # Sorted, not iterated as a raw set: Python randomizes string hash
+            # values per process (PYTHONHASHSEED unset), so raw set iteration
+            # order -- and therefore self.pairs' base order, upstream of the
+            # seeded DataLoader shuffle -- silently differed between separate
+            # training runs even with identical torch/shuffle seeds. This
+            # was a real, undetected source of run-to-run training variance
+            # (confirmed: cosine similarity ~0.97 between two "identical"
+            # runs' trained weights, not the ~0.9999+ pure float noise would
+            # produce). Sorting fixes the base order deterministically,
+            # independent of hash seed; doesn't change which proteins are
+            # used, only pins down the order before shuffling.
+            usable_proteins = sorted(usable_proteins)
 
             self.protein_esm2 = {pid: esm2_matrix[esm2_id_to_idx[pid]] for pid in usable_proteins}
-            self.protein_text = {pid: biobert_matrix[biobert_id_to_idx[pid]] for pid in usable_proteins}
+            if live_text:
+                self.protein_text = {pid: protein_text_map[pid] for pid in usable_proteins}
+            else:
+                self.protein_text = {pid: biobert_matrix[biobert_id_to_idx[pid]] for pid in usable_proteins}
             self.pairs = list(self.protein_esm2.keys())
             return
 

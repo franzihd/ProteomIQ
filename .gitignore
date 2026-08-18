@@ -8,3 +8,4 @@ __pycache__/
 .vscode/
 wandb/
 data/runs/*/wandb_sweep*/
+data/runs/full_proteome/biobert_unfreeze_[1-9]*.pt
