@@ -9,3 +9,6 @@ __pycache__/
 wandb/
 data/runs/*/wandb_sweep*/
 data/runs/full_proteome/biobert_unfreeze_[1-9]*.pt
+data/runs/luad*/
+data/luad/checkpoint.pt
+data/runs/full_proteome/archive/**/*.pt
