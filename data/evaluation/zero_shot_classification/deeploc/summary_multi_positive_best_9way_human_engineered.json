@@ -1,0 +1,618 @@
+{
+  "all": {
+    "n": 2645,
+    "accuracy": 0.6725897920604915,
+    "macro_f1": 0.5265779511714855,
+    "confusion_matrix": [
+      [
+        711,
+        92,
+        18,
+        5,
+        4,
+        35,
+        43,
+        24,
+        41
+      ],
+      [
+        11,
+        423,
+        3,
+        7,
+        3,
+        10,
+        31,
+        19,
+        25
+      ],
+      [
+        2,
+        16,
+        45,
+        6,
+        23,
+        21,
+        4,
+        31,
+        17
+      ],
+      [
+        2,
+        5,
+        1,
+        96,
+        2,
+        3,
+        1,
+        4,
+        152
+      ],
+      [
+        0,
+        14,
+        13,
+        6,
+        271,
+        21,
+        11,
+        24,
+        8
+      ],
+      [
+        1,
+        7,
+        1,
+        2,
+        3,
+        123,
+        15,
+        23,
+        31
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        4,
+        71,
+        6,
+        1
+      ],
+      [
+        0,
+        0,
+        1,
+        0,
+        7,
+        0,
+        2,
+        22,
+        1
+      ],
+      [
+        0,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        17
+      ]
+    ],
+    "confusion_matrix_labels": [
+      "Nucleus",
+      "Cytoplasm",
+      "Extracellular",
+      "Mitochondrion",
+      "Cell membrane",
+      "Endoplasmic reticulum",
+      "Golgi apparatus",
+      "Lysosome/Vacuole",
+      "Peroxisome"
+    ],
+    "majority_class": "Nucleus",
+    "majority_baseline_accuracy": 0.36786389413988657,
+    "random_baseline_accuracy": 0.1111111111111111
+  },
+  "seen": {
+    "n": 2134,
+    "accuracy": 0.7155576382380506,
+    "macro_f1": 0.5641894810204939,
+    "confusion_matrix": [
+      [
+        608,
+        56,
+        14,
+        4,
+        3,
+        30,
+        35,
+        14,
+        27
+      ],
+      [
+        6,
+        359,
+        2,
+        6,
+        2,
+        5,
+        20,
+        16,
+        16
+      ],
+      [
+        0,
+        14,
+        37,
+        6,
+        18,
+        16,
+        3,
+        24,
+        13
+      ],
+      [
+        0,
+        0,
+        0,
+        87,
+        1,
+        0,
+        0,
+        1,
+        120
+      ],
+      [
+        0,
+        10,
+        10,
+        3,
+        231,
+        13,
+        9,
+        21,
+        5
+      ],
+      [
+        0,
+        3,
+        1,
+        0,
+        1,
+        110,
+        11,
+        12,
+        22
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        63,
+        6,
+        1
+      ],
+      [
+        0,
+        0,
+        1,
+        0,
+        3,
+        0,
+        1,
+        19,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        13
+      ]
+    ],
+    "confusion_matrix_labels": [
+      "Nucleus",
+      "Cytoplasm",
+      "Extracellular",
+      "Mitochondrion",
+      "Cell membrane",
+      "Endoplasmic reticulum",
+      "Golgi apparatus",
+      "Lysosome/Vacuole",
+      "Peroxisome"
+    ],
+    "majority_class": "Nucleus",
+    "majority_baseline_accuracy": 0.37066541705716965,
+    "random_baseline_accuracy": 0.1111111111111111
+  },
+  "unseen": {
+    "n": 511,
+    "accuracy": 0.4931506849315068,
+    "macro_f1": 0.37455826308859635,
+    "confusion_matrix": [
+      [
+        103,
+        36,
+        4,
+        1,
+        1,
+        5,
+        8,
+        10,
+        14
+      ],
+      [
+        5,
+        64,
+        1,
+        1,
+        1,
+        5,
+        11,
+        3,
+        9
+      ],
+      [
+        2,
+        2,
+        8,
+        0,
+        5,
+        5,
+        1,
+        7,
+        4
+      ],
+      [
+        2,
+        5,
+        1,
+        9,
+        1,
+        3,
+        1,
+        3,
+        32
+      ],
+      [
+        0,
+        4,
+        3,
+        3,
+        40,
+        8,
+        2,
+        3,
+        3
+      ],
+      [
+        1,
+        4,
+        0,
+        2,
+        2,
+        13,
+        4,
+        11,
+        9
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        8,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        4,
+        0,
+        1,
+        3,
+        1
+      ],
+      [
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        4
+      ]
+    ],
+    "confusion_matrix_labels": [
+      "Nucleus",
+      "Cytoplasm",
+      "Extracellular",
+      "Mitochondrion",
+      "Cell membrane",
+      "Endoplasmic reticulum",
+      "Golgi apparatus",
+      "Lysosome/Vacuole",
+      "Peroxisome"
+    ],
+    "majority_class": "Nucleus",
+    "majority_baseline_accuracy": 0.3561643835616438,
+    "random_baseline_accuracy": 0.1111111111111111
+  },
+  "unseen_validation": {
+    "n": 264,
+    "accuracy": 0.5037878787878788,
+    "macro_f1": 0.3812485281678011,
+    "confusion_matrix": [
+      [
+        51,
+        18,
+        2,
+        1,
+        0,
+        2,
+        3,
+        7,
+        8
+      ],
+      [
+        2,
+        40,
+        0,
+        0,
+        0,
+        4,
+        3,
+        3,
+        6
+      ],
+      [
+        2,
+        2,
+        3,
+        0,
+        3,
+        3,
+        1,
+        2,
+        2
+      ],
+      [
+        0,
+        3,
+        0,
+        4,
+        0,
+        2,
+        1,
+        1,
+        17
+      ],
+      [
+        0,
+        2,
+        3,
+        2,
+        18,
+        4,
+        1,
+        1,
+        3
+      ],
+      [
+        1,
+        2,
+        0,
+        2,
+        2,
+        9,
+        2,
+        4,
+        2
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2
+      ]
+    ],
+    "confusion_matrix_labels": [
+      "Nucleus",
+      "Cytoplasm",
+      "Extracellular",
+      "Mitochondrion",
+      "Cell membrane",
+      "Endoplasmic reticulum",
+      "Golgi apparatus",
+      "Lysosome/Vacuole",
+      "Peroxisome"
+    ],
+    "majority_class": "Nucleus",
+    "majority_baseline_accuracy": 0.3484848484848485,
+    "random_baseline_accuracy": 0.1111111111111111
+  },
+  "unseen_test": {
+    "n": 247,
+    "accuracy": 0.4817813765182186,
+    "macro_f1": 0.3665112437769888,
+    "confusion_matrix": [
+      [
+        52,
+        18,
+        2,
+        0,
+        1,
+        3,
+        5,
+        3,
+        6
+      ],
+      [
+        3,
+        24,
+        1,
+        1,
+        1,
+        1,
+        8,
+        0,
+        3
+      ],
+      [
+        0,
+        0,
+        5,
+        0,
+        2,
+        2,
+        0,
+        5,
+        2
+      ],
+      [
+        2,
+        2,
+        1,
+        5,
+        1,
+        1,
+        0,
+        2,
+        15
+      ],
+      [
+        0,
+        2,
+        0,
+        1,
+        22,
+        4,
+        1,
+        2,
+        0
+      ],
+      [
+        0,
+        2,
+        0,
+        0,
+        0,
+        4,
+        2,
+        7,
+        7
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        3,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        1,
+        2,
+        1
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2
+      ]
+    ],
+    "confusion_matrix_labels": [
+      "Nucleus",
+      "Cytoplasm",
+      "Extracellular",
+      "Mitochondrion",
+      "Cell membrane",
+      "Endoplasmic reticulum",
+      "Golgi apparatus",
+      "Lysosome/Vacuole",
+      "Peroxisome"
+    ],
+    "majority_class": "Nucleus",
+    "majority_baseline_accuracy": 0.3643724696356275,
+    "random_baseline_accuracy": 0.1111111111111111
+  },
+  "generalization_gap": 0.2224069533065438,
+  "generalization_gap_test_only": 0.233776261719832,
+  "checkpoint": "data/runs/full_proteome/multi_positive_experiment/multi_positive_best.pt",
+  "biobert_filename": "biobert_embeddings_masked.h5",
+  "classes": [
+    "Nucleus",
+    "Cytoplasm",
+    "Extracellular",
+    "Mitochondrion",
+    "Cell membrane",
+    "Endoplasmic reticulum",
+    "Golgi apparatus",
+    "Lysosome/Vacuole",
+    "Peroxisome"
+  ],
+  "condition": "engineered"
+}

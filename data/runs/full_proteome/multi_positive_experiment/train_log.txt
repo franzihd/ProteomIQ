@@ -1,0 +1,47 @@
+Multi-view dataset: 13,515 proteins, 9,498 (70.3%) have all 3 views available
+Multi-positive dataset: 36,246 (protein, view) rows from 13,515 unique proteins
+Training data: data/full_proteome/  |  Training pairs: 36,246
+Multi-positive training text: ['biobert_embeddings_masked.h5', 'biobert_embeddings_family_view.h5', 'biobert_embeddings_location_view.h5']  |  validation text (fixed): biobert_embeddings_masked.h5  |  lr: 0.00011598207492707353  |  batch_size: 512  |  hidden_dim: 2048  |  output_dim: 1024
+Validation pairs (proteins never trained on): 1,689
+[biobert_unfreeze_0] BioBERT layers: n/a (frozen, precomputed)  |  unfrozen layer indices: []  |  biobert_lr: n/a  |  projection-head lr: 0.00011598207492707353
+[biobert_unfreeze_0] trainable params -- projection heads: 7,092,224  |  BioBERT: 0  |  total: 7,092,224
+[biobert_unfreeze_0] Epoch 1/100  loss: 5.9211  val_loss: 4.8109  val_R@1: 0.0434  val_R@10: 0.2866  <- best so far
+[biobert_unfreeze_0] Epoch 2/100  loss: 4.9176  val_loss: 4.1820  val_R@1: 0.1078  val_R@10: 0.4690  <- best so far
+[biobert_unfreeze_0] Epoch 3/100  loss: 4.4852  val_loss: 3.8884  val_R@1: 0.1312  val_R@10: 0.5360  <- best so far
+[biobert_unfreeze_0] Epoch 4/100  loss: 4.1834  val_loss: 3.7230  val_R@1: 0.1641  val_R@10: 0.5841  <- best so far
+[biobert_unfreeze_0] Epoch 5/100  loss: 3.9436  val_loss: 3.5817  val_R@1: 0.1941  val_R@10: 0.6088  <- best so far
+[biobert_unfreeze_0] Epoch 6/100  loss: 3.7469  val_loss: 3.5004  val_R@1: 0.1993  val_R@10: 0.6279  <- best so far
+[biobert_unfreeze_0] Epoch 7/100  loss: 3.5889  val_loss: 3.4212  val_R@1: 0.2048  val_R@10: 0.6536  <- best so far
+[biobert_unfreeze_0] Epoch 8/100  loss: 3.4467  val_loss: 3.3827  val_R@1: 0.2311  val_R@10: 0.6572  <- best so far
+[biobert_unfreeze_0] Epoch 9/100  loss: 3.3222  val_loss: 3.3388  val_R@1: 0.2436  val_R@10: 0.6700  <- best so far
+[biobert_unfreeze_0] Epoch 10/100  loss: 3.2211  val_loss: 3.2908  val_R@1: 0.2593  val_R@10: 0.6670  <- best so far
+[biobert_unfreeze_0] Epoch 11/100  loss: 3.1135  val_loss: 3.2727  val_R@1: 0.2686  val_R@10: 0.6712  <- best so far
+[biobert_unfreeze_0] Epoch 12/100  loss: 3.0222  val_loss: 3.2656  val_R@1: 0.2667  val_R@10: 0.6878  <- best so far
+[biobert_unfreeze_0] Epoch 13/100  loss: 2.9441  val_loss: 3.2229  val_R@1: 0.2720  val_R@10: 0.6847  <- best so far
+[biobert_unfreeze_0] Epoch 14/100  loss: 2.8702  val_loss: 3.2173  val_R@1: 0.2809  val_R@10: 0.6793  <- best so far
+[biobert_unfreeze_0] Epoch 15/100  loss: 2.8045  val_loss: 3.1976  val_R@1: 0.2912  val_R@10: 0.6888  <- best so far
+[biobert_unfreeze_0] Epoch 16/100  loss: 2.7268  val_loss: 3.1983  val_R@1: 0.2871  val_R@10: 0.6935
+[biobert_unfreeze_0] Epoch 17/100  loss: 2.6725  val_loss: 3.2256  val_R@1: 0.2865  val_R@10: 0.6777
+[biobert_unfreeze_0] Epoch 18/100  loss: 2.6213  val_loss: 3.1926  val_R@1: 0.2946  val_R@10: 0.6870  <- best so far
+[biobert_unfreeze_0] Epoch 19/100  loss: 2.5638  val_loss: 3.2185  val_R@1: 0.3046  val_R@10: 0.6879
+[biobert_unfreeze_0] Epoch 20/100  loss: 2.5171  val_loss: 3.1876  val_R@1: 0.3046  val_R@10: 0.6972  <- best so far
+[biobert_unfreeze_0] Epoch 21/100  loss: 2.4804  val_loss: 3.1887  val_R@1: 0.3021  val_R@10: 0.6972
+[biobert_unfreeze_0] Epoch 22/100  loss: 2.4401  val_loss: 3.1875  val_R@1: 0.3044  val_R@10: 0.6956  <- best so far
+[biobert_unfreeze_0] Epoch 23/100  loss: 2.3973  val_loss: 3.1899  val_R@1: 0.2931  val_R@10: 0.6948
+[biobert_unfreeze_0] Epoch 24/100  loss: 2.3548  val_loss: 3.1827  val_R@1: 0.2992  val_R@10: 0.6891  <- best so far
+[biobert_unfreeze_0] Epoch 25/100  loss: 2.3255  val_loss: 3.2001  val_R@1: 0.3016  val_R@10: 0.6879
+[biobert_unfreeze_0] Epoch 26/100  loss: 2.2976  val_loss: 3.1879  val_R@1: 0.3026  val_R@10: 0.6968
+[biobert_unfreeze_0] Epoch 27/100  loss: 2.2689  val_loss: 3.1940  val_R@1: 0.3096  val_R@10: 0.6914
+[biobert_unfreeze_0] Epoch 28/100  loss: 2.2356  val_loss: 3.1872  val_R@1: 0.3091  val_R@10: 0.6994
+[biobert_unfreeze_0] Epoch 29/100  loss: 2.2172  val_loss: 3.1813  val_R@1: 0.3150  val_R@10: 0.6943  <- best so far
+[biobert_unfreeze_0] Epoch 30/100  loss: 2.1883  val_loss: 3.1914  val_R@1: 0.3169  val_R@10: 0.6928
+[biobert_unfreeze_0] Epoch 31/100  loss: 2.1628  val_loss: 3.1986  val_R@1: 0.3137  val_R@10: 0.6854
+[biobert_unfreeze_0] Epoch 32/100  loss: 2.1492  val_loss: 3.1872  val_R@1: 0.3054  val_R@10: 0.6886
+[biobert_unfreeze_0] Epoch 33/100  loss: 2.1262  val_loss: 3.2059  val_R@1: 0.3099  val_R@10: 0.6855
+[biobert_unfreeze_0] Epoch 34/100  loss: 2.1164  val_loss: 3.2067  val_R@1: 0.3202  val_R@10: 0.6862
+[biobert_unfreeze_0] Epoch 35/100  loss: 2.0949  val_loss: 3.2280  val_R@1: 0.3096  val_R@10: 0.6857
+[biobert_unfreeze_0] Epoch 36/100  loss: 2.0800  val_loss: 3.2064  val_R@1: 0.3137  val_R@10: 0.6873
+[biobert_unfreeze_0] Epoch 37/100  loss: 2.0650  val_loss: 3.1918  val_R@1: 0.3130  val_R@10: 0.6893
+[biobert_unfreeze_0] Epoch 38/100  loss: 2.0451  val_loss: 3.2060  val_R@1: 0.3109  val_R@10: 0.6901
+[biobert_unfreeze_0] Epoch 39/100  loss: 2.0292  val_loss: 3.2125  val_R@1: 0.3158  val_R@10: 0.6879
+[biobert_unfreeze_0] Early stopping: no val_loss improvement for 10 epochs (stopped after epoch 39/100)

@@ -85,6 +85,7 @@ class ProteomicsDataset(Dataset):
         live_text: bool = False,
         text_flags: dict | None = None,
         view_biobert_filenames: list[str] | None = None,
+        multi_positive: bool = False,
     ):
         if test_patient_ids is None:
             test_patient_ids = set()
@@ -94,12 +95,17 @@ class ProteomicsDataset(Dataset):
         self.use_abundance = use_abundance
         self.live_text = live_text
         self.multi_view = view_biobert_filenames is not None
+        self.multi_positive = multi_positive
         if self.multi_view and live_text:
             raise ValueError("view_biobert_filenames (precomputed multi-view random "
                               "selection) and live_text (live BioBERT unfreeze encoding) "
                               "are not combinable -- not needed for either experiment as "
                               "currently scoped, would add live-encoding complexity to "
                               "every one of the (up to 3) views per sample")
+        if multi_positive and not self.multi_view:
+            raise ValueError("multi_positive requires view_biobert_filenames -- it needs "
+                              "more than one text view per protein to have multiple "
+                              "positives to work with in the first place")
 
         if not use_abundance:
             # Patient-invariant path (Stage 1, see CLAUDE.md section 11):
@@ -156,6 +162,29 @@ class ProteomicsDataset(Dataset):
                 print(f"Multi-view dataset: {len(usable_proteins):,} proteins, "
                       f"{n_with_all_views:,} ({n_with_all_views / len(usable_proteins) * 100:.1f}%) "
                       f"have all {len(view_biobert_filenames)} views available")
+
+                if self.multi_positive:
+                    # One row per (protein, view) instead of one row per
+                    # protein with a random draw -- every available view
+                    # becomes its own training example, so a protein with
+                    # all 3 views contributes 3 rows in this epoch, not 1.
+                    # protein_id_to_idx gives each protein a stable integer
+                    # id (sorted order, same determinism precedent as
+                    # `usable_proteins = sorted(...)` above) -- used by the
+                    # multi-positive loss to tell which rows in a batch
+                    # belong to the same protein. GroupedBatchSampler (see
+                    # below) is what actually gets a protein's rows to
+                    # co-occur in one batch -- plain shuffling would not.
+                    self.protein_id_to_idx = {pid: i for i, pid in enumerate(usable_proteins)}
+                    self.pairs = [
+                        (pid, view_idx)
+                        for pid in usable_proteins
+                        for view_idx in range(len(self.protein_text_views[pid]))
+                    ]
+                    print(f"Multi-positive dataset: {len(self.pairs):,} (protein, view) rows "
+                          f"from {len(usable_proteins):,} unique proteins")
+                    return
+
                 self._view_rng = random.Random(MULTI_VIEW_SEED)
                 self.pairs = list(self.protein_esm2.keys())
                 return
@@ -271,6 +300,16 @@ class ProteomicsDataset(Dataset):
             esm2_vec = cd["esm2_matrix"][cd["esm2_id_to_idx"][protein_id]]
             protein_emb = torch.cat([esm2_vec, torch.tensor([abundance], dtype=torch.float32)])
             text_emb = cd["biobert_matrix"][cd["biobert_protein_id_to_idx"][protein_id]]
+        elif self.multi_positive:
+            protein_id, view_idx = self.pairs[idx]
+            protein_emb = self.protein_esm2[protein_id]
+            text_emb = self.protein_text_views[protein_id][view_idx]
+            # Returned alongside the two embeddings (unlike every other path
+            # in this dataset) so the multi-positive loss can tell which
+            # rows in a batch share a protein -- plain (protein_emb, text_emb)
+            # carries no such signal on its own.
+            protein_idx = self.protein_id_to_idx[protein_id]
+            return protein_emb, text_emb, protein_idx
         elif self.multi_view:
             protein_id = self.pairs[idx]
             protein_emb = self.protein_esm2[protein_id]
@@ -285,3 +324,67 @@ class ProteomicsDataset(Dataset):
             text_emb = self.protein_text[protein_id]
 
         return protein_emb, text_emb
+
+
+class GroupedBatchSampler:
+    """
+    Used only with ProteomicsDataset(multi_positive=True). Plain random
+    shuffling of the (protein, view) rows would almost never put the same
+    protein's 2-3 rows in the same batch (a batch covers only ~1.6% of the
+    ~36k rows) -- and the multi-positive loss has nothing to pull together
+    if a protein's rows never co-occur. This sampler instead shuffles
+    PROTEINS (not rows), then fills each batch by pulling in a whole
+    protein's row-group at a time, so every row belonging to a protein that
+    makes it into a batch is guaranteed to land in that same batch together.
+
+    Batches are built greedily and are NOT exactly `batch_size` -- a
+    protein's group (1-3 rows) is never split across batches, so the last
+    group added to a batch may push it slightly over `batch_size`, and the
+    final batch of an epoch is typically smaller. This is deliberately
+    tolerated rather than padded/truncated -- both InfoNCE-style losses
+    here already handle variable batch sizes fine (the loss and the
+    in-batch recall diagnostic both read the actual batch size off the
+    tensors, nothing assumes a fixed 512).
+
+    Seeded (MULTI_VIEW_SEED, same convention as the rest of this file) so
+    batch composition is reproducible across runs, matching the
+    determinism precedent set for the DataLoader shuffle order elsewhere
+    in this project (see train_protein_level.py's `shuffle_generator`).
+    """
+    def __init__(self, dataset: "ProteomicsDataset", batch_size: int, seed: int = MULTI_VIEW_SEED):
+        if not getattr(dataset, "multi_positive", False):
+            raise ValueError("GroupedBatchSampler requires a ProteomicsDataset built with "
+                              "multi_positive=True -- dataset.pairs must be (protein_id, view_idx) "
+                              "rows for the protein-grouping logic below to apply")
+        self.batch_size = batch_size
+        self._rng = random.Random(seed)
+
+        # groups: protein_id -> list of row-indices (into dataset.pairs)
+        groups: dict = {}
+        for row_idx, (protein_id, _view_idx) in enumerate(dataset.pairs):
+            groups.setdefault(protein_id, []).append(row_idx)
+        # Sorted protein order first (deterministic base order, same
+        # rationale as `usable_proteins = sorted(...)` elsewhere in this
+        # file), THEN shuffled per-epoch via self._rng -- so the *set* of
+        # groups is fixed and only their draw order varies.
+        self._protein_ids = sorted(groups.keys())
+        self._groups = groups
+        self._n_batches = None  # computed lazily on first __len__/__iter__ call
+
+    def __iter__(self):
+        protein_order = list(self._protein_ids)
+        self._rng.shuffle(protein_order)
+
+        batch: list[int] = []
+        for protein_id in protein_order:
+            batch.extend(self._groups[protein_id])
+            if len(batch) >= self.batch_size:
+                yield batch
+                batch = []
+        if batch:
+            yield batch
+
+    def __len__(self):
+        if self._n_batches is None:
+            self._n_batches = sum(1 for _ in self)
+        return self._n_batches

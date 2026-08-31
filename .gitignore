@@ -12,3 +12,4 @@ data/runs/full_proteome/unfreeze_experiment/biobert_unfreeze_[1-9]*.pt
 data/runs/luad*/
 data/luad/checkpoint.pt
 data/runs/full_proteome/archive/**/*.pt
+docs/

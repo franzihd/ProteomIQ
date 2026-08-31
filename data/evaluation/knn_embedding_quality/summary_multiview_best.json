@@ -1,0 +1,54 @@
+{
+  "checkpoint": "data/runs/full_proteome/multiview_experiment/multiview_best.pt",
+  "include_test": false,
+  "results": {
+    "deeploc": {
+      "eval_set": "deeploc",
+      "n_proteins": 2398,
+      "n_classes": 9,
+      "random_baseline": 0.1111111111111111,
+      "agreement_at_k": {
+        "5": 0.7471226021684695,
+        "10": 0.7343619683069255,
+        "20": 0.7226021684737312
+      },
+      "raw_esm2_agreement_at_k": {
+        "5": 0.5770642201834838,
+        "10": 0.5432443703085921,
+        "20": 0.5009174311926604
+      }
+    },
+    "ec": {
+      "eval_set": "ec",
+      "n_proteins": 3812,
+      "n_classes": 7,
+      "random_baseline": 0.14285714285714285,
+      "agreement_at_k": {
+        "5": 0.8639559286463825,
+        "10": 0.8267838405036761,
+        "20": 0.7750524658971648
+      },
+      "raw_esm2_agreement_at_k": {
+        "5": 0.6840503672612838,
+        "10": 0.6241867785939154,
+        "20": 0.5622245540398753
+      }
+    },
+    "go_mf": {
+      "eval_set": "go_mf",
+      "n_proteins": 6721,
+      "n_classes": 10,
+      "random_baseline": 0.1369736646332391,
+      "agreement_at_k": {
+        "5": 0.8687397708674337,
+        "10": 0.8466746019937499,
+        "20": 0.8242746615087014
+      },
+      "raw_esm2_agreement_at_k": {
+        "5": 0.7383722660318444,
+        "10": 0.6912215444130333,
+        "20": 0.6469498586519822
+      }
+    }
+  }
+}

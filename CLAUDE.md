@@ -552,517 +552,10 @@ A protein at 0.8 semantic similarity but 5th percentile abundance is probably no
 - **R@K limitation — name shortcut:** both ESM2 and BioBERT encode protein identity (ESM2 via unique sequence, BioBERT via gene name in UniProt annotation e.g. "EGFR: receptor tyrosine kinase..."). The model may be learning name matching rather than purely biological function. A stricter evaluation would mask the gene name from the annotation text. This is worth one sentence of acknowledgment in the thesis as a known limitation.
 
 
-## Next steps (as of 2026-06-28)
 
-### Pathway AUROC evaluation (implemented)
-`src/evaluation/pathway_evaluation.py` evaluates the model against all ~300 KEGG
-human pathways using AUROC as the metric. For each pathway, the pathway name is
-used as a natural language query; AUROC measures how well the model ranks pathway
-members above non-members across all test patients.
+## Pre-Section-11 History (sections 1–10, and three superseded "Next steps" snapshots)
 
-**First results (multi-cohort checkpoint, raw pathway names as queries):**
-- Overall mean AUROC: ~0.72–0.75 (random baseline = 0.50)
-- Top pathways: Mucin O-glycan biosynthesis (0.96), Arginine biosynthesis (0.95),
-  Fatty acid biosynthesis (0.90), Mismatch repair (0.84)
-- Cancer signaling pathways score moderately: Cell cycle (0.71), cAMP (0.69)
-- Full results saved to `data/evaluation/pathway_auroc_results.csv`
-
-**Why some pathways score high:** members share distinctive UniProt vocabulary
-(e.g. "glycosyltransferase"). **Why some score lower:** large, diverse pathways
-(Cell cycle, MAPK) whose members have heterogeneous annotations.
-
-### Next: focused evaluation with natural language queries
-**Update (2026-07-06):** the hand-picked approach below was rejected by the professor as not scientifically defensible — replaced with objective, performance-blind selection criteria. See the "Next steps (as of 2026-07-06)" section and Timeline section 8d for what was actually built and the results. Kept here as a historical record of the original plan.
-
-Select ~20 biologically meaningful pathways (in consultation with professor) and
-replace raw pathway names with natural language queries a researcher would type:
-- e.g. "Ribosome" → "proteins that make up the ribosome and are involved in translation"
-- Compare AUROC: raw pathway name vs. natural language query
-
-**Candidate pathways (to confirm with professor):**
-- DNA repair: Homologous recombination, Mismatch repair, DNA replication
-- Cancer signaling: Cell cycle, Apoptosis, p53 signaling, ErbB signaling, mTOR signaling
-- Metabolism: Glycolysis, Fatty acid biosynthesis, Oxidative phosphorylation
-- Structural: Ribosome, RNA polymerase, Spliceosome
-- Immune/ECM: Complement and coagulation, Focal adhesion, Cell adhesion molecules
-
-### Activity score for patient-specific retrieval
-Pure cosine similarity gives the same ranked list for every patient — not
-patient-specific. The pragmatic fix is `activity_score` at inference:
-
-```
-activity_score = cosine_similarity × abundance_rank
-```
-
-This weights retrieval by both semantic relevance AND expression in this specific
-patient. Implement in `query_evaluation.py` and the Streamlit app.
-**Abundance stays in the embedding** — removing it would break patient-specificity,
-which is the core claim of the thesis title ("natural language retrieval in
-clinical proteomics"). The abundance scalar likely contributes minimally to the
-learned representation (1 dim vs. 640 ESM2 dims), but `activity_score` at
-inference restores patient-specificity without architecture changes. A dedicated
-abundance encoding pathway (separate MLP branch) is left as future work.
-
-### LLM integration (proof-of-concept)
-After retrieval: top-K protein IDs → filter from CSV → LLM prompt with
-abundance values + UniProt annotations → LLM generates biological hypotheses.
-Goal: biological hypothesis generation, not clinical diagnosis (1,000 samples
-is too few for clinical conclusions). Implement as Streamlit proof-of-concept
-with 2–3 example queries showing the full pipeline end-to-end.
-
-## Next steps (as of 2026-07-06)
-
-### Objective pathway selection (implemented, replaces hand-picking)
-Professor flagged that hand-picking ~20 pathways is not scientifically defensible — any manually curated list can be second-guessed as selection bias, no matter how principled the reasoning behind each pick. Replaced with pre-specified, performance-blind inclusion criteria applied to all 320 KEGG pathways at once, decided before looking at any AUROC results:
-
-- `src/evaluation/pathway_final_choice.py` — applies the coverage filter (≥50% of pathway genes measured), the power filter (≥5 measured genes in the worst-covered test patient), and computes annotation coverage as a reported covariate (not a filter). Also flags cohort-matched cancer-type pathways as a pre-specified secondary analysis. Output: `data/evaluation/pathway_final_choice.csv`.
-- `src/evaluation/pathway_final_auroc_evaluation.py` — computes AUROC only for the pathways that passed both hard filters, merges the scores back onto the selection table. Output: `data/evaluation/pathway_final_auroc_results.csv`.
-
-Full results and the checkpoint-version caveat discovered while comparing against the earlier unfiltered run are in Timeline section **8d**.
-
-### Key interpretive finding: R@K vs. pathway AUROC gap
-Multi-cohort R@K (90.9% / 99.75% / 99.96%) and pathway AUROC (mean 0.573, uneven, 32% below random) are not contradictory — they test different things. R@K's query for each evaluation instance is a protein's own true annotation text, which contains its own gene name — a closed-set self-identification task with a built-in shortcut. Pathway AUROC's queries are generic category names with no gene names — an open-vocabulary generalization task with no shortcut available. The size of the gap between the two is evidence for the "name shortcut" limitation already noted elsewhere in this file — now quantified rather than just suspected.
-
-### Decision: natural-language queries before more training data
-Two options considered for closing the pathway AUROC gap: (a) rephrase pathway queries in natural language, (b) get more/richer training data (GO-term augmentation). Decision: do (a) first — it's cheap (no retraining, just rerun the existing checkpoint with rewritten queries), fast (~an afternoon), and diagnostic (tells us whether the gap is query-phrasing or a real generalization limit). CPTAC cohort count is also already maxed out (9/10 usable cohorts, COAD structurally broken in the library), so "more training data" in practice means the heavier GO-term augmentation investment — only justified if (a) shows the gap survives well-phrased queries.
-
-**Result (2026-07-07):** (a) was run, twice, with two independently-motivated phrasing styles — see Timeline **8e**. The gap survives both. Decision confirmed: GO-term augmentation is now justified by evidence, not just a fallback guess — see updated section 9 below.
-
-## Next steps (as of 2026-07-07) — retraining plan and architecture decisions
-
-### Decision: drop clinical description from training text, keep abundance in the protein input
-Following 8e's result, the next retrain changes the **text side only**: train against **UniProt annotation only** (no clinical description), GO terms to be added in a follow-up retrain. Rationale, in order:
-
-1. **Fixes a real train/inference mismatch, independently discovered while reasoning through this.** Training text was always `UniProt annotation + patient clinical description`, but the query at inference (`evaluate.py`, and the planned Streamlit tool) is always just a plain researcher question — clinical description was never part of any real query. Training text and inference text were in different formats the whole time.
-2. **Matches CellWhisperer's actual design discipline**, on inspection (see below): numbers belong in the numeric encoder (abundance, already true), text should describe pure identity/function, and clinical/sample context belongs in a separate, downstream step — not fused into the retrieval training pairs.
-3. **One variable per experiment.** Abundance stays in the 641-dim protein input, unchanged, specifically so this retrain isolates exactly one change (text side). The already-planned abundance ablation (train with vs. without the scalar) is a *separate* experiment, to be run against this new baseline, not bundled into it.
-4. GO-term augmentation is deferred to a second retrain on top of this one (also a one-variable-at-a-time decision), rather than combined in a single step — costs one extra retrain cycle, but keeps attribution clean. Given the 2-month window this could be revisited to combine both into one retrain if time pressure demands it; if so, note explicitly that the result would be confounded between the two changes.
-
-**Practical effect:** since text no longer varies per patient, `biobert_embeddings.h5` collapses from `(patients × proteins × 768)` to `(proteins × 768)` — one embedding per protein instead of per `(patient, protein)` pair. This is a large compute/storage win (the ~9-10 hour multi-cohort BioBERT runtime should drop to roughly the same order as the ESM2 pass, since it's now also one forward pass per protein). The *number of training pairs* for the InfoNCE loss is unaffected (still ~1M-13M) — pair count is set by how many `(patient, protein)` combinations have a measured, non-NaN abundance value (a data-availability fact, gated in `dataset.py`), not by whether text varies per patient.
-
-### Theoretical finding: this likely removes any training incentive for abundance to matter
-Worked through carefully before committing to the retrain: with `clinical_description` removed, the text target for a given protein is identical across every patient. In a typical training batch (512 pairs sampled from millions), a same-protein-from-two-different-patients collision is rare — nearly every negative in a batch is a genuinely different protein, already trivially distinguishable via the 640-dim ESM2 embedding alone. So InfoNCE can reach near-zero loss by learning "map each protein's ESM2 fingerprint to its own fixed UniProt-text point" while **completely ignoring the abundance dimension** — ignoring it costs nothing, since two patients' copies of the same protein still both correctly match the identical text target regardless. The original design's only real incentive for abundance to matter was that clinical description made the *text* side patient-specific too, giving the model a reason to make the *protein* side patient-specific in response. Removing it removes that incentive. This is consistent with, and reinforces, the existing "Abundance scalar contribution is uncertain" limitation noted above (line ~513) — under the *original* design (with clinical description) that contribution was already suspected to be small; under the *new* design it plausibly drops further, for a specific, identifiable reason rather than just suspicion.
-
-**Why this isn't fatal:** patient-specific ranking doesn't have to come from the learned embedding. `activity_score = cosine_similarity(query, protein_embedding) × abundance_rank` (already planned, see line ~763) computes patient-specificity **at inference, from the raw abundance value directly** — it does not require abundance to have been meaningfully absorbed into the trained representation at all. `cosine_similarity` handles "how relevant is this protein to the query, generically" (Stage 1's job); multiplying by the patient's own raw `abundance_rank` handles "and is it actually expressed in this specific patient" (a data lookup, not a learned quantity). This resolves the standing worry about patient-specificity cleanly: implement and test `activity_score` on real query/patient examples as a near-term, low-cost step, independent of whatever the retrain's embedding does or doesn't learn about abundance.
-
-### CellWhisperer comparison, clarified (relevant for Related Work / justifying design choices)
-Checked directly against CellWhisperer's public methodology (paper abstract, GitHub README — full paper is paywalled) before assuming parity:
-- **Granularity differs fundamentally.** CellWhisperer pairs one whole transcriptome (one cell/sample) with one caption describing that sample's identity (cell type, tissue, disease). It never splits "molecule identity" from "sample context" the way ProteomIQ does, because it operates at cell/sample granularity, not gene granularity — there is no CellWhisperer equivalent of "UniProt annotation + clinical description," because it never needed one. ProteomIQ's protein-level choice (deliberate, and the actual thesis differentiator — see "Why protein-level" in Project goal) is what created this two-level text-fusion problem in the first place; CellWhisperer offers no ready-made precedent to copy for it.
-- **CellWhisperer's chat interface is a fine-tuned LLaVA-style model, not a prompted API call.** It uses a trainable adapter to inject raw transcriptome-embedding vectors directly into an LLM's context, then fine-tunes (adapter, often the LLM itself too) on curated `(embedding, question, answer)` data — a substantial additional research effort (open-weight LLM access, custom instruction-tuning dataset, extra compute).
-- **Decision: do not pursue LLM fine-tuning.** ProteomIQ's planned LLM-interpretation step (Claude API, given retrieved proteins + abundances + UniProt text + clinical description as a plain-text prompt, see "Planned tool" section) achieves the same end-user goal (natural-language interpretation of retrieval results) without any fine-tuning, using Claude's existing pretrained knowledge via in-context prompting. This is also the only option available in practice — Anthropic does not offer end-users raw-embedding injection or fine-tuning of Claude's internals the way LLaVA-style approaches require open-weight models. No further evaluation of this alternative is planned given the 2-month timeline.
-
-### Stretch goal (optional, sequenced after the core retraining plan): hierarchical sample-level embedding
-An idea for restoring a *learned* (not just post-hoc) patient-specific signal, worth recording even though not immediately actioned: pool all of a patient's protein-in-sample embeddings `h[j,i]` via **abundance-weighted pooling** (`z_sample[j] = sum_i normalize(abundance[j,i]) * h[j,i]`) into one whole-sample embedding, project it, and align it against the patient's clinical description with a second, separate contrastive loss — architecturally this is CellWhisperer's actual cell-level mechanism, added *alongside* (not replacing) protein-level embeddings. The abundance-weighted pooling step is the key insight: it guarantees the sample embedding varies by each patient's abundance *pattern* even if `protein_mlp` itself never learns to use the abundance dimension internally, since the pooling weights come directly from raw abundance regardless. Assessed as sound but out of scope for now: bringing clinical description back in here is fine (no mismatch — the anticipated sample-level query register matches a clinical-description-style target, unlike the protein-level case), but it requires a materially bigger engineering lift (new pooling mechanism, new projection head, a second loss to balance, and a restructured per-patient batching scheme, vs. the current per-`(patient,protein)`-pair batching). If pursued, do it **staged**: freeze the Stage 1 `protein_head` from the core retrain, and train only the new pooling + sample-projection + clinical-text head on top of it, rather than building one large joint system from scratch. Only worth attempting if the core retraining plan (drop clinical description → GO terms → `activity_score` validation) is done with time remaining.
-
-## Thesis Structure — Timeline
-
-Chronological overview of everything built, in the order it was done.
-Use this as the basis for structuring the thesis.
-
-### 1. Data acquisition
-Downloaded CPTAC proteomics and clinical data for 9 cancer cohorts via the `cptac` Python package.
-
-Per cohort:
-- `proteomics_raw.csv` — protein abundance matrix (patients × proteins)
-- `clinical.csv` — clinical metadata (age, tumor stage, smoking history, etc.)
-
-Key decisions:
-- Source: `umich` (bcm was broken for all cohorts)
-- Clinical data: `mssm` for all cohorts
-- COAD skipped — both available sources fail internally in the cptac library
-
-### 2. Text side preparation
-
-**2a. Clinical descriptions** (`src/text_generation.py`)
-
-Each patient row → natural language sentence:
-> *"67-year-old male, Stage III lung adenocarcinoma, former smoker, BMI 24.1 (normal weight)..."*
-
-**2b. UniProt annotations** (`src/Textual/fetch_uniprot.py`)
-
-ENSP IDs → UniProt REST API → gene name, annotation text, amino acid sequence per protein:
-> *"EGFR: receptor tyrosine kinase involved in cell proliferation..."*
-
-Training text = UniProt annotation + clinical description (concatenated on-the-fly, never saved to disk)
-
-### 3. Preprocessing — rank normalization
-`src/preprocessing/rank_normalize.py` replaces raw abundance values with within-sample percentile ranks [0, 1].
-
-Why: raw abundance values are not comparable across experiments/instruments. Within-sample rank is instrument-agnostic and makes the model applicable to new patient samples at inference time.
-
-### 4. Pre-computing embeddings
-
-**4a. ESM2 embeddings** (`src/embeddings/protein/esm2_embeddings.py`)
-
-Protein sequence → ESM2 (150M params, frozen) → 640-dim vector per protein.
-Saved to `data/{cohort}/esm2_embeddings.h5`. Runtime ~13 min per cohort on RTX A6000.
-
-**4b. BioBERT embeddings** (`src/embeddings/textual/embed_biobert.py`)
-
-(UniProt annotation + clinical description) → BioBERT (frozen) → 768-dim vector per (protein, patient) pair.
-Saved to `data/{cohort}/biobert_embeddings.h5`. Runtime ~60 min per ~110 patients.
-
-Why pre-compute: ESM2 and BioBERT are large models — computing embeddings once and caching them makes training feasible without fine-tuning.
-
-### 5. Model architecture
-`src/model/projection_head.py` — shared MLP architecture (LayerNorm + ReLU + L2 norm):
-- Protein head: 641→512→256 (ESM2 640-dim + abundance scalar)
-- Text head: 768→512→256
-
-Both heads project into a shared 256-dim embedding space. Only the two MLPs are trained — ESM2 and BioBERT stay frozen throughout.
-
-### 6. Training
-`src/model/train.py` — InfoNCE contrastive loss (CLIP-style)
-
-Hyperparameters:
-- Batch size: 512, Epochs: 16, Max LR: 1e-5, Temperature: 0.07
-- LR schedule: linear warmup (3%) → cosine decay
-- Patient-level test split: 10–15 patients per cohort held out, never seen during training
-
-Result (LUAD, 101 training patients, 16 epochs): loss 4.79 → 0.86
-
-### 7. Multi-cohort scaling
-All preprocessing steps extended to 8 cohorts: LUAD, BRCA, CCRCC, GBM, HNSCC, LSCC, OV, PDAC.
-
-Multi-cohort checkpoint: `data/runs/luad_brca_ccrcc_gbm_hnscc_lscc_ov_pdac/checkpoint.pt`
-Test patients: `data/test_patients_per_cohort.json` — 10 per cohort, reproducible with `random.seed(42)`
-
-### 8. Evaluation
-
-**8a. R@K** (`src/model/recall_at_k.py`)
-
-For each (protein, patient) pair: text embedding → cosine similarity against all protein embeddings → rank of the correct protein.
-
-| Experiment | R@1 | R@10 | R@50 |
-|---|---|---|---|
-| LUAD only (101 patients) | 61.50% | 94.02% | 98.22% |
-| Multi-cohort (9 cohorts, all test patients) | 90.99% | 99.75% | 99.96% |
-
-Random baseline: R@1 ≈ 0.01%
-
-Full incremental scaling curve (R@K recomputed after adding each cohort, 1→9) saved to `data/scaling_results_v2.json`, computed via `src/model/run_experiments.py`. R@1 rises monotonically from 66.5% (LUAD only, this run's own checkpoint) to 90.9% (all 9 cohorts) — confirms the scaling hypothesis. Note: the 66.5%/95.4%/98.6% "LUAD only" numbers in that JSON come from a different checkpoint/test-split setup (`data/runs/luad/checkpoint.pt`, 10 held-out patients) than the 61.50%/94.02%/98.22% row above (`data/luad/checkpoint.pt`, 15 held-out patients) — both are valid but not directly comparable; don't mix them in the same table without noting the difference.
-
-**Important — R@K measures something narrower than it looks like it does.** `recall_at_k.py` queries each protein with *its own* pre-cached true annotation text, which by construction starts with its own gene name (e.g. `"EGFR: receptor tyrosine kinase..."`). Near-100% R@K mostly proves the model can re-identify a protein from a description containing its own name — a closed-set self-identification task with a built-in shortcut, not evidence of general biological understanding. See **8d** below for the harder, shortcut-free test (pathway AUROC) and how the two numbers together tell the real story.
-
-**8b. Query evaluation** (`src/model/query_evaluation.py`)
-
-Fixed biological queries → mean percentile rank across all test patients.
-
-Key findings:
-- Collagen queries work very well: COL1A1 top 0.8%, COL1A2 top 0.9%
-- Structural/ECM proteins generally good — model learned these clearly
-- Functional groups weak: MTOR 98.3%, RPS3 73.3% — near random
-- Root cause: model was trained on UniProt vocabulary, not generic biological query language
-
-**8c. Pathway AUROC** (`src/evaluation/pathway_evaluation.py`)
-
-~300 KEGG pathways as ground truth → AUROC measures how well the model ranks pathway members above non-members across all test patients.
-
-First results (multi-cohort checkpoint, raw pathway names as queries):
-- Mean AUROC: ~0.72–0.75 (random baseline = 0.50)
-- Best: Mucin O-glycan biosynthesis (0.96), Arginine biosynthesis (0.95), Fatty acid biosynthesis (0.90)
-- Cancer signaling: Cell cycle (0.71), cAMP signaling (0.69)
-- Full results: `data/evaluation/pathway_auroc_results.csv`
-
-**8d. Objective pathway selection + filtered AUROC** (`src/evaluation/pathway_final_choice.py`, `src/evaluation/pathway_final_auroc_evaluation.py`)
-
-Problem: the ~20 hand-picked pathways originally planned for a "focused evaluation" (see section 9 of the 2026-06-28 notes below) were rejected by the professor as not scientifically defensible — manually curating a subset out of 320 candidates is selection bias, however well-intentioned the picks are.
-
-Solution: replace pathway *picking* with pre-specified pathway *inclusion criteria*, applied identically to all 320 KEGG pathways and decided before looking at any AUROC results:
-1. **Coverage filter (hard cutoff):** `mean_measured / kegg_total_genes >= 50%` — at least half of a pathway's KEGG member genes must actually be measured (non-NaN), on average across test patients. Excludes 75/320 pathways — mostly membrane receptors/GPCRs and low-abundance secreted signaling proteins (olfactory transduction, taste transduction, cytokine-receptor interaction), a known mass-spec detection blind spot rather than a flaw in the filter.
-2. **Power filter (hard cutoff):** `min_measured >= 5` (matches `MIN_POSITIVES`, already used for AUROC stability elsewhere) — the *worst-covered* test patient must still have ≥5 measured pathway genes, so no patient is silently dropped from a pathway's AUROC computation.
-3. **Annotation coverage (covariate, not a filter):** fraction of a pathway's genes with a real UniProt annotation (vs. the ~1,421 unannotated TrEMBL entries) — reported next to AUROC so a low score can be judged as a model failure vs. a UniProt data gap, but it does not gate inclusion.
-
-Cohort-matched cancer-type pathways (Non-small cell lung cancer for luad/lscc, Breast cancer, Renal cell carcinoma, Glioma, Pancreatic cancer, Endometrial cancer) are flagged as a **pre-specified secondary analysis** — motivated by "these are the cohorts the model trained on," decided independent of how they score. HNSCC and OV have no direct KEGG cancer-type match.
-
-**Results (9-cohort checkpoint, `data/evaluation/pathway_final_auroc_results.csv`):**
-- 245 / 320 pathways passed both hard filters
-- Mean AUROC = 0.573 (median 0.556, range 0.32–0.95)
-- 79 / 245 pathways (32%) scored *below* the 0.5 random baseline — notably neurological/cardiac disease pathways with no obvious proteomic signature in cancer patients (Alzheimer disease 0.355, Arrhythmogenic right ventricular cardiomyopathy 0.333)
-- Correlations: `coverage_fraction` r=+0.23, `annotation_coverage_fraction` r=+0.24, `kegg_total_genes` r=-0.37 — bigger/more diffuse pathways score worse, a quantitative confirmation of the "large heterogeneous pathways underperform" pattern first noticed in 8c
-- **Cohort-matched secondary analysis:** mean AUROC = 0.473, *below* the overall 0.573 — Glioma 0.539, NSCLC 0.507, Pancreatic cancer 0.470, Renal cell carcinoma 0.429, Endometrial cancer 0.417. **Breast cancer was excluded from the evaluation set entirely** — its coverage (47.8%) fell just under the 50% cutoff, before AUROC was ever computed. This is the filter working as intended: it excludes even the most thesis-relevant pathway when the data doesn't support it, with zero regard for how the result would look.
-
-**Methodological caveat — checkpoint confound:** comparing 0.573 (new, filtered, 9-cohort checkpoint) against the earlier 0.72–0.75 (8c, unfiltered, 8-cohort checkpoint) is misleading. When the *old* unfiltered results are restricted to the same 245 pathways, the mean is 0.605 — nearly identical to its own full-320-pathway mean (0.606). This shows **the filtering itself barely changes the aggregate number**; the ~3-point gap between 0.605 and 0.573 is attributable to the checkpoint version (8-cohort vs. 9-cohort/+UCEC), not to pathway selection. Rerun both evaluations on the same checkpoint before making any "filtering changed the result" claim in the thesis.
-
-**8e. Natural-language query rewrites — two independent phrasing styles** (`src/evaluation/pathway_nl_queries.py`, `src/evaluation/pathway_nl_queries_compact.py`, `src/evaluation/pathway_nl_auroc_evaluation.py`, `src/evaluation/pathway_three_way_auroc_evaluation.py`)
-
-Tests whether the low cohort-matched AUROC (0.473 mean, see 8d) is a query-phrasing problem (raw KEGG names are database jargon) or a genuine generalization limit. Same methodology as pathway selection: one fixed prompt template applied identically to all 245 pathways, generated via the Claude API (`claude-opus-4-8`) *before* any AUROC results exist — no per-pathway hand-tuning after seeing scores. Ground truth (gene membership) is unchanged in all conditions; only the query text fed to the text encoder differs.
-
-**Condition 1 — explanatory sentence** (`pathway_nl_queries.py`): prompt asked for "a short natural-language description... the way a researcher would type it into a search box." Produced uniform "How X does Y" explanatory sentences — in hindsight, this is closer to the register of the *planned LLM-interpretation step* (Claude explaining retrieved proteins to a researcher, see "Planned tool" section) than the *query* register a researcher actually types to search. Kept anyway and reported honestly, since the prompt was locked before evaluation.
-
-**Condition 2 — compact search-query phrase** (`pathway_nl_queries_compact.py`): a second, independently-motivated prompt asking for a compact 3-8 word noun phrase, no question, no explanation — designed to better match real query behavior (PubMed/GSEA-style keyword phrases), decided *before* seeing whether it would score better, to avoid the same selection bias risk as the first prompt.
-
-**Results (`data/evaluation/pathway_nl_auroc_results.csv`, `data/evaluation/pathway_three_way_auroc_results.csv`):**
-
-| | mean AUROC | median | below random (n/245) |
-|---|---|---|---|
-| raw KEGG name | 0.573 | 0.556 | 79 |
-| explanatory NL | 0.603 | 0.588 | 53 |
-| compact NL | 0.573 | 0.563 | 73 |
-
-- Explanatory phrasing improved the aggregate; compact phrasing landed statistically identical to raw names (same mean, only 111/245 pathways improved vs. 153/245 for explanatory).
-- **Redistribution, not uniform improvement, for explanatory phrasing:** correlation(raw_auroc, delta_explanatory) = -0.49 — pathways that scored well on the raw name (small, lexically distinctive biochemical pathways whose KEGG name shares vocabulary with UniProt annotations, e.g. Ribosome, Sulfur relay system, Glycolysis) lost the most ground when paraphrased away from that vocabulary; Ribosome dropped from 0.807 to 0.434, below chance. This is direct, quantified evidence that part of the original 0.573 mean AUROC was inflated by lexical shortcut-matching rather than genuine semantic generalization (same "name shortcut" limitation as 8a, now demonstrated a second way).
-- **The two NL styles don't even agree with each other:** correlation(delta_explanatory, delta_compact) = only 0.31. Compact phrasing crashed "Nitrogen metabolism" (0.834 → 0.393) while barely moving it under explanatory phrasing, and vice versa for other pathways — query-phrasing effects are partly idiosyncratic per pathway, not fully predictable from one general theory.
-- **Cohort-matched pathways (the pathways that matter most for the thesis):**
-
-| | raw | explanatory | compact |
-|---|---|---|---|
-| Endometrial cancer (ucec) | 0.417 | 0.463 | 0.558 |
-| Glioma (gbm) | 0.539 | 0.512 | 0.619 |
-| Pancreatic cancer (pdac) | 0.470 | 0.581 | 0.518 |
-| Renal cell carcinoma (ccrcc) | 0.429 | 0.514 | 0.461 |
-| NSCLC (luad,lscc) | 0.507 | 0.530 | 0.446 |
-| **mean** | **0.473** | **0.520** | **0.520** |
-
-Both NL styles land on the identical 0.520 mean — but via completely different, inconsistent per-pathway routes (compact phrasing helps Glioma/Endometrial a lot but makes NSCLC *worse than the raw name*). Neither style closes the gap to the overall pool mean (~0.57–0.60); both remain in a weak 0.45–0.62 band.
-
-**Conclusion:** two independently-designed phrasing styles were tested, and neither reliably closes the cohort-matched gap — this is now two pieces of evidence, not one experiment that could be a fluke of a particular prompt. Query engineering has real but unpredictable, non-generalizable effects on this task; it is not a substitute for the model actually learning more generalizable biological vocabulary. This justifies prioritizing GO-term augmentation next (see section 9) over further prompt iteration.
-
-### 9. Planned (not yet implemented)
-- ~~20 hand-picked pathways with natural language queries~~ — superseded (see 8d): hand-picking was rejected as not scientifically defensible; objective filtering criteria implemented instead.
-- ~~Natural language query rewrites~~ — **done (see 8e)**: tried two independently-motivated phrasing styles (explanatory sentence, compact search phrase). Neither closes the cohort-matched gap (both land at 0.520 mean vs. 0.473 raw, still well below the overall 0.57–0.60 pool mean) — the low cohort-matched score is a genuine generalization limitation, not primarily a query-phrasing artifact.
-- **Retrain 1 (next up): drop clinical description from training text.** Text = UniProt annotation only. Abundance stays in the 641-dim protein input, unchanged — isolates exactly one variable (see "Next steps as of 2026-07-07" above for full rationale, the train/inference mismatch it fixes, and the theoretical finding that this likely removes any training incentive for abundance to matter — which is fine, `activity_score` covers patient-specificity independently).
-- **Retrain 2: GO-term augmentation** on top of Retrain 1's text (UniProt annotation + GO terms) — exposes the model to generic biological vocabulary at training time. Sequenced *after* Retrain 1 (not combined) to keep attribution clean, revisit combining only if time pressure demands it.
-- **Abundance ablation (separate experiment, run against the Retrain 1 baseline):** train with vs. without the abundance scalar, compare R@K/AUROC, to get a real number on whether it contributes anything under the new text regime.
-- **`activity_score = cosine_sim × abundance_rank`** — validate this on real query/patient examples next; this is the actual mechanism for patient-specific ranking regardless of what the embedding learns, and doesn't require any retraining to test against the current checkpoint.
-- **LLM integration (Claude API, prompted — not fine-tuned)** — proof-of-concept: top-K proteins → LLM prompt with abundances + UniProt annotations → biological hypotheses. Confirmed as prompt-based rather than LLaVA-style fine-tuning (see CellWhisperer comparison above) — out of scope to pursue fine-tuning given the 2-month timeline.
-- **Stretch goal, optional:** hierarchical sample-level embedding via abundance-weighted pooling, aligned with clinical description as a second contrastive task — see "Next steps as of 2026-07-07" above. Only attempt if time remains after the core plan.
-
-### Proposed thesis structure (superseded — see the updated version at the end of section 11, after 11m)
-
-## Current state of ProteomIQ (as of 2026-07-07)
-
-### What it can do
-- Given a patient's protein abundance sample, rank proteins by semantic relevance to a natural language query
-- Works well for queries that use UniProt-style vocabulary, and for small, lexically distinctive biochemical categories: "receptor tyrosine kinase", "component of the 60S ribosomal subunit", "collagen fibril assembly", Ribosome/Glycolysis/Sulfur-metabolism-type pathways (raw-name AUROC 0.8–0.95)
-- R@K=61.5% on LUAD-only test set, 90.9%/99.75%/99.96% on the full 9-cohort model (random baseline ~0.01%) — proves the contrastive training objective worked, though pathway-level AUROC (mean 0.573, see Timeline 8d) shows R@K is partly inflated by a name-matching shortcut
-- query_evaluation.py shows concrete examples: EGFR ranks top 2%, COL1A2 top 0.7%, RPL7 top 0.1% for matching queries
-
-### What it cannot do yet
-- Answer truly patient-specific questions reliably — ranking is currently dominated by protein identity (ESM2), not abundance variation; pure cosine similarity gives nearly the same ranked list for every patient. Worked through *why*, theoretically, in the 2026-07-07 notes: without a patient-varying text target, the contrastive loss has no incentive to use the abundance dimension at all. `activity_score` (inference-time, not learned) is the planned fix — not yet validated on real examples.
-- Score well on the categories that matter most for the thesis's clinical framing — cohort-matched cancer pathways (Glioma, NSCLC, Pancreatic, Renal, Endometrial) score 0.42–0.62 across raw names and two independently-tried natural-language phrasings (Timeline 8e) — a genuine generalization limitation, not a query-phrasing artifact, since two different phrasing styles were tried and neither fixed it.
-- Answer generic researcher questions ("what's driving this tumor?") — model was trained on UniProt annotations, not clinical reasoning language; the planned fix is the downstream Claude-API interpretation step (prompted, not fine-tuned), not the retrieval model itself.
-- Classify cancer type or characterize what kind of patient a sample came from
-- Work outside LUAD in the Streamlit app (not built yet)
-- Say a protein is "overexpressed" — within-sample rank has no cross-patient reference
-
-### How to explain it to a professor
-*"ProteomIQ is a proof-of-concept that shows CLIP-style contrastive training works for proteomics data. Given a patient's protein abundance sample, the model ranks proteins by semantic relevance to a free-text query — for example, ranking EGFR and MET highest for 'receptor tyrosine kinase signaling.' Multi-cohort R@K=90.9% shows the model can discriminate its own training pairs almost perfectly, but that number is inflated by a name-matching shortcut — the harder, shortcut-free pathway-AUROC evaluation (mean 0.573, no gene names in the query) shows more modest, uneven generalization: strong on lexically distinctive biochemical pathways, weak on diffuse cancer-signaling pathways. We tested two independently-designed natural-language query rewrites to see if that weakness was just a phrasing problem — neither closed the gap on the cohort-matched cancer pathways, which is evidence the limitation is a genuine generalization gap, not a fixable prompt. The current retraining plan drops clinical description from the training text (fixing a train/inference format mismatch we identified) and adds GO-term vocabulary, while patient-specific ranking is handled explicitly at inference via `activity_score`, independent of what the embedding itself learns."*
-
-### How it differs from GSEA
-GSEA requires predefined pathway gene sets and tests statistical enrichment. ProteomIQ accepts any free-text natural language query against a specific patient's own measured proteins — a capability GSEA does not have at all, regardless of ProteomIQ's current accuracy. That said, GSEA is the more rigorous, validated tool for confirmatory analysis; ProteomIQ's role is hypothesis generation and exploratory analysis, not a replacement (see "Known limitations" above). The free-text advantage fully materializes once GO-term augmentation is done — until then, the model only works well for queries that closely match UniProt annotation language.
-
-### Is ProteomIQ a useful tool? (honest assessment, 2026-07-07)
-Two different senses of "useful," both worth stating plainly in the thesis discussion:
-
-**As a research prototype:** yes, but scoped narrowly — useful for **hypothesis generation on well-covered biological questions**, not yet as a general-purpose exploration tool (contrast with CellWhisperer, which is built for open-ended whole-dataset exploration across many cells at once — a genuinely different, broader scope than ProteomIQ's one-patient-at-a-time protein retrieval) and explicitly not as a clinical decision tool. The comparison to make is against GSEA (the real alternative), not against a hypothetical perfect tool: GSEA cannot take a free-text question and rank a specific patient's measured proteins against it at all; ProteomIQ can, even with an AUROC profile that's strong in some categories (0.8–0.95) and weak in others (0.42–0.52, notably the clinically-central cancer pathways) — a noisy but real signal is still a legitimate aid for "here's what's worth investigating further," which is the honest, correct scope for this kind of tool.
-
-## Protein-level architecture (as of 2026-07-11) — main thesis direction
-
-Everything above this point (LUAD baseline, multi-cohort scaling, patient-level R@K/pathway AUROC, NL query rewrite experiments) is retained as the **starting point and ablation baseline**, not discarded — but is no longer the thesis's main line of work. Everything from here on is the **main, final architecture** the thesis is built around. Branch: `ablation-drop-abundance` (off `retrain-drop-clinical`).
-
-### 10. Motivation: from "drop clinical" to "drop abundance too"
-Dropping clinical description alone (`retrain-drop-clinical`) fixed a real train/inference text-format mismatch, but didn't close the generalization gap: pathway AUROC on the same 245-pathway evaluation set barely moved (with-clinical 0.5735 → no-clinical 0.5596, both still *with* abundance in the protein input) — if anything slightly worse. This motivated going further: drop abundance from training entirely, and move patient-specificity to a separate, inference-time mechanism (`activity_score`, see 10h) instead of trying to learn it into the embedding. This is the already-planned "abundance ablation," but working through it surfaced problems serious enough to make it the thesis's main architecture rather than a side experiment.
-
-### 10a. The duplicate-pairs problem (discovered before training)
-Once abundance is also dropped, `protein_emb`/`text_emb` become fully patient-invariant — the same protein across many patients becomes a literally identical training row. Deduplicating within one cohort alone already shows the scale: LUAD collapses from 1,052,388 rows (with abundance) to 11,482 (one row per protein, no abundance) — a ~92x reduction. Measured directly (not estimated): summed across all 9 cohorts, per-cohort dedup still leaves 98,029 total rows against only 15,733 truly unique proteins — a **6.23x** cross-cohort duplication factor, with 6,892 proteins (44%) present in literally all 9 cohorts. Exact duplicate rows landing in the same InfoNCE batch create a false-negative problem — the loss demands `sim(protein_A, text_A) > sim(protein_A, text_B)` even when `text_A == text_B` by construction, which is mathematically impossible to satisfy and injects contradictory gradient noise. Decision: deduplicate globally across cohorts, not per-cohort.
-
-### 10b. Verifying cross-cohort identity before deduping
-Checked empirically before assuming it was safe to dedupe: ESM2 embeddings are **bit-identical** across cohorts for the same protein (deterministic function of sequence, frozen model) — confirmed exactly on a sample of shared proteins, zero max-abs-difference. BioBERT/UniProt-text embeddings are identical for 95.3% of proteins shared across all 9 cohorts, but **4.7% (325/6,892) genuinely diverge** — not a bug, but because UniProt's own annotation text was revised between different cohorts' `fetch_uniprot.py` run times (concrete example: ARF5's annotation gained a sentence about mTORC1 regulation between the `luad/brca/ccrcc/gbm` batch and the later `hnscc/lscc/ov/pdac/ucec` batch). Decision: dedup keeps whichever cohort's copy is encountered first, deterministically — and this 95.3%/4.7% split is reported honestly as a small, quantified data-quality footnote rather than building logic to guess which annotation is "more current."
-
-### 10c. Global, protein-level train/validation/test split (not patient-level)
-Once there's no patient-varying signal left at all, a patient-level held-out split stops being meaningful — a held-out patient's proteins were already seen (identical embeddings) via other training patients, so evaluating on them measures memorization, not generalization. Fix: exclude held-out proteins from **every** cohort, globally, not just one. `src/model/protein_train_validation_test.py` builds a reproducible split (`random.seed(42)`, shuffle-then-slice) over the union of all cohorts' usable proteins (15,733 total) → 80% train (12,587) / 10% validation (1,573) / 10% test (1,573), saved to `data/protein_splits.json` as `{"validation": [...], "test": [...]}` (train is implicit — everything else). A validation split (not just train/test) was added specifically because this retrain introduces a new hyperparameter decision (epoch count, see 10e) that has to be made without touching the test set — same principle as the project's existing patient-level test split, applied one level deeper.
-
-**External validation:** found that ProteinCLIP (a real published contrastive protein–text model) uses this same protein-level train/val/test design for exactly this reason. Also worth noting: once abundance is dropped, this architecture's Stage 1 (protein sequence embedding ↔ functional text, no per-sample dimension) structurally converges onto ProteinCLIP's own primary design — not a stripped-down compromise, but landing on an established pattern from the literature.
-
-### 10d. Implementation
-- **`src/model/dataset.py`** — `ProteomicsDataset` gained `use_abundance: bool` and `held_out_protein_ids` / `restrict_to_protein_ids` parameters. When `use_abundance=False`, it builds one **flat, global** `protein_id → (esm2_vec, text_vec)` table merged across all cohorts (no `cohort_idx`/per-cohort bookkeeping at all for this path — only the `use_abundance=True` path keeps the original per-cohort/per-patient structure, since abundance genuinely is patient-specific there). Verified: with-abundance LUAD is unaffected (still exactly 1,052,388 pairs, no regression); global no-abundance dedup across all 9 cohorts gives 12,574 training rows after held-out exclusion (15,733 − 3,146 held out ≈ 12,587 expected; the small gap is a handful of held-out proteins that were never actually measured in any training patient to begin with).
-- **`src/model/train_protein_level.py`** — a dedicated, standalone training script, not a flag bolted onto `train.py` — no patient-level concepts anywhere in it. `torch.manual_seed(42)` plus a seeded `DataLoader` generator (added after discovering that *unseeded* runs made epoch-count comparisons meaningless — identical `--epochs` values gave different results run to run, purely from random weight initialization and batch shuffle order, independent of the `random.seed(42)` already used elsewhere for data splitting — a different RNG, in a different library, doing a different job). `--epochs` is required with no default, forcing a deliberate choice. Saves both `checkpoint.pt` (latest epoch) and `checkpoint_best.pt` (lowest `val_loss` epoch, tracked automatically every epoch), with `val_loss`/`epoch`/`total_epochs` embedded in the checkpoint file itself for later cross-run comparison.
-
-### 10e. Epoch count methodology
-Mechanical reason the old epoch count (16) doesn't transfer: `steps_per_epoch = dataset_size ÷ batch_size`. Old multi-cohort dataset (~13M rows) → ~25,391 steps/epoch → ~406,000 total steps over 16 epochs. New deduped dataset (~12,574 rows) → ~25 steps/epoch → only ~400 total steps at the same "16" — nowhere near enough.
-
-A second confound was found while comparing epoch counts: `get_cosine_schedule_with_warmup`'s warmup/decay shape is defined relative to `total_steps = epochs × steps_per_epoch`, so the *same nominal epoch number* lands at a different point in the learning-rate curve depending on the chosen `--epochs` total (e.g. epoch 855 = 42.75% through a 2000-epoch schedule vs. 85.4% through a 1001-epoch schedule — a different phase of decay, hence different loss). Combined with the initially-missing random seed, this explained several confusing, seemingly-inconsistent results before both issues were fixed.
-
-**Controlled comparison, after fixing the seed** (identical data, identical hyperparameters, only `--epochs` varies):
-
-| Epochs | Best val_loss | At epoch |
-|---|---|---|
-| 500 | 2.7180 | 496/500 |
-| 1000 | 2.5235 | 881/1000 |
-| 1500 | 2.5214 | 922/1500 |
-| 2000 | **2.5172** | 804/2000 |
-
-Clear diminishing returns (500→1000 a real ~7.2% improvement; 1000→1500→2000 only ~0.25% further) confirms genuine convergence rather than an artifact of a lucky/unlucky seed. The 2000-epoch run's epoch-804 checkpoint was promoted to `checkpoint_no_abundance_best.pt`.
-
-**Why training loss plateaus around 0.75–1.58 here vs. ≈0.08 in the old with-abundance model:** not a sign of a worse-solved task. The old multi-cohort dataset's ~826x per-unique-protein duplication (patient-repeat × cross-cohort repeat), reinforced over 16 epochs, gave each unique protein–text mapping roughly **13,200 effective exposures** — versus this deduped model's exposure count equaling its epoch count directly (1,000–2,000). The old, much lower training loss reflects extreme redundancy-driven memorization opportunity, not deeper learning — a further, now-quantified instance of the project's existing "name shortcut" concern.
-
-### 10f. Protein-level R@K (`src/model/recall_at_k_protein_level.py`)
-No patient dimension exists in this model, so this loops over held-out **test proteins** directly (not patients), ranking each one's own text against a realistic **mixed** candidate pool of all proteins — train + validation + test, ~15,718 total — not a closed pool of only-test-proteins, mirroring what a researcher's real uploaded sample would actually contain (mostly familiar proteins, a few genuinely novel ones).
-
-**Result:** R@1 = 19.45%, R@10 = 35.86%, R@50 = 49.52% (1,573 test proteins against 15,718 candidates; random baseline for this pool ≈ 0.0064% / 0.064% / 0.32% respectively — actual results are ~150–3,000x above chance).
-
-**Important framing — this is not directly comparable to the old multi-cohort R@1 = 90.9%.** That number was measured on proteins the model *had* already seen (via other patients) — a closed-set memorization test, already flagged elsewhere in this file as inflated by the name shortcut. This new number is the first in the whole project to honestly measure zero-shot generalization to truly unseen proteins — lower not because something broke, but because it's finally measuring the harder, more meaningful thing.
-
-### 10g. Protein-level pathway AUROC (`src/evaluation/pathway_auroc_protein_level.py`)
-Reuses the existing objective pathway selection (the same 245 pathways passing `pathway_final_choice.py`'s coverage/power filters). For each pathway, computes two AUROC scores over the same ~15,718-protein pool:
-- `overall_auroc` — standard AUROC, all pathway members (train + validation + test) count as positives.
-- `test_only_auroc` — positives restricted to **test-set (never-trained) pathway members only**, evaluated against the full negative pool (train/validation *non-members* stay in as negatives; train/validation *members* are dropped from the calculation entirely) — isolates whether real generalization exists, independent of memorized train/validation members inflating the aggregate.
-
-**Results:** overall mean AUROC = **0.6074** (n=245); test-only mean AUROC = **0.5836** (n=179 pathways with ≥5 test-set positives). The gap between the two is small (~0.024) — evidence the overall score isn't primarily propped up by memorized proteins; genuinely novel proteins are still placed correctly relative to pathway concepts, just modestly worse than the full-pool average.
-
-**Comparison to prior with-abundance pathway AUROC, same 245-pathway set:** old 8-cohort checkpoint = 0.605, old 9-cohort with-clinical = 0.5735, old 9-cohort no-clinical = 0.5596. This new protein-level model's overall AUROC (0.6074) is comparable to, or slightly better than, all three — dropping abundance and rebuilding the architecture cleanly did **not** cost biological/pathway understanding, while also being the first version of this evaluation that can honestly claim to test genuine generalization at all.
-
-### 10h. Architecture reframing: three explicit stages
-This whole ablation exists to support a specific architectural decision, restated explicitly:
-- **Stage 1 (this section)** — a clean, patient-invariant protein-function embedding: ESM2 sequence + UniProt annotation text, structurally similar to ProteinCLIP's own design.
-- **Stage 2 (planned, not yet validated)** — `activity_score = cosine_similarity(query, protein_embedding) × abundance_rank`, applied at **inference time** using the specific patient's own raw abundance values. This is where patient-specificity actually enters — without requiring abundance to have been learned into the embedding at all.
-- **Stage 3 (planned)** — Claude API interpretation layer: retrieved proteins + abundances + UniProt text → natural-language biological hypotheses, for the researcher-facing chat interface.
-
-This resolves the "abundance-incentive" theoretical finding from the 2026-07-07 notes: since text no longer varies per patient, InfoNCE has no incentive to use the abundance dimension during training — which is fine specifically *because* Stage 2 recovers patient-specificity independently and post-hoc, rather than requiring it to be learned.
-
-### 10i. Relationship to prior (patient-level) work
-Explicit framing decision for the thesis: the original patient-level, with-abundance work (LUAD baseline, multi-cohort scaling, R@K, pathway AUROC pre/post clinical-drop, two NL query rewrite experiments) is **not discarded** — it becomes the ablation baseline this section's results are compared against, i.e., direct evidence for *why* abundance was moved out of training and into `activity_score` instead. The protein-level architecture in this section is the thesis's main, final direction going forward.
-
-### 10j. `activity_score` evaluation validity problem (2026-07-12) — found before building any evaluation
-Before empirically validating `activity_score = cosine_similarity(query, protein_embedding) × abundance_rank`, worked through what a *valid test* for it would even look like — and found that the obvious approach (AUROC against static KEGG pathway membership, the same ground truth used everywhere else in this file) is invalid for this specific method, not just imperfect. Pathway-membership AUROC rewards a ranking for recovering **every** true member regardless of whether that protein is actually expressed in a given patient. `activity_score` is *deliberately designed* to demote a true member that has low abundance in that patient — that is the entire point of multiplying by abundance. Grading it against static membership would penalize the model for doing exactly what it was built to do. A real flaw in the proposed evaluation, not a misunderstanding of the metric.
-
-**Resolution — redesign the mechanism, not just the test.** Abundance's actual role isn't prediction — a patient's abundance value is already known, measured data, nothing needs to be predicted — it's *annotation*. Replaced the single blended `activity_score` multiplier with a two-step **retrieve-then-annotate** design, formalizing what 10h had sketched only loosely:
-- **Stage 1 (semantic retrieval, unchanged, patient-invariant):** rank all proteins by `cosine_similarity(query, protein_embedding)`, take a **wide** top-N candidate pool (N=20 turned out to be far too narrow — see 10k). Nothing here depends on abundance, so a true pathway member can never be excluded from the candidate pool just for being lowly expressed in one particular patient.
-- **Stage 2 (patient-specific annotation, new):** for a chosen patient, attach their real rank-normalized abundance percentile to each of Stage 1's candidates (or "not detected" if NaN). Never adds or removes candidates from Stage 1's list — only labels them.
-
-This also cleanly separates what each stage needs to be validated against: Stage 1's quality is exactly what the existing pathway AUROC / recall@K infrastructure already measures (no new evaluation needed); Stage 2 is a direct data lookup, not a learned model, so it isn't — and shouldn't be — subjected to the same kind of ground-truth ranking test.
-
-### 10k. Stage 1+2 implementation and spot check (`src/model/retrieve_and_annotate.py`)
-Implements the redesigned two-step pipeline: live BioBERT query encoding → `text_head` → cosine similarity against all ~15,718 protein embeddings (`checkpoint_no_abundance_best.pt`) → top-N candidates (Stage 1) → per-patient abundance percentile lookup from `data/{cohort}/rank_normalized_proteomics.csv` (Stage 2). Optional KEGG ground-truth check built in: if `--query` is a literal KEGG pathway name (via `gseapy`), the script prints how many of that pathway's true members appear in the top-N — lets Stage 1 be spot-checked against real ground truth instead of eyeballing free-text query results with no verifiable answer key.
-
-**Spot check, 3 highest-AUROC pathways (Biosynthesis of unsaturated fatty acids 0.9757, GPI-anchor biosynthesis 0.9686, Glyoxylate and dicarboxylate metabolism 0.9674), patients 11LU013/11LU016:**
-- At `--top-n 20`: only 2/27 true members found for the fatty-acid pathway — looked broken, but is mathematically expected, not a bug: `mean_rank_of_positives ≈ (1 − AUROC) × pool_size ≈ 383` for that pathway, so top-20 (top 0.13% of the ~15,718-protein pool) is far narrower than what a 0.9757 AUROC actually promises (top ~2.4% on average). **AUROC is a global/average measure, not a top-K precision guarantee** — this directly motivated building a dedicated top-K metric (10l) instead of relying on manual top-20 inspection.
-- At `--top-n 200`: fatty-acid pathway 13/27 (48%), GPI-anchor 17/26 (65%), glyoxylate/dicarboxylate 8/30 (27%). Despite near-identical AUROC for the latter two (0.9686 vs. 0.9674), top-200 concentration differs by more than 2x. Traced to the **name-shortcut pattern already documented elsewhere in this file**: GPI-anchor's members mostly share a `PIG*` name prefix and near-identical UniProt annotation vocabulary (14 of 21 `PIG*` genes recovered) — easy for a text-trained model to cluster. Glyoxylate/dicarboxylate's 30 members have no shared naming convention (`ACAT`, `ACO`, `CAT`, `DLD`, `MDH`, `SHMT`...) despite being biochemically related, and cluster far less tightly even at similar AUROC. A third, independent reproduction of the name-shortcut limitation (after 8a/R@K and 8e/NL-query-rewrites), this time surfaced via AUROC-vs-concentration divergence rather than query phrasing.
-
-### 10l. Protein-level pathway recall@K (`src/evaluation/pathway_recall_at_k_protein_level.py`)
-Built directly in response to 10k's finding that AUROC doesn't predict top-K concentration. Same pre-selected 245-pathway set and candidate pool as `pathway_auroc_protein_level.py`; for K ∈ {100, 200, 400}, computes `recall@K = (true members found in top K) / (total true members)`, both `overall` (any split counts as a hit) and `test_only` (only never-trained members count as hits, same generalization-vs-memorization logic as `test_only_auroc`). Output: `data/evaluation/pathway_recall_at_k_protein_level_results.csv`.
-
-**Results — considerably starker than mean AUROC (0.6074) suggested:**
-
-| K | mean recall@K | median recall@K | pathways with zero hits |
-|---|---|---|---|
-| 100 | 3.2% | 0.5% | 115/245 (47%) |
-| 200 | 5.2% | 1.7% | 73/245 (30%) |
-| 400 | 8.3% | 3.4% | 40/245 (16%) |
-
-The **median**, not the mean, is the honest summary here: for a typical pathway, essentially none of its true members appear even in the top 400 (top ~2.5% of the pool). The 3 pathways spot-checked in 10k were the literal top-3-by-AUROC out of all 245 — not representative; this run is the first to show what a *typical* query actually looks like in practice, and it is much weaker.
-
-**Diagnosed why so many pathways score exactly zero even at K=400 — two distinct causes, not one:**
-1. **Most cases (mean AUROC 0.496 for zero-recall@400 pathways vs. 0.629 for nonzero ones):** AUROC itself is at or below the random baseline for these pathways (`Regulation of lipolysis in adipocytes` 0.265, `PPAR signaling pathway` 0.342, `Oxytocin signaling pathway` 0.356, `Dopaminergic synapse` 0.363, ...) — the model has no usable signal for them at all; zero recall@K is just what AUROC ≈ 0.5 looks like concretely, not a separate failure mode.
-2. **A smaller group has good-to-high AUROC but very few true members** (`Sulfur metabolism` AUROC 0.85 with only 10 members, `SNARE interactions in vesicular transport` 0.78 with 41, `Nitrogen metabolism` 0.72 with 16): random-chance expected hits in the top 400 for a 10-member pathway is `10 × 400/15,718 ≈ 0.25` — under one expected hit before even considering model quality. A handful of true members ranked systematically better-than-average (driving a high AUROC) can still miss an arbitrary top-K cutoff entirely. A small-sample statistical artifact, not a model failure — same underlying reasoning as the `MIN_POSITIVES` stability filter used elsewhere in this evaluation.
-
-**Why this matters more than one more number:** mean AUROC (0.6074) reads as "moderately better than random, plausible." Median recall@200 (1.7%) shows the *practical* picture — what a researcher would actually see through Stage 1's real top-N candidate list — is far weaker for most queries, and only the small subset of lexically-distinctive pathways (the name-shortcut winners) are currently usable end-to-end. This is the strongest, most quantified justification yet for prioritizing the GO-term augmentation retrain over further evaluation refinement.
-
-### 10m. Gene-name masking ablation — direct test of the name-shortcut hypothesis (2026-07-13)
-Every prior piece of evidence for the "name shortcut" (8a's R@K-vs-AUROC gap, 8e's two failed NL query rewrites, 10k's AUROC-vs-recall@K divergence) was indirect or inference-side — none directly intervened on the training text itself. This does: strip the leading `"{Gene}: "` prefix (fetch_uniprot.py always builds `Annotation` as `gene + ': ' + function text`, so this is an exact, deterministic string operation) from every protein's annotation before embedding, and retrain with identical protocol to the existing best checkpoint (2000 epochs, seed 42, same 9 cohorts) — the only variable changed is which BioBERT embeddings feed the text side.
-
-**Implementation:** `embed_biobert.py` gained a `--mask-gene-names` flag, writing to `biobert_embeddings_masked.h5` alongside (not overwriting) the original per cohort — confirmed the prefix was stripped from effectively 100% of annotations in every cohort (11,213/11,214 in BRCA; the single miss is presumably a blank gene field). `dataset.py` and `train_protein_level.py` gained a `biobert_filename` parameter so masked and unmasked pipelines coexist. New checkpoint: `data/runs/.../checkpoint_no_abundance_masked_e2000_best.pt`.
-
-**Results — every downstream generalization metric improved, while training fit got *worse*:**
-
-| Metric | Baseline (unmasked) | Masked | Δ |
-|---|---|---|---|
-| best val_loss | 2.5172 (epoch 804) | 2.5478 (epoch 705) | worse |
-| AUROC overall | 0.6074 | 0.6264 | +0.019 |
-| AUROC test-only | 0.5836 | 0.5952 | +0.012 |
-| recall@100 (mean) | 3.2% | 4.38% | +1.18pp (+37% rel.) |
-| recall@200 (mean) | 5.2% | 7.18% | +1.98pp (+38% rel.) |
-| recall@400 (mean) | 8.3% | 10.97% | +2.67pp (+32% rel.) |
-
-**Interpretation:** the worse training loss is expected — removing the gene name removes an easy loss-reducing signal InfoNCE previously exploited freely. That every shortcut-free evaluation metric improved anyway is the interesting result: some of the original checkpoint's training-loss advantage was propped up by a shortcut that didn't transfer to genuine generalization, not by deeper biological learning. This is the third, and first *experimentally confirmed via direct intervention* (rather than observed or inferred), instance of the name-shortcut finding.
-
-**Caveat:** absolute numbers remain weak in practical terms — recall@200 mean of 7.18% still means the large majority of a typical pathway's true members don't appear in a realistic top-200 candidate list. Masking removes a confound; it does not solve the underlying generalization gap. Decision: fold gene-name masking into the baseline for all retrains from here on, since it is a free, consistently positive change with no observed downside.
-
-### 10n. GO-term augmentation ablation — a negative result (2026-07-13)
-Following 10m's plan, extended `fetch_uniprot.py` to extract GO Biological Process + Cellular Component term labels per protein (from the same UniProt idmapping response already being fetched, no new API call) and re-fetched `protein_annotations.csv` for all 9 cohorts. `embed_biobert.py` gained `--include-go-terms` (appends `"Biological process: {terms}. Cellular component: {terms}."` after the masked annotation, capped at `MAX_GO_TERMS_PER_CATEGORY = 10` per category, chosen in 10m's plan) and `--go-bp-only` (drops CC, see below). Trained with identical protocol to 10m (2000 epochs, seed 42, same 9 cohorts) on top of the masked-text baseline. New checkpoints: `checkpoint_no_abundance_masked_go_e2000_best.pt` (BP+CC) and `checkpoint_no_abundance_masked_go_bp_only_e2000_best.pt` (BP-only, see below).
-
-**First result — training fit improved, but every shortcut-free metric regressed (the opposite pattern from 10m):**
-
-| Metric | masked-only (10m) | masked+GO (BP+CC) | Δ |
-|---|---|---|---|
-| best val_loss | 2.5478 (epoch 705) | 2.354 (epoch 830) | better |
-| self-ID R@1/10/50/100 | 18.50/36.11/48.70/55.69 | 18.98/36.75/51.72/60.19 | better |
-| pathway AUROC overall | 0.6264 | 0.5823 | −0.044 |
-| pathway AUROC test-only | 0.5952 | 0.5533 | −0.042 |
-| pathway recall@100/200/400 (overall) | 4.38/7.18/10.97% | 2.24/3.79/5.98% | ≈ halved |
-| pathway recall@100/200/400 (test-only) | 3.03/5.24/7.64% | 1.48/2.51/4.49% | ≈ halved |
-
-**Diagnostic 1 — truncation.** `EGFR`'s masked annotation alone tokenizes to 528 tokens, already past BioBERT's 512-token cap *before* any GO terms are appended — its masked and masked+GO embeddings are byte-identical (max abs diff = 0.0), confirmed directly. Quantified across all of LUAD's 11,513 proteins: 89.5% get the full GO-term effect, 4.3% get a partially-truncated effect, and **6.2% get zero effect** — disproportionately likely to be well-studied, clinically relevant proteins (long UniProt annotations correlate with research attention). A real caveat, but too small a fraction to explain a regression of this size on its own.
-
-**Diagnostic 2 — GO_Cellular_Component genericness.** Measured directly against `protein_annotations.csv`: `cytosol` appears on 37.1% of all proteins, `nucleus` on 32.8%, `cytoplasm` on 32.6% — CC terms are largely shared boilerplate, not distinguishing signal. GO_Biological_Process terms are somewhat more specific but still generic at the top (`DNA-templated transcription` at 11.0%). Hypothesis: this boilerplate dilutes the mean-pooled BioBERT training target, explaining why self-ID R@K went up (shared vocabulary is easy to pattern-match back to) while pathway AUROC went down (that vocabulary carries no query-relevant signal).
-
-**Diagnostic 3 — length/format mismatch, tested via two independent NL query styles.** A competing hypothesis: `text_head` is trained only on long GO-augmented text, then queried at eval with a bare 1-4 word raw pathway name — a train/eval format gap unrelated to genericness. Tested by re-running pathway AUROC with natural-language query rewrites (both the "explanatory" and "compact" styles reused from 8e, recovered from git history) instead of raw KEGG names, for both masked-only and masked+GO:
-
-| Checkpoint | Raw KEGG name | Explanatory NL | Compact NL |
-|---|---|---|---|
-| masked-only | 0.6264 / 0.5952 | 0.6368 / 0.6040 | 0.6334 / 0.5967 |
-| masked+GO (BP+CC) | 0.5823 / 0.5533 | 0.6011 / 0.5894 | 0.5946 / 0.5626 |
-| **Δ (masked+GO − masked-only)** | **−0.044** | **−0.036** | **−0.039** |
-
-*(format: overall AUROC / test-only AUROC)*. NL phrasing generically helps both checkpoints a little (consistent with 8e), but the masked-only vs. masked+GO gap barely moves regardless of query phrasing — **ruling out length/format mismatch as the primary driver**. This pointed back to diagnostic 2 (genericness) as the better-supported explanation, motivating a direct test.
-
-**Follow-up experiment — BP-only, dropping the generic CC terms:** if genericness were the primary driver, removing CC should recover most of the gap. It did not — BP-only scored **worse** than the full BP+CC version, not better:
-
-| Metric | masked-only | masked+GO (BP+CC) | masked+GO (BP-only) |
-|---|---|---|---|
-| best val_loss | 2.5478 | 2.354 | 2.4242 |
-| self-ID R@1/10/50/100 | 18.50/36.11/48.70/55.69 | 18.98/36.75/51.72/60.19 | 18.79/38.03/52.17/58.15 |
-| pathway AUROC overall | 0.6264 | 0.5823 | **0.5579** |
-| pathway AUROC test-only | 0.5952 | 0.5533 | **0.5268** |
-| pathway recall@100/200/400 (overall) | 4.38/7.18/10.97% | 2.24/3.79/5.98% | 2.13/3.86/6.35% |
-| pathway recall@100/200/400 (test-only) | 3.03/5.24/7.64% | 1.48/2.51/4.49% | 2.50/4.06/6.18% |
-
-**Interpretation.** Genericness (diagnostic 2) turned out not to be the primary driver either — removing the generic half of the added text made the shortcut-free metric worse, not better, even though self-ID R@K held up fine. The pattern that actually holds across both GO variants: **any** added GO text — generic (CC) or more specific (BP) — improves training loss and self-ID R@K while hurting pathway AUROC/recall@K. This is the mirror image of 10m: masking *removed* an easy self-identification shortcut and that *helped* generalization; GO augmentation *adds* extra protein-distinguishing tokens that apparently function as a new self-ID shortcut, regardless of vocabulary genericness, without transferring to genuine pathway-level generalization. A fourth independent demonstration of the name/shortcut pattern already documented in 8a, 8e, and 10k/10l — this time surfaced via a failed augmentation attempt rather than an evaluation-design insight.
-
-**Decision:** GO-term augmentation, as implemented (raw term concatenation, either BP+CC or BP-only), does not help and measurably hurts shortcut-free generalization. Reverting to masked-only (10m) as the working baseline. Not pursuing further GO-term variants (e.g. frequency-filtering, reordering) given the consistency of the negative result across two independently-motivated variants and the 2-month timeline — this is treated as a resolved, reported negative result rather than an open thread.
-
-**Incidental fixes made during this ablation** (kept regardless of the GO-term outcome, since they're real bugs independent of it): `recall_at_k_protein_level.py` previously had no `--biobert-filename` parameter and silently defaulted to the plain unmasked text file regardless of which checkpoint was being evaluated — harmless for the one baseline run it had been used for, but would have silently fed a masked/GO-trained `text_head` out-of-distribution input had it been reused as-is. `pathway_auroc_protein_level.py` and `pathway_recall_at_k_protein_level.py` saved results to a fixed filename regardless of checkpoint, so each new run silently clobbered the previous run's CSV — now suffixed by checkpoint stem. New file `pathway_nl_auroc_protein_level.py` adapts the NL-query-rewrite methodology (originally built for the old patient-level, with-abundance architecture in `pathway_nl_auroc_evaluation.py`) to the current protein-level, no-abundance architecture — the old script's `build_protein_index` concatenates a 641-dim (ESM2 + abundance) vector, structurally incompatible with the current 640-dim, abundance-free `protein_head`.
-
-### 10o. LLM-fusion augmentation — built and spot-checked, paused on budget (2026-07-13)
-Motivation: 10n's raw GO-term concatenation failed twice (BP+CC, BP-only) — hurt pathway AUROC/recall@K despite helping training loss/self-ID R@K. One untested explanation: the added text was a bare semicolon-separated term list ("Biological process: term; term."), a completely different register from both the base UniProt prose and every eval query style tried (raw KEGG name, explanatory NL, compact NL) — so the model may have learned to treat it as noise rather than content, independent of whether the underlying facts were generic or specific. This motivated testing a differently-*structured* augmentation: instead of concatenating raw GO terms, use an LLM to fuse the masked UniProt annotation + GO_BP + GO_CC facts into one coherent natural-language paragraph per protein — same underlying facts as the BP+CC variant, but in prose register matching the rest of the corpus.
-
-**Built:** `src/embeddings/textual/fuse_protein_text_llm.py`. Step 1 (always run): builds one global deduped protein table across all 9 cohorts — done *before* generation (not after, like the rest of the pipeline) so the same protein is never fused twice from two cohorts' slightly-diverged annotation text (see 10b's 4.7% divergence finding). Step 2: one fixed prompt per protein (`claude-sonnet-5`, explicit "use only the given facts, don't invent, don't mention the gene name, no bullet points/labels" instructions), with `--sample N` (prints + saves `data/protein_fused_text_sample.csv`, no full run) and `--full` (all ~15,715 proteins → `data/protein_fused_text.csv`) modes.
-
-**Quality check (`--sample 10`):** reviewed each fused paragraph against its source facts side-by-side. Found one real prompt-compliance slip: for SAG, the source text says "binds to ... RHO" (another protein's bare gene symbol); the fused text expanded it to "rhodopsin" — technically outside knowledge not in the input, violating the letter of the "use only given facts" instruction. Judged low-risk on reflection: it doesn't add or change any biological claim (RHO deterministically = rhodopsin), and — more importantly for this project's specific shortcut concern — it doesn't leak the *masked subject's own* identity (SAG's own name stays masked); it only spells out a *different*, already-unmasked, already-present cross-referenced gene symbol, a category of information that has been present in every training-text variant since the original baseline. Decision: left the prompt as-is rather than tightening and re-validating — not worth the extra cost/cycle for a single low-risk instance in 9/10 clean.
-
-**Cost estimate (measured, not guessed):** sampled real token counts via `count_tokens` — avg 612 input / 217 output tokens per call (much larger than the 245-call pathway-query-rewrite job's per-call cost, since this prompt carries the protein's full annotation + GO terms as input and a full paragraph as output, not a short pathway name → one-sentence rewrite). Full run (15,715 calls): **~$53 direct at claude-sonnet-5 intro pricing** ($2/$10 per MTok, active through 2026-08-31), or **~$27–40 via the Batch API** (50% off, and better suited to this volume than the 245-call job where batching wasn't worth the queue latency).
-
-**Status: paused, not a decision against the approach — a budget constraint.** Available Claude API credit balance is $4, far short of the ~$25–55 needed. Nothing is lost by pausing: the dedup table logic, prompt, and quality-check tooling are done and committed; resuming later is just running `--full` (or building the Batch API variant first, which the cost estimate suggests is worth doing at this volume) once credit is available.
-
-**To resume:** `uv run python src/embeddings/textual/fuse_protein_text_llm.py --full` (or build a Batches-API version first — recommended given the volume), then: embed the fused text globally (one BioBERT embedding per unique protein, not per cohort — analogous to the dedup-before-generation choice in Step 1), train with identical protocol to 10m/10n (2000 epochs, seed 42, same 9 cohorts), then run the full eval suite (self-ID R@K, pathway AUROC raw + both NL styles, pathway recall@K) and compare against masked-only (10m: AUROC 0.6264/0.5952, recall@100/200/400 4.38/7.18/10.97%) and the two failed GO variants (10n).
-
-### 10p. Basic bidirectional cross-modal retrieval eval — closed test-set (2026-07-13)
-Built `src/evaluation/cross_modal_eval.py`: the standard CLIP-style retrieval sanity check — distinct from every other R@K-based eval in this document. `recall_at_k_protein_level.py` (10f) uses a mixed train+val+test candidate pool (realistic-deployment simulation) and only queries text→protein; this script instead restricts **both** the query set and the candidate pool to the closed protein-level test split (`data/protein_splits.json`, ~1,573 proteins) and computes R@1/5/10/50 in **both directions** (text→protein, protein→text) — the closed-set, bidirectional protocol standard CLIP papers report (Flickr30k/COCO-style), and a same-pool basis for comparing the three text-variant checkpoints directly.
-
-**Results (2000-epoch checkpoints, identical protocol, only the text variant differs):**
-
-| Checkpoint | Pool | T→P R@1/5/10/50 | P→T R@1/5/10/50 |
-|---|---|---|---|
-| unmasked | 1,573 | 33.38/49.33/56.20/72.60 | 33.50/50.16/56.71/72.41 |
-| masked | 1,573 | 32.99/49.65/55.24/71.84 | 35.41/51.11/57.09/71.46 |
-| masked+GO (BP+CC) | 1,570 | 33.89/53.18/60.13/76.50 | 35.35/52.93/60.32/75.80 |
-
-**Finding 1 — masking has no visible effect on this metric.** Unmasked and masked land within ~1pp of each other at every K, despite masking clearly improving pathway AUROC (0.6074 → 0.6264, 10g/10m) — this metric is not sensitive to the same thing pathway AUROC is.
-
-**Finding 2 — masked+GO wins this metric outright, the opposite of the pathway-level ranking.** masked+GO beats both other checkpoints at every K past R@1 (R@50: 76.50% vs ~72%), while 10n already showed masked+GO is clearly *worse* on pathway AUROC (0.5823 vs 0.6264) and pathway recall@100 (roughly halved: 2.24% vs 4.38%). Not a contradiction in the data — a **fifth demonstration of the name/shortcut pattern** (after 8a, 8e, 10k/10l, 10n): this eval's closed 1,570–1,573-protein pool is structurally a self-identification task (find your own unique text/embedding among a small closed set of candidates), and extra protein-distinguishing text (GO terms) makes that easier without transferring to open-vocabulary pathway-level generalization — exactly like GO terms already did for self-ID R@K in 10n.
-
-**Why this belongs at the start of the Experiments section:** it's the standard, literature-recognizable CLIP retrieval check, and it shows the contrastive objective clearly works (all three checkpoints far above the ~0.06% random baseline for a ~1,570-protein closed pool). Its disagreement with pathway AUROC on checkpoint ranking is the intended pivot into the harder, shortcut-free evaluation — not a loose end to resolve or hide, mirroring how 8a (R@K) → 8c/8d (pathway AUROC) was already structured for the patient-level work.
-
-### Next steps from here
-- **`activity_score` validation — done, but concluded differently than planned.** The originally-planned multiplicative re-ranking score turned out to be the wrong mechanism (10j); redesigned into the Stage 1 (wide retrieval) + Stage 2 (abundance annotation) split, implemented and spot-checked (10j/10k). Remaining, smaller: validate Stage 2 on a larger sample of patients (does abundance meaningfully differentiate more than 2 patients; does a generically-high-abundance "albumin problem" protein ever crowd Stage 1's candidate pool — structurally shouldn't, since Stage 2 never adds candidates, but worth a real check).
-- **Gene-name masking (10m) — done.** Folded into the baseline for everything below.
-- **GO-term augmentation (Retrain 2) — done, negative result (10n).** Both BP+CC and BP-only variants measurably hurt pathway AUROC/recall@K vs. the masked-only baseline, despite improving training loss and self-ID R@K — a fourth demonstration of the name/shortcut pattern. Diagnosed two candidate explanations (CC genericness, query length/format mismatch) and ruled both out as the primary driver via a BP-only follow-up and a two-style NL-query re-evaluation. Decision: masked-only (10m) remains the working baseline; not pursuing further GO-term variants.
-- **LLM-fusion augmentation (10o) — built, spot-checked, paused on budget.** Not a reconsideration like the paraphrase idea below — this is queued and ready, blocked only by API credit ($4 available, ~$25–55 needed). Resume via `fuse_protein_text_llm.py --full`, then embed/train/eval per 10o's "To resume" steps.
-- **LLM-paraphrase augmentation (multiple variants per protein, targeting pair scarcity) — reconsider before pursuing.** The original plan (see 2026-07-07 notes) bundled this together with GO-term augmentation, conditioned on GO terms helping first (they didn't). The problem it targets — pair scarcity, 12,574 unique training pairs after global dedup (10e) — is real and independent of the GO-term result, so it isn't automatically ruled out. But it now needs its own justification rather than riding on GO-term augmentation's coattails, and 10n's finding (added protein-distinguishing text can function as a new shortcut rather than genuine signal) is a reason for caution, not just a green light — paraphrases risk the same failure mode if they mostly add surface variety without new biological content. Not started; needs a fresh decision given the 2-month timeline before committing engineering time. Distinct from 10o's single-fused-paragraph approach, which is about text *structure/register*, not pair-count diversity.
-- ~~LLM integration (Stage 3) proof-of-concept~~ — **done, see section 11r**: `src/model/interpret.py`, validated on real patients/queries, wired into `src/app.py` behind an explicit "Interpret with Claude" button.
-
-**As a bachelor's thesis contribution, independent of the model's absolute performance:** the methodology built across this work — objective, pre-registered pathway selection criteria instead of hand-picking (8d), two independently-designed natural-language query experiments reported honestly even where they didn't help (8e), a quantified demonstration of the name-shortcut limitation reproduced four separate ways (R@K vs. AUROC gap in 8a, NL query rewrites in 8e, AUROC-vs-recall@K divergence in 10k/10l, and the GO-term augmentation ablation in 10n), catching and fixing an invalid evaluation design before running it rather than after (10j), and building a new metric specifically because an existing one was masking the real picture (10l) — is itself a legitimate, rigorous scientific contribution. A thesis that honestly reports what works, what doesn't, and why is stronger than one that oversells a higher raw metric. The recall@K result (median 1.7% at K=200) is a genuinely weak practical number and should be reported as one — but the process that surfaced it, rather than settling for the more flattering mean AUROC, is the actual point of the exercise, and it directly motivated the GO-term augmentation attempt (10n) — itself now a well-diagnosed negative result rather than an unaddressed limitation, which is a genuine finding in its own right, not a dead end.
+Moved to `docs/HISTORY.md` on 2026-08-23 to keep this file (loaded every session) smaller — covers the three dated "Next steps" planning snapshots from 2026-06-28/07-06/07-07, and the numbered Timeline sections 1–10 (patient-level ablation baseline through the protein-level pivot, superseded by section 11 below). This is historical/process documentation, not current guidance or thesis content — consult it only when a section-11 methodology choice needs tracing back to its origin.
 
 ## 11. Full human proteome + homology-aware split (2026-07-15) — designated start of the thesis narrative
 
@@ -1649,6 +1142,93 @@ Re-examined `zero_shot_go_retrieval_eval.py` / `go_retrieval_utils.py` while dis
 
 **Status:** not yet decided whether multiview supersedes M0 as the reporting baseline, or whether it and the M0–M3 ablation stay as internal ablation evidence per the existing "Proposed thesis structure" scope decision below (which currently only names the M0–M3 ablation as a candidate for internal-only status, written before multiview existed) — flagged here, not resolved, since unlike M0–M3 this is now a *positive* result on the two most-trusted evals and may warrant a different scope decision than its predecessor ablation.
 
+### 11ad. DeepLoc/multiview gap re-examined: the view-count hypothesis is ruled out, training duration is strongly implicated instead (2026-08-23)
+
+11ac's own DeepLoc caveat ("~30 repeated Location-view exposures... across ~92 epochs") floated a specific mechanism — proteins with more available views getting more distinct training "pulls," fitting their exact position more precisely — without actually testing it. Tested directly this session, two ways:
+
+**Test 1 — does DeepLoc accuracy scale with number of available training views, for seen vs. unseen separately?** If the view-count mechanism were right, more views should help *seen* proteins specifically (more chances to memorize) without helping *unseen* proteins the same way. Result: the opposite pattern held — proteins with only 2 available views scored *better* than proteins with all 3, for **both** seen (72.8% vs. 66.0%) and unseen (59.0% vs. 48.1%) alike. Since the effect showed up identically on both sides, it can't be a seen-only memorization effect — it's more consistent with the Family view acting as mild, generalizable noise for this specific task, unrelated to overfitting.
+
+**Test 2 — training duration at best checkpoint, across every text-variant checkpoint in this project:**
+
+| Checkpoint | best epoch (of 100) | DeepLoc seen/unseen gap |
+|---|---|---|
+| M0 (Function only) | 24 | 0.8pp |
+| Function+Location | 35 | — |
+| M3 | 34 | 5.3pp |
+| M1 | 42 | — |
+| M2 | 42 | 4.9pp |
+| **multiview** | **92** | **18.1pp** |
+
+Multiview trained roughly 2–4x longer than every other variant before early stopping (patience=10) triggered — a near-monotonic relationship between epoch count and gap size, and a far more parsimonious explanation than the view-count theory (which Test 1 already ruled out): more training rounds is a standard, well-understood driver of overfitting on a small, fixed set of ~13,515 trained protein embeddings.
+
+**Why multiview specifically trained so much longer, worked out but not directly measured (no per-epoch log was saved for the original run):** each multiview training round shows a randomly different mixture of Function/Family/Location targets, while validation stays fixed to Function-only — plausibly making the training loss trajectory noisier round-to-round than a single-fixed-target run, which mechanically makes a patience-based stopping rule take longer to accumulate a genuine losing streak (occasional "lucky" improvements keep resetting the patience counter). This is stated as the best-supported explanation, not a directly confirmed fact — the actual per-epoch validation curve was never captured to disk for the original multiview run, and this reasoning was later given a real, controlled test via 11ae below rather than left as a standalone claim.
+
+### 11ae. CMC/SupCon-inspired multi-positive contrastive extension — implemented, tested, mixed-to-negative result (2026-08-23)
+
+**Motivation, and the literature grounding checked before building anything.** Multiview shows one random view per protein per training round — never more than one at once, closer to ordinary data augmentation than to genuine multi-positive contrastive learning. Investigated whether showing a protein's *multiple* available views *together*, as joint positive signal in the same batch, would do better — grounded in two verified (not assumed) papers:
+- **Contrastive Multiview Coding** (Tian, Krishnan, Isola, arXiv:1906.05849) — the closer structural match: multiple true views of the *same one instance*, with its own empirical finding that more jointly-used views produce a richer representation. Its classic examples (color-channel splits, sensor views) are single-modality and symmetric (every view has its own trainable encoder, nothing frozen) — structurally different from this project's setup, where the protein/ESM2 side is a fixed, always-identical anchor (frozen, one sequence, no "multiple views" of it at all) and only the text side varies.
+- **Supervised Contrastive Learning** (Khosla et al., NeurIPS 2020) — supplies the actual loss *mechanism* for handling multiple positives per anchor, though its own grouping logic (many different instances sharing one human-assigned class label) doesn't map onto this project's case (one instance, several true descriptions) and was deliberately NOT reused as-is — using eval-relevant categories (e.g. GO-Slim classes) as the "class" would have reintroduced the exact leakage risk already ruled out elsewhere in this document.
+
+**Implementation** (`src/model/dataset.py`, `src/model/train_protein_level.py`):
+- `ProteomicsDataset(multi_positive=True)`: instead of one row per protein with a random view draw, builds one row per **(protein, view)** pair — 36,246 rows over the training split (vs. 13,515 unique proteins; 282 proteins have only 1 available view, 3,735 have 2, 9,498 have all 3).
+- `GroupedBatchSampler` (new class, `dataset.py`): plain shuffling would almost never co-locate a protein's 2–3 rows in the same batch (a batch covers only ~1.6% of 36,246 rows) — this sampler instead shuffles *proteins*, then fills each batch with a protein's *entire* row-group at a time, guaranteeing co-occurrence. Batches land at ~512 rows drawn from ~190–210 unique proteins (not 512), seeded (`MULTI_VIEW_SEED`) for reproducibility.
+- `multi_positive_infonce_loss` (`train_protein_level.py`): `positive_mask[i,j] = (protein_idx[i] == protein_idx[j])`, symmetric, deliberately **including** the diagonal (self) rather than the textbook SupCon convention of excluding it — textbook SupCon assumes many same-label rows are always available, so excluding self costs nothing; here, 282/13,515 proteins have only one view, and excluding self for those rows would leave zero positives and a divide-by-zero loss term. Both directions (protein→text, text→protein) use the same loss shape and the same mask, since `GroupedBatchSampler` duplicates a protein's ESM2 embedding across its rows — genuinely making *both* directions multi-positive when a protein has >1 view in the batch, not just the protein→text direction as an earlier (unimplemented) asymmetric design had assumed.
+- Verified via a smoke test before any real training: dataset/sampler/loss build correctly, positive-mask row-sums match the known 282/3,735/9,498 view-count distribution exactly, backward pass produces gradients. No training happened during this check.
+
+**Training** (`data/runs/full_proteome/multi_positive_experiment/multi_positive_best.pt`): identical hyperparameters to multiview (`lr=0.000116`, `batch_size=512`, `hidden_dim=2048`, `output_dim=1024`, `early_stopping_patience=10`) — the only variable changed is the batching/loss mechanism. **Best checkpoint at epoch 29/100** (val_loss 3.1813) — much closer to M0's epoch 24 and the M1–M3 range (34–42) than to multiview's outlier epoch 92, consistent with 11ad's "noisy validation curve" explanation: the grouped, structured multi-positive design shows every available view every epoch (not a random single draw), producing a smoother, faster-converging validation trajectory.
+
+**Full 5-eval comparison against multiview and M0 (ensemble condition throughout):**
+
+| Eval | M0 | multiview | multi-positive |
+|---|---|---|---|
+| Cross-modal (T→P R@1 / R@50) | — | 18.83% / 73.48% | 18.18% / 73.18% |
+| DeepLoc (all / gap) | 18.26% / 1.1pp | 64.08% / 18.1pp | **66.09% / 22.2pp** |
+| EC top-level | 17.78% | 23.38% | 23.88% |
+| **GO-Slim-MF** | 40.52% | **49.96%** | 44.97% |
+| GO-retrieval (mean mAP, name/def) | 0.084/0.085 | 0.103/0.087 | **0.105/0.089** |
+
+**Verdict: a mixed, not a clean, result.** Small genuine wins on EC and GO-retrieval; a meaningful ~5pp loss on GO-MF — the single most trusted eval in the suite (clean baseline-beating history, no memorization signature on any checkpoint tested to date); and, most tellingly, a **bigger** DeepLoc seen/unseen gap (22.2pp) than multiview's, despite training for **less than a third** as many epochs (29 vs. 92) — directly undercutting "training duration alone" as the full explanation for the DeepLoc anomaly. The better-supported reading: the multi-positive design intensifies per-protein training signal *by construction* (every epoch a protein appears, all its views pull together at once, instead of one random draw) — fewer epochs were needed to reach an equal-or-greater degree of per-protein overfitting on this specific task, because each epoch does more concentrated "fitting" per protein than multiview's random-draw design ever did.
+
+**Decision: multiview remains the recommended final checkpoint.** Multi-positive is documented as a completed, legitimate, literature-grounded ablation with an honest mixed-to-negative outcome — same category as the GO-term-concatenation result (10n), not adopted as a replacement. Not yet decided whether it joins the reported thesis ablations or stays internal-only (same open status as multiview's own inclusion question, 11ac).
+
+### 11af. Candidate new training-text fields surveyed — one vetted and ready, two flagged for real leakage risk, others reaffirmed already-rejected (2026-08-23)
+
+Prompted by real researcher-provided example queries (a mix of protein-level and sample/study-design questions) — triaged against what's already built, already decided, and already leakage-checked, rather than treated as a fresh, undifferentiated list:
+
+- **Tissue specificity** (UniProt `TISSUE SPECIFICITY` comment, `cc_tissue_specificity` field) — **coverage-checked and leakage-vetted, ready to build.** 56.2% coverage (9,498/16,893 proteins), mean 132 chars (e.g. EGFR: *"Ubiquitously expressed. Isoform 2 is also expressed in ovarian cancers."*) — confirmed this is UniProt's own free-text comment, not the separate Bgee/HPA/ExpressionAtlas cross-reference links the UniProt web page also displays alongside it. Checked against all five reported evals (location, enzyme class, molecular function, GO BP/CC/MF, self-ID) — no direct restatement of any of their ground truth, safe to add as a 4th random-draw option in **plain multiview** (not multi-positive, given 11ae's result). Not yet fetched or embedded.
+- **Receptor type** (GPCR / enzyme-linked / ligand-gated ion channel / intracellular) and **PTM** (phosphorylation, ubiquitination) — real candidates, **not yet safe to assume leakage-free.** GO-Slim-MF's own 10 selected classes include `receptor ligand activity` and `transferase activity` (kinases — which perform phosphorylation — are a transferase subtype) — both new fields plausibly brush against GO-MF's actual eval categories, the same category of risk already ruled out for `CATALYTIC ACTIVITY` (would leak into EC). Needs the same coverage-check-then-leakage-check discipline as tissue specificity before any fetch/embed work, not an assumption of safety.
+- **Pathway** — reaffirmed **already rejected** (M0–M3 design notes, 2026-08-16 decision); researcher interest in pathway-shaped queries doesn't by itself overturn that earlier call, flagged for the user to explicitly revisit if desired rather than silently reopened.
+- **Ethnicity / clinical metadata** — reaffirmed **already dropped** from Stage 1 training text (the original train/inference-format-mismatch fix, section 9) — this is patient-level information, a fundamentally different category from the protein-level fields above; reintroducing it would need the same reasoning to be revisited, not just appended.
+- **"3 replicates (control, tests)"** — not a text-field question at all; this is the case/control comparison idea already scoped and parked as a Stage 2/tool feature (section 11s), unrelated to training text.
+
+**Decision on scope, given ~48 days remaining to the 2026-10-10 hand-in (as of this writing, 2026-08-23):** build tissue specificity only, then deliberately stop chasing further text fields. Three separate results this project ("more/richer text" as a lever) have now landed mixed-to-negative — GO-term concatenation (10n), the Function+Location→DeepLoc leakage case (11z), and 11ae's multi-positive result — a real, repeated pattern, not a one-off. Further text-field additions (PTM, receptor-type) are deprioritized in favor of locking in a final checkpoint and shifting remaining time toward the researcher-facing tool (chatbot + UI) and thesis writeup, both of which are time-sensitive in a way further model experiments are not.
+
+### 11ag. Alignment & Uniformity — a task-agnostic embedding-space-quality eval, addressing a real gap in the reported suite (2026-08-23)
+
+**The gap this closes.** All five reported evals (cross-modal, DeepLoc, EC, GO-MF, GO-retrieval) are topic-specific — each measures "can this space answer THIS kind of question." As more training-text fields get added (tissue specificity, and whatever follows), the eval suite would need a matching new topic-specific eval for each one to stay comprehensive, which doesn't scale and doesn't answer the more general question of whether the space itself is well-formed. Genuinely new: implemented Alignment & Uniformity (Wang & Isola, ICML 2020, "Understanding Contrastive Representation Learning through Alignment and Uniformity on the Hypersphere", verified via primary-source search before citing) — a metric pair computed from embeddings alone, no labeled data, no topic dependence at all.
+
+**Mechanics** (`src/evaluation/alignment_uniformity_eval.py`, new file). Both projection heads already L2-normalize their output, so every embedding lives on the unit hypersphere; both metrics describe how points are arranged on it, computed over the **validation** split (test reserved, same standing rule as 11ab):
+- **Alignment** = mean squared distance between true (protein, matching text) pairs. For unit vectors, `distance² = 2 - 2×cosine_similarity` — this is the exact same true-pair similarity `infonce_loss` already optimizes, reported alone with no batch/negative machinery. Lower is better.
+- **Uniformity** = `log(mean over all i≠j pairs of exp(-2 × distance²))`, computed separately for protein embeddings, text embeddings, and both pooled together. Catches a failure mode alignment alone can't: a fully collapsed space (everything mapped to one point) would show *perfect* alignment while being useless — uniformity measures whether the space is actually being used, not clumped. Lower (more negative) is better.
+- **Fixed text source across every checkpoint compared** (default: masked Function-only) — same principle validation loss already applies (comparability requires holding the evaluation input fixed regardless of what a given checkpoint was itself trained on), so a checkpoint isn't rewarded just for having more/different text available at eval time.
+- **Calibration references, added specifically to make raw numbers interpretable** (same "never trust a number without a baseline" discipline as every other eval in this project): a random-uniform reference for uniformity (genuinely random unit vectors in the same dimensionality, averaged over 5 draws), and a mismatched-pair reference for alignment (true protein embeddings paired with a random *wrong* protein's text).
+
+**Results, validation split (n=1,689), fixed Function-only text:**
+
+| Checkpoint | Alignment ↓ | Uniformity, protein ↓ | Uniformity, text ↓ | Uniformity, pooled ↓ |
+|---|---|---|---|---|
+| M0 | **1.3428** | -3.7994 | -3.7890 | -3.8570 |
+| **multiview** | 1.3507 | **-3.8250** | **-3.8189** | **-3.8677** |
+| multi-positive | 1.3642 | -3.7451 | -3.7395 | -3.8258 |
+
+**Multiview wins uniformity clearly on every measure, at only a small alignment cost relative to M0** (which only ever aligns to one fixed target per protein, so a tighter individual alignment there is expected, not a sign of a better space overall). **Multi-positive is worst on both axes** — not just one — a second, fully task-agnostic line of evidence (no DeepLoc/GO-MF/EC labels involved at all) independently pointing the same direction as 11ae's eval-based comparison. Two structurally unrelated kinds of evidence agreeing is a stronger basis for the checkpoint decision than either alone.
+
+**Calibration, run on multiview:** true-pair alignment (1.3507, ≈0.32 average cosine similarity) is well below the mismatched-pair reference (2.0093, ≈0.00 average cosine similarity — as expected for unrelated high-dimensional vectors) — real, non-accidental signal. Pooled uniformity (-3.8677) sits close to the random/near-optimal reference (-3.9921, averaged over 5 simulated draws) — the space is close to using its full available capacity, not collapsed. **Overall verdict on multiview's space: reasonably good, with a specific, identifiable weak point** — spread is close to optimal; matching precision (alignment) is real but modest, and is the more promising lever for improvement than anything uniformity-related.
+
+**Not yet done:** the complementary inter-view check discussed but not yet implemented — for multiview/multi-positive specifically (not M0, which has only one text per protein), whether a single protein's *different* views (Function vs. Family vs. Location) have moved suspiciously close to each other in embedding space, which would be direct evidence of the "multiple positives collapsing together" risk flagged when multi-positive was first designed (11ae) rather than the protein-to-protein / text-to-text spread this pass already checked.
+
+**Status:** not yet decided whether this joins the reported thesis evaluation suite (a sixth metric, structurally different in kind — task-agnostic rather than topic-specific — from the other five) or stays as supporting Methods/Discussion evidence; flagged here, not resolved, same pattern as every other open scope question in this document.
+
 ### Proposed thesis structure (as of 2026-07-26 — supersedes the one earlier in this file)
 **Scope decision:** the thesis narrative starts at section 11 (full human UniProt proteome + homology-aware split) and does not narrate sections 1–10 at all — no patient-level baseline, no per-cohort CPTAC pipeline walkthrough, no ablation-by-ablation history (drop clinical → drop abundance → mask → GO-terms → LLM-fusion), no old pathway-AUROC/NL-query-rewrite results. Section 11 itself already explains why (its opening paragraph, 11a): sections 1–10 were "a sequence of exploratory pivots needed to arrive at a defensible design, not the design itself." Sections 1–10 stay in this file as internal process documentation only — useful if a methodology choice in section 11 needs justifying (e.g. "why gene-name masking" traces back to 10m, "why drop abundance" traces back to 10a–10j), but not thesis content themselves.
 
@@ -1656,36 +1236,57 @@ Re-examined `zero_shot_go_retrieval_eval.py` / `go_retrieval_utils.py` while dis
 
 **Correction (2026-07-26):** an earlier draft of this note claimed pathway AUROC was used internally to pick the final architecture's `hidden_dim`/`output_dim`, citing section 11f. That's wrong for the checkpoint actually in use. Section 11f's pathway-AUROC-based dims search produced a checkpoint that was later superseded and archived (`data/runs/full_proteome/archive/old_final_pick/`). The checkpoint actually used for all four reported evals, `final_v2_dims_masked_best.pt`, came from a separate, later W&B sweep (11p) that grid-searched the same 14 valid `hidden_dim`/`output_dim` combinations from 11f, scored purely on **validation-split InfoNCE loss** — kept deliberately independent of any evaluation-side metric (pathway AUROC, recall@K, cross-modal), matching the same discipline already used for the v1 lr/batch_size/epochs sweep (11l). So there is in fact **no pathway-AUROC (or any other evaluation-metric) involvement anywhere in how the final checkpoint was selected** — hyperparameters (lr/batch_size/epochs, 11l) and architecture (hidden_dim/output_dim, 11p) were both chosen via held-out validation loss alone, fully decoupled from every metric in the reported evaluation suite. This is a cleaner methodological story than the earlier draft claimed, not a wrinkle needing a caveat.
 
-**Third scope decision (2026-08-18):** GO-term retrieval (`zero_shot_go_retrieval_eval.py`) is added as the thesis's **fifth reported evaluation**. It was already implemented and had already been run against the same final checkpoint (`data/evaluation/go_retrieval/results/*_final_v2_dims_masked_best_min10.json`) — it just hadn't been folded into this structure yet. Unlike the other four, it has no numbered Timeline section of its own (see `zero_shot_go_retrieval_eval.py`'s own docstring for the methodology instead); its results are summarized directly in the Experiments/Results bullet below. **The reported evaluation suite is now five evals: cross-modal closed-set retrieval (11d), DeepLoc (11m), EC top-level (11n), GO-Slim-MF (11o), GO-term retrieval.**
+**Third scope decision (2026-08-18):** GO-term retrieval (`zero_shot_go_retrieval_eval.py`) is added as the thesis's **fifth reported evaluation**. It was already implemented and had already been run against the checkpoint that was final at the time (`final_v2_dims_masked_best.pt`) — it just hadn't been folded into this structure yet. Unlike the other four, it has no numbered Timeline section of its own (see `zero_shot_go_retrieval_eval.py`'s own docstring for the methodology instead).
+
+**Fourth scope decision (2026-08-23) — supersedes the checkpoint used throughout scope decisions 1-3, and resolves every "not yet decided" flag left by 11ac/11ae/11ag.** Following this session's work (11ad-11ag), the open questions those sections deliberately left unresolved are now decided, all in the same direction, because they form one coherent narrative rather than several unrelated loose ends:
+
+- **`multiview_best.pt` supersedes `final_v2_dims_masked_best.pt` (M0) as the checkpoint the five headline evals are reported against.** Multiview wins 4 of 5 evals against M0 (11ac), and both alignment/uniformity (11ag) and the k-NN check (this session) independently confirm it has the better-organized embedding space — three structurally different kinds of evidence (topic-specific evals, task-agnostic geometry, protein-side-only structure) converging on the same answer.
+- **The full four-lever training-signal ablation becomes reported thesis content**, not internal-only evidence: (1) BioBERT partial-unfreeze (11x/11y — negative for N>1), (2) text-field concatenation M0→M1→Location→M2→M3 (11z — negative, monotonic dose-response, a name-shortcut effect), (3) multiview random single-view selection (11ac — positive, new best), (4) the CMC/SupCon-inspired multi-positive extension (11ae — mixed/negative, doesn't beat multiview). Rationale for including all four rather than cherry-picking the ones that "won": the four together are one clean, connected argument — two ways of *combining multiple fields into one training example* (concatenation, and multi-positive's joint per-epoch pull across all a protein's fields) both underperform the way that keeps every training example single-field, drawing on the exact same expanded Function+Family+Location content but never combining more than one piece of it at a time (multiview) — a genuine, defensible finding ("one topic per training example beats several at once, for this architecture and this amount of data"), not just a results dump.
+- **Alignment & Uniformity (11ag) and the k-NN embedding-space-quality check become reported thesis content**, as a new evaluation *category* — task-agnostic space-quality metrics, methodologically distinct from (not a replacement for) the five topic-specific evals, included specifically because they close a real gap: the five topic evals can only ever test the specific vocabulary they were each built around, and adding more of them doesn't scale as more training-text fields get tried. These two checks answer "is the space well-organized *in general*" instead, using no labels (alignment/uniformity) or protein-side structure with no text at all (k-NN) respectively.
+- **The reported evaluation suite is therefore two categories, seven items total**: five topic-specific evals (cross-modal, DeepLoc, EC, GO-MF, GO-term retrieval) + two task-agnostic checks (alignment/uniformity, k-NN).
+
+**On the one number this correction changes:** the "Correction (2026-07-26)" note above, about how `hidden_dim`/`output_dim` were chosen via pure validation loss, still stands unchanged for `final_v2_dims_masked_best.pt` (M0). Multiview and every ablation checkpoint were trained at those *same* selected hyperparameters (`lr=1.16e-4, batch_size=512, hidden_dim=2048, output_dim=1024`, 11e/11l/11p) — the hyperparameter/architecture search was never repeated per-ablation, so this methodological cleanliness (checkpoint selection fully decoupled from every evaluation-side metric) extends to the whole ablation sequence, not just M0.
 
 1. **Introduction** — motivation (protein-level, patient-specific retrieval; the ProteomIQ goal from the top of this file), CellWhisperer as prior work, GSEA as the practical alternative, thesis contributions
-2. **Related Work** — CLIP, ESM2, BioBERT, CPTAC, ProteinCLIP (citation-verified comparison, 11l), ProtST (the zero-shot text↔protein retrieval methodology GO-term retrieval takes inspiration from, not a reproduction — see `zero_shot_go_retrieval_eval.py`'s docstring), GSEA
+2. **Related Work** — CLIP, ESM2, BioBERT, CPTAC, ProteinCLIP (citation-verified comparison, 11l), ProtST (GO-term retrieval's inspiration, not a reproduction), GSEA, **Contrastive Multiview Coding** (Tian, Krishnan, Isola, arXiv:1906.05849) and **Supervised Contrastive Learning** (Khosla et al., NeurIPS 2020) as the two literature sources motivating the multi-positive extension (11ae), **Wu, Xiong, Yu, Lin, CVPR 2018** (arXiv:1805.01978, specifically section 3.4 only — the weighted k-NN evaluation protocol; sections 3.1-3.3 describe their own unrelated *training* method, instance discrimination, which this thesis does not use) plus **Caron et al. 2021 / DINO** (arXiv:2104.14294) as a modern, widely-used instance of the same protocol, and **Wang & Isola, ICML 2020** (alignment/uniformity)
 3. **Methods**
    - Data: full reviewed human UniProt proteome — fetch, the multi-isoform ENSP ID-matching fix, citation stripping, 16,893 proteins (11b)
    - Homology-aware train/validation/test split: CD-HIT clustering at 90% identity, cluster-level (not protein-level) split (11c)
    - Architecture: frozen ESM2 + frozen BioBERT → trainable projection heads, gene-name masking, InfoNCE loss (11g)
-   - Training procedure & hyperparameter tuning: the batch-size/val_loss random-guessing-floor confound and its `gap_below_random` fix (11e), the hidden_dim/output_dim rank-capping constraint (11f), the W&B-based sweep methodology and its ProteinCLIP-grounded search range (11l) — both the final lr/batch_size/epochs (11l) and the final hidden_dim/output_dim (Stage B dims sweep, 11p) were selected purely on held-out validation loss, deliberately independent of every evaluation-side metric reported in Results — no caveat needed here, just state the selection criterion plainly
-   - Evaluation protocol: cross-modal closed-set retrieval methodology (11d); the shared zero-shot classification recipe used by DeepLoc/EC/GO-MF — prompt ensembling, seen/unseen split relative to the model's own train split, random + majority-class baselines; GO-term retrieval's protocol — the two-step eligible-terms-then-scoring design (`build_go_retrieval_eligible_terms.py` decides `--min-positives` on the validation split only, *before* any retrieval score exists, so the threshold isn't picked by looking at results), AP/mAP/P@K/R@K + normalized R@K as the metric set, and the two independent query styles ("name" vs. "definition")
-4. **Experiments / Results**
-   - Cross-modal closed-set retrieval (bidirectional R@K on the closed protein-level test pool) (11d)
-   - DeepLoc zero-shot subcellular-localization classification — a forced-choice evaluation; 10-way / 9-way human-only / mean-centering-calibration results (11m)
-   - EC top-level zero-shot classification — a second forced-choice evaluation, designed to directly test the name-shortcut concern via an explanatory-vs-keyword-only prompt comparison on a label set (enzyme class names) that is unusually likely to be lexically shortcut-able (11n)
-   - GO Molecular Function (GO-Slim-MF) zero-shot classification — a third forced-choice evaluation, with a data-derived (not external/fixed) class list and a multi-label scoring redesign forced by the biology; the first of the three to beat its own majority-class baseline (11o)
-   - GO-term retrieval — structurally different from the four above: zero-shot text→protein *retrieval* against GO terms with ≥10 annotated test-split proteins, not forced-choice classification, across all three GO branches. Final-checkpoint results (`min_positives=10`, `n` eligible terms = 132/112/91 for BP/CC/MF):
+   - Training procedure & hyperparameter tuning: the batch-size/val_loss random-guessing-floor confound and its `gap_below_random` fix (11e), the hidden_dim/output_dim rank-capping constraint (11f), the W&B-based sweep methodology (11l/11p) — selected purely on held-out validation loss, independent of every evaluation-side metric, and held fixed across every ablation checkpoint (see the fourth scope decision above)
+   - Evaluation protocol, topic-specific: cross-modal closed-set retrieval methodology (11d); the shared zero-shot classification recipe used by DeepLoc/EC/GO-MF — prompt ensembling, seen/unseen split, random + majority-class baselines; GO-term retrieval's two-step eligible-terms-then-scoring design, AP/mAP/P@K/R@K, two query styles
+   - **Evaluation protocol, task-agnostic (new subsection):** Alignment & Uniformity — no labels needed, computed from embeddings alone, with the random-point and mismatched-pair calibration references that make the raw numbers interpretable (11ag); the k-NN check — protein-side embeddings only, no text/query involved at all, neighbor-label agreement against the DeepLoc/EC/GO-MF ground truth already built for the topic evals, calibrated against both a random-chance baseline and a **raw-ESM2-no-training baseline** (the latter specifically to establish that any result reflects the *contrastive training*, not just ESM2's own pretrained structure)
+4. **Experiments / Results**, restructured into four parts in this order (reordered 2026-08-23 — task-agnostic confirmation now comes *after* the headline numbers, not before: it references the DeepLoc/EC/GO-MF ground truth as supporting evidence, which should only be leaned on once the reader has already seen those evals' own results, not before). Still deliberately *not* leading with the final checkpoint's numbers at the very top — the ablation sequence is the actual justification for why multiview is the reported checkpoint at all, so it still comes first:
+   1. **Baseline established (M0)** — brief, points back to Methods
+   2. **Architecture/training-signal ablation study** — one unified table, the four levers (unfreeze/concatenation/multiview/multi-positive) × the five topic evals, headline numbers already gathered this session (11x/11z/11ac/11ae); state the mechanism verdict plainly: concatenation and multi-positive both combine multiple fields into one training example and both underperform multiview, which never does (see Discussion for why this isn't "more vs. less content")
+   3. **Final checkpoint (multiview) headline results on the five topic evals** — the "official" numbers, now earned rather than asserted:
 
-     | Branch | Query style | mAP | random-baseline mAP | P@10 | R@100 |
-     |---|---|---|---|---|---|
-     | BP | name | 0.0704 | 0.0138 | 0.096 | 0.242 |
-     | BP | definition | 0.0736 | 0.0138 | 0.099 | 0.245 |
-     | CC | name | 0.0703 | 0.0302 | 0.094 | 0.185 |
-     | CC | definition | 0.0903 | 0.0302 | 0.131 | 0.226 |
-     | MF | name | 0.1101 | 0.0192 | 0.131 | 0.289 |
-     | MF | definition | 0.0896 | 0.0192 | 0.113 | 0.266 |
+      | Eval | Result |
+      |---|---|
+      | Cross-modal T→P / P→T R@1 | 18.83% / 23.51% (R@50: 73.48% / 72.71%) |
+      | DeepLoc (9-way, ensemble) | 64.08% (seen 67.57%, unseen 49.51%, gap 18.06pp — see Discussion for the training-duration explanation, 11ad) |
+      | EC top-level (ensemble) | 23.38% (seen 23.63%, unseen 22.38%) |
+      | GO-Slim-MF (ensemble) | 49.96% (seen 49.57%, unseen 51.50%, gap **negative** — no memorization signature) |
+      | GO-term retrieval, mean mAP (name/definition) | 0.1031 / 0.0873 |
 
-     Every branch/query-style combination clears its own random-baseline mAP by a wide margin (2.3×–5.7×) — mAP is naturally low in absolute terms because each query is scored against the full ~1,700-protein candidate pool with typically only a handful of true positives per term, not because the ranking is weak. Query style splits by branch rather than uniformly: CC benefits substantially from "definition" phrasing (+28% relative mAP) while MF does the opposite (name beats definition by +23% relative) — mirrored, not explained, by the same query-phrasing idiosyncrasy already documented for pathway queries (8e) and prompt templates (11t).
+      Per-branch GO-retrieval detail (`min_positives=10`, multiview):
+
+      | Branch | Query style | mAP | random-baseline mAP | P@10 | R@100 |
+      |---|---|---|---|---|---|
+      | BP | name | 0.0751 | 0.0138 | 0.100 | 0.254 |
+      | BP | definition | 0.0699 | 0.0138 | 0.089 | 0.240 |
+      | CC | name | 0.1141 | 0.0302 | 0.174 | 0.251 |
+      | CC | definition | 0.1085 | 0.0302 | 0.147 | 0.271 |
+      | MF | name | 0.1200 | 0.0192 | 0.156 | 0.293 |
+      | MF | definition | 0.0835 | 0.0192 | 0.099 | 0.264 |
+
+      Same query-style split-by-branch pattern already noted for M0 (CC prefers "definition" phrasing, MF prefers "name") survives the switch to multiview — this idiosyncrasy is a property of the branch/vocabulary, not specific to one checkpoint.
+   4. **Task-agnostic confirmation** — alignment/uniformity and k-NN results across M0/multiview/multi-positive (11ag + this session), presented explicitly as *independent* evidence agreeing with part 2's ranking and consistent with part 3's numbers above, using the same DeepLoc/EC/GO-MF ground truth already reported in part 3 (now familiar to the reader) as the k-NN check's label sets. Includes the k-NN finding that multi-positive's *protein-side* organization ties multiview's — its weakness is specifically on the text-matching side (visible in part 3's GO-MF number), a distinction only this check can make.
 5. **Discussion**
-   - What works: the contrastive objective produces a real, usable joint embedding space — cross-modal retrieval clears its random baseline by a wide margin (11d); GO-Slim-MF zero-shot classification clears both random and majority-class baselines under a properly-designed multi-label scoring rule (11o); GO-term retrieval clears its random baseline by 2.3×–5.7× across every branch and query style
-   - What doesn't: DeepLoc zero-shot classification underperforms a trivial majority-class baseline, and the calibration fix attempted for it failed for a diagnosable reason (11m); EC top-level classification also underperforms the majority-class baseline under both an explanatory and a keyword-only prompt, with the small gap between the two prompt styles pointing away from query phrasing as the fix (11n) — two of the three forced-choice classification evals converge on the same structural limitation, but the third (GO-MF, 11o) does not, which is itself informative: the plausible dividing line is whether the label vocabulary is close to what Stage 1's UniProt FUNCTION text actually describes (GO-MF) or only incidentally present in it (subcellular location, catalytic mechanism) — a hypothesis floated but explicitly left untested (checked once via a crude keyword-overlap count, inconclusive — see discussion after 11o), not a clean uniform "the model can't do forced-choice classification" story
-   - A second, competing hypothesis surfaced by adding GO-term retrieval to the suite (2026-08-18, untested, not yet disentangled from the vocabulary hypothesis above): the two evals that fail (DeepLoc, EC) are both *strict single-label forced-choice* classification; the three that succeed (cross-modal, GO-MF's lenient multi-label scoring, GO-term retrieval) are all either ranking/retrieval tasks or explicitly multi-label. Task *format*, not just label vocabulary, may correlate with success — but GO-term retrieval's vocabulary (GO term names/definitions) is no closer to UniProt FUNCTION text than DeepLoc's or EC's is, which the vocabulary hypothesis alone doesn't explain, so the two hypotheses aren't mutually exclusive and neither is confirmed over the other. Worth stating as an open, explicitly-flagged pattern rather than a conclusion.
-   - Open question raised but deliberately not chased in this thesis: zero-shot is the right, standard methodology for this model class (matches CLIP's and ProteinCLIP's own primary evaluation approach), but nothing in the current suite isolates "bad protein representation" from "bad text-prompt alignment" for the two weak evals (DeepLoc, EC) — a linear-probe check on the frozen protein embeddings would disentangle these, discussed but not implemented; worth naming as a limitation/future-work item rather than leaving implicit
-6. **Conclusion & Future Work** — the z-score-standardization follow-up to the DeepLoc calibration result (11m), the untested linear-probe follow-up above. The researcher-facing tool itself (sample-restricted Stage 1 retrieval, Stage 2 abundance annotation, Stage 3 Claude interpretation, full Streamlit app — section 11r) is now built and spot-checked on real patients/queries, but deliberately informal/qualitative validation only, not part of the five reported thesis evals above — worth framing in Future Work as a working proof-of-concept whose *quality* (does it actually help a researcher) is a separate, still-open question from the *retrieval model's* measured performance. A concrete named next step for that tool: the planned case/control comparison prototype (11s), addressing real researcher feedback that a single abundance percentile is hard to interpret without a reference — built on CPTAC's own tumor/adjacent-normal `.N` sample pairs, deliberately scoped down to a single-replicate descriptive comparison (with an explicit ≥3-replicates caveat) rather than a full statistical pipeline, given the hand-in timeline. All five evals (now including GO-term retrieval) are the frozen protocol meant to be reused unchanged across the in-progress M0–M3 training-text ablation (11x) and its own BioBERT-unfreeze sub-result — so the same table structure above should be directly reusable once those results land, not rebuilt from scratch.
+   - **"One topic per training example beats several at once" — the throughline of the ablation study, corrected framing (2026-08-23).** An earlier draft of this note described multiview as adding "no more content" than M0 — that's wrong and worth being precise about, since multiview draws on the exact same expanded content as M1–M3 (Function + Family + Location, identical fields). The real distinguishing variable across all four levers is not *how much* content the model is ultimately exposed to, but whether **multiple fields get combined into one training example at the same time.** M1–M3 concatenate several fields into a single string, every training example. Multi-positive goes further, pulling a protein toward *all* its available fields jointly, every epoch. Multiview shows exactly one field per training example — Family/Location content is still used just as much in aggregate, just never combined with anything else in the same example, and rotated randomly across epochs instead. The shared mechanism behind concatenation's and multi-positive's underperformance is the same name/identity-shortcut pattern documented six-plus times earlier in this project (8a, 8e, 10k/10l, 10n, 11n, 11z) — combining multiple distinguishing fields into one training example, however it's delivered, tends to help closed-set self-identification while hurting open-vocabulary generalization; multiview's win comes specifically from never creating that combined, multi-field example in the first place, not from using less information overall.
+   - **Why multi-positive specifically falls short of multiview, mechanistically** (11ae, k-NN this session): not a worse protein representation — the k-NN check shows multi-positive's protein-side organization ties multiview's. The gap shows up specifically on metrics involving the text side (GO-MF classification, alignment/uniformity) and in a bigger, less-explained DeepLoc seen/unseen gap despite training for a third as many epochs — most likely because grouping all of a protein's views together every epoch (rather than one random draw) intensifies per-protein training signal by construction, trading some in-batch negative diversity (512 unique proteins → ~195) for that richer positive signal, a trade that didn't pay off net.
+   - What works, on the five topic evals: cross-modal clears its random baseline; GO-Slim-MF clears both random and majority-class baselines under the lenient multi-label rule; GO-term retrieval clears its random baseline by 2.3×–5.7× across every branch/style.
+   - What doesn't: DeepLoc and EC both underperform their own majority-class baselines even under multiview, and the query-phrasing fix attempted for EC didn't close the gap (11n) — two of five evals still show a real, un-closed limitation. The plausible dividing line (untested, flagged not confirmed): label vocabulary close to what Stage 1's training text actually describes (GO-MF, GO-retrieval) succeeds; vocabulary only incidentally present in it (location, catalytic mechanism) struggles — plus a second, competing, equally-untested hypothesis that task *format* (strict single-label vs. multi-label/ranking) is the real dividing line, not vocabulary. Neither is confirmed over the other.
+   - Task-agnostic evidence closes a real gap the five topic evals structurally cannot: they only ever test the specific vocabulary they're built around. Alignment/uniformity and k-NN both independently confirm multiview's space is better-organized than the alternatives, using no labels and no text respectively — a genuinely different kind of support for the checkpoint decision than "it scored higher on eval X."
+   - Open question raised but deliberately not chased in this thesis: a full linear-probe check (train a simple classifier on frozen protein embeddings, bypassing the text-matching mechanism entirely) would further disentangle "bad protein representation" from "bad text-prompt alignment" for the two weak evals (DeepLoc, EC) — the k-NN check added this session is a partial, cheaper answer to the same question (protein-side structure only), but a true linear probe remains untried; worth naming as a limitation/future-work item.
+6. **Conclusion & Future Work** — the z-score-standardization follow-up to the DeepLoc calibration result (11m), the untested linear-probe follow-up above. The researcher-facing tool itself (sample-restricted Stage 1 retrieval, Stage 2 abundance annotation, Stage 3 Claude interpretation, full Streamlit app — section 11r) is now built and spot-checked on real patients/queries, but deliberately informal/qualitative validation only, not part of the five reported thesis evals above — worth framing in Future Work as a working proof-of-concept whose *quality* (does it actually help a researcher) is a separate, still-open question from the *retrieval model's* measured performance. A concrete named next step for that tool: the planned case/control comparison prototype (11s), addressing real researcher feedback that a single abundance percentile is hard to interpret without a reference — built on CPTAC's own tumor/adjacent-normal `.N` sample pairs, deliberately scoped down to a single-replicate descriptive comparison (with an explicit ≥3-replicates caveat) rather than a full statistical pipeline, given the hand-in timeline. The full four-lever ablation (unfreeze, concatenation, multiview, multi-positive) and the two task-agnostic checks are now complete, not in-progress — the tissue-specificity extension (11af, coverage-checked and leakage-vetted, not yet built) is the one remaining planned addition to the training-signal side before the checkpoint is locked in for good and the one-time GO-retrieval `test_only` check (standing rule, 11ab) gets spent.

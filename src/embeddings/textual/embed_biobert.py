@@ -13,6 +13,10 @@ MODEL_NAME = "dmis-lab/biobert-base-cased-v1.2"
 BATCH_SIZE = 256
 MAX_LENGTH = 512
 
+# --field choice -> protein_annotations.csv column name, for the solo-field
+# multi-view embedding mode.
+FIELD_COLUMNS = {"family": "Family", "location": "Location"}
+
 
 def mean_pool(token_embeddings, attention_mask):
     # Expand mask from (batch, seq_len) to (batch, seq_length, 768) so it matches token_embeddings.shape (BioBERT produces 768-dimensional embeddings)
@@ -142,7 +146,11 @@ def main():
                           "--include-family/--include-location -- it builds a solo-field "
                           "embedding, those all build appended Function-based text")
 
-    data_dir = Path(f"data/cptac/{args.cohort}")
+    # full_proteome is NOT a CPTAC cohort -- it's the separate, unified
+    # proteome-wide directory (data/full_proteome/, see CLAUDE.md section
+    # 11), never moved under data/cptac/ during that reorg. The other 9
+    # real cohort names (luad, brca, ...) do live under data/cptac/{cohort}.
+    data_dir = Path("data/full_proteome") if args.cohort == "full_proteome" else Path(f"data/cptac/{args.cohort}")
     annotations_path = data_dir / "protein_annotations.csv"
     if args.field:
         output_filename = f"biobert_embeddings_{args.field}_view.h5"
@@ -170,7 +178,7 @@ def main():
         # by design. dataset.py's multi-view random selection checks per-protein
         # which view-files contain that protein_id rather than assuming all
         # three always have the same coverage.
-        field_col = "Family" if args.field == "family" else "Location"
+        field_col = FIELD_COLUMNS[args.field]
         n_before = len(annotations)
         annotations = annotations.dropna(subset=[field_col]).reset_index(drop=True)
         print(f"{field_col} coverage: {len(annotations)}/{n_before} ({len(annotations)/n_before*100:.1f}%)")
@@ -190,7 +198,7 @@ def main():
         # Raw field text is the sole embedded input -- no masking (gene names
         # deliberately left in for Family, see --field's help text above), no
         # appending, no GO terms.
-        field_col = "Family" if args.field == "family" else "Location"
+        field_col = FIELD_COLUMNS[args.field]
         texts = annotations[field_col].tolist()
     elif args.mask_gene_names:
         texts = [strip_gene_name(g, a) for g, a in zip(annotations["Gene"], annotations["Annotation"])]

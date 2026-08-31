@@ -1,0 +1,54 @@
+{
+  "checkpoint": "data/runs/full_proteome/text_experiment/m2_family_location_masked_best.pt",
+  "include_test": false,
+  "results": {
+    "deeploc": {
+      "eval_set": "deeploc",
+      "n_proteins": 2398,
+      "n_classes": 9,
+      "random_baseline": 0.1111111111111111,
+      "agreement_at_k": {
+        "5": 0.699999999999997,
+        "10": 0.6788990825688097,
+        "20": 0.6534195162635549
+      },
+      "raw_esm2_agreement_at_k": {
+        "5": 0.5770642201834838,
+        "10": 0.5432443703085921,
+        "20": 0.5009174311926604
+      }
+    },
+    "ec": {
+      "eval_set": "ec",
+      "n_proteins": 3812,
+      "n_classes": 7,
+      "random_baseline": 0.14285714285714285,
+      "agreement_at_k": {
+        "5": 0.8480062959076623,
+        "10": 0.8095750262329531,
+        "20": 0.7619491080797459
+      },
+      "raw_esm2_agreement_at_k": {
+        "5": 0.6840503672612838,
+        "10": 0.6241867785939154,
+        "20": 0.5622245540398753
+      }
+    },
+    "go_mf": {
+      "eval_set": "go_mf",
+      "n_proteins": 6721,
+      "n_classes": 10,
+      "random_baseline": 0.1369736646332391,
+      "agreement_at_k": {
+        "5": 0.8599910727570336,
+        "10": 0.8367356048207101,
+        "20": 0.8125799732182671
+      },
+      "raw_esm2_agreement_at_k": {
+        "5": 0.7383722660318444,
+        "10": 0.6912215444130333,
+        "20": 0.6469498586519822
+      }
+    }
+  }
+}

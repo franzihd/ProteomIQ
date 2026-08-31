@@ -52,7 +52,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from transformers import get_cosine_schedule_with_warmup, AutoTokenizer, AutoModel
-from src.model.dataset import ProteomicsDataset, parse_biobert_text_flags
+from src.model.dataset import ProteomicsDataset, parse_biobert_text_flags, GroupedBatchSampler
 from src.model.projection_head import ProjectionHead
 from src.embeddings.textual.embed_biobert import MODEL_NAME, MAX_LENGTH, mean_pool
 
@@ -67,6 +67,55 @@ def infonce_loss(protein_vec, text_vec):
     logits = (protein_vec @ text_vec.T) * (1 / 0.07)
     labels = torch.arange(len(protein_vec), device=protein_vec.device)
     return (F.cross_entropy(logits, labels) + F.cross_entropy(logits.T, labels)) / 2
+
+
+def multi_positive_infonce_loss(protein_vec, text_vec, protein_idx):
+    """
+    Multi-positive extension of infonce_loss, for ProteomicsDataset(
+    multi_positive=True) + GroupedBatchSampler batches, where more than one
+    row in a batch can legitimately share the same protein (its different
+    text views). Plain infonce_loss's `labels = arange(N)` assumes exactly
+    one positive per row (the diagonal) -- wrong here: rows i and j should
+    both be pulled together whenever protein_idx[i] == protein_idx[j], not
+    just when i == j.
+
+    positive_mask[i, j] = (protein_idx[i] == protein_idx[j]) -- symmetric
+    by construction, and always True for i == j (a row is trivially its own
+    positive). Self is deliberately kept IN the positive set, unlike the
+    textbook SupCon convention of excluding the anchor from its own
+    positive/denominator sum: textbook SupCon assumes many same-class rows
+    are available per batch, so excluding self costs nothing there. Here,
+    282/13,515 proteins have only ONE available view (see dataset.py's
+    multi_positive branch) -- excluding self for those rows would leave
+    zero positives and a broken (divide-by-zero) loss term. Including self
+    sidesteps that edge case entirely and costs nothing for proteins with
+    2-3 views (self is just one additional guaranteed positive alongside
+    the real ones).
+
+    Symmetric like infonce_loss: both directions (protein->text via
+    `logits`, text->protein via `logits.T`) use the same positive_mask
+    (equality is symmetric, so mask.T == mask) and are averaged. Because
+    GroupedBatchSampler duplicates a protein's ESM2 embedding across its
+    2-3 rows (see that class's docstring), BOTH directions genuinely have
+    multiple positives when a protein has more than one view in the batch
+    -- not just the protein->text direction, unlike the earlier asymmetric
+    (N-unique-proteins x N-texts) design that was proposed before this was
+    actually implemented. That asymmetric design would avoid a small
+    amount of redundant compute (re-embedding the same protein 2-3x per
+    batch instead of once), but protein_head is a small MLP -- the redundant
+    compute is negligible, and this symmetric, mask-based version is simpler
+    to implement correctly and reuses infonce_loss's existing structure
+    almost as-is.
+    """
+    logits = (protein_vec @ text_vec.T) * (1 / 0.07)
+    positive_mask = (protein_idx.unsqueeze(1) == protein_idx.unsqueeze(0))
+
+    def directional_loss(logits_dir):
+        log_prob = logits_dir - logits_dir.logsumexp(dim=1, keepdim=True)
+        n_positives = positive_mask.sum(dim=1)  # always >= 1, via self-inclusion
+        return -(log_prob * positive_mask).sum(dim=1).div(n_positives).mean()
+
+    return (directional_loss(logits) + directional_loss(logits.T)) / 2
 
 
 def in_batch_recall_at_k(logits, ks=(1, 10)):
@@ -125,7 +174,7 @@ def train(checkpoint_path: str, epochs: int,
           lr: float = MAX_LR, batch_size: int = BATCH_SIZE, hidden_dim: int = 512,
           output_dim: int = 256, on_epoch_end=None, early_stopping_patience: int | None = None,
           unfreeze_biobert_layers: int = 0, biobert_lr: float = DEFAULT_BIOBERT_LR,
-          view_biobert_filenames: list[str] | None = None):
+          view_biobert_filenames: list[str] | None = None, multi_positive: bool = False):
     """
     No `cohorts` parameter -- this script always trains on the full,
     homology-aware-split proteome (ProteomicsDataset(use_abundance=False)
@@ -162,6 +211,16 @@ def train(checkpoint_path: str, epochs: int,
     applies to training only, same principle as random-crop-train/
     center-crop-val in vision. Not combinable with unfreeze_biobert_layers > 0
     (see ProteomicsDataset's own guard).
+    multi_positive: when True (requires view_biobert_filenames), TRAINING uses
+    every available view as its own row (not one random draw per protein --
+    see ProteomicsDataset's multi_positive branch), batched via
+    GroupedBatchSampler so a protein's views co-occur in the same batch, and
+    trained with multi_positive_infonce_loss instead of infonce_loss. This is
+    the CMC/SupCon-inspired extension of the plain multi-view random-selection
+    experiment above -- see CLAUDE.md for the full design discussion.
+    VALIDATION is unaffected either way: still the single, fixed
+    biobert_filename, plain infonce_loss, same rationale as the
+    view_biobert_filenames case (comparability across epochs/runs).
     Returns (best_checkpoint_path, best_val_loss).
     """
     # Fixed seed so repeated runs (e.g. comparing different --epochs values)
@@ -180,10 +239,14 @@ def train(checkpoint_path: str, epochs: int,
     dataset = ProteomicsDataset(
         cohorts=[], use_abundance=False, held_out_protein_ids=held_out_protein_ids,
         biobert_filename=biobert_filename, live_text=live_text, text_flags=text_flags,
-        view_biobert_filenames=view_biobert_filenames,
+        view_biobert_filenames=view_biobert_filenames, multi_positive=multi_positive,
     )
-    print(f"Training data: data/full_proteome/  |  Training pairs (unique proteins): {len(dataset):,}")
-    if view_biobert_filenames:
+    print(f"Training data: data/full_proteome/  |  Training pairs: {len(dataset):,}")
+    if multi_positive:
+        print(f"Multi-positive training text: {view_biobert_filenames}  |  "
+              f"validation text (fixed): {biobert_filename}  |  lr: {lr}  |  batch_size: {batch_size}  |  "
+              f"hidden_dim: {hidden_dim}  |  output_dim: {output_dim}")
+    elif view_biobert_filenames:
         print(f"Multi-view training text: {view_biobert_filenames}  |  "
               f"validation text (fixed): {biobert_filename}  |  lr: {lr}  |  batch_size: {batch_size}  |  "
               f"hidden_dim: {hidden_dim}  |  output_dim: {output_dim}")
@@ -191,9 +254,18 @@ def train(checkpoint_path: str, epochs: int,
         print(f"BioBERT source: {biobert_filename}  |  lr: {lr}  |  batch_size: {batch_size}  |  "
               f"hidden_dim: {hidden_dim}  |  output_dim: {output_dim}")
 
-    shuffle_generator = torch.Generator().manual_seed(SEED)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
-                            generator=shuffle_generator)
+    if multi_positive:
+        # Plain shuffle=True would almost never co-locate a protein's 2-3
+        # views in the same batch (see GroupedBatchSampler's docstring) --
+        # the multi-positive loss has nothing to pull together if they
+        # don't. batch_sampler replaces batch_size+shuffle entirely
+        # (mutually exclusive in PyTorch's DataLoader).
+        batch_sampler = GroupedBatchSampler(dataset, batch_size=batch_size, seed=SEED)
+        dataloader = DataLoader(dataset, batch_sampler=batch_sampler)
+    else:
+        shuffle_generator = torch.Generator().manual_seed(SEED)
+        dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True,
+                                generator=shuffle_generator)
 
     # Validation always uses the single fixed biobert_filename, never
     # view_biobert_filenames -- see the docstring note above.
@@ -262,14 +334,20 @@ def train(checkpoint_path: str, epochs: int,
         if live_text:
             biobert_model.train()
         total_loss = 0
-        for protein_emb, text_batch in dataloader:
+        for batch in dataloader:
+            if multi_positive:
+                protein_emb, text_batch, protein_idx = batch
+                protein_idx = protein_idx.to(device)
+            else:
+                protein_emb, text_batch = batch
             protein_emb = protein_emb.to(device)
             optimizer.zero_grad()
 
             with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=use_amp):
                 protein_vec = protein_head(protein_emb)
                 text_vec = compute_text_vec(text_batch)
-                loss = infonce_loss(protein_vec, text_vec)
+                loss = (multi_positive_infonce_loss(protein_vec, text_vec, protein_idx)
+                        if multi_positive else infonce_loss(protein_vec, text_vec))
 
             total_loss += loss.item()
             loss.backward()
@@ -326,7 +404,8 @@ def train(checkpoint_path: str, epochs: int,
                       "biobert_n_layers": biobert_n_layers,
                       "unfrozen_layer_indices": unfrozen_indices,
                       "biobert_lr": biobert_lr if live_text else None,
-                      "view_biobert_filenames": view_biobert_filenames}
+                      "view_biobert_filenames": view_biobert_filenames,
+                      "multi_positive": multi_positive}
         if live_text:
             # Only the unfrozen layers' weights need saving -- the frozen
             # embeddings + lower layers are always exactly the pretrained
@@ -395,10 +474,19 @@ if __name__ == "__main__":
                              "random per protein per sample instead of --biobert-filename; "
                              "VALIDATION still uses --biobert-filename alone, unrandomized. "
                              "Not combinable with --unfreeze-biobert-layers > 0")
+    parser.add_argument("--multi-positive", action="store_true",
+                        help="CMC/SupCon-inspired extension of --view-biobert-filenames: instead "
+                             "of one random view per protein per sample, use every available view "
+                             "as its own training row, batched (via GroupedBatchSampler) so a "
+                             "protein's views co-occur, and trained with a multi-positive InfoNCE "
+                             "loss that pulls all of a protein's co-occurring views together "
+                             "instead of assuming exactly one positive per row. Requires "
+                             "--view-biobert-filenames; VALIDATION is unaffected (still the "
+                             "single fixed --biobert-filename, plain infonce_loss)")
     args = parser.parse_args()
     train(checkpoint_path=args.checkpoint, epochs=args.epochs,
           biobert_filename=args.biobert_filename, splits_file=args.splits_file,
           lr=args.lr, batch_size=args.batch_size, hidden_dim=args.hidden_dim,
           output_dim=args.output_dim, early_stopping_patience=args.early_stopping_patience,
           unfreeze_biobert_layers=args.unfreeze_biobert_layers, biobert_lr=args.biobert_lr,
-          view_biobert_filenames=args.view_biobert_filenames)
+          view_biobert_filenames=args.view_biobert_filenames, multi_positive=args.multi_positive)
