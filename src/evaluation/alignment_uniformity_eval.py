@@ -61,6 +61,7 @@ from src.model.projection_head import ProjectionHead
 UNIFORMITY_T = 2.0  # paper's standard choice, fixed here (same treatment as
                      # infonce_loss's hardcoded temperature=0.07 elsewhere)
 ALIGNMENT_ALPHA = 2  # paper's standard choice (squared distance)
+OUTPUT_DIR = Path("data/evaluation/alignment_uniformity")
 
 
 def alignment_loss(x: torch.Tensor, y: torch.Tensor, alpha: float = ALIGNMENT_ALPHA) -> float:
@@ -176,3 +177,9 @@ if __name__ == "__main__":
     print(f"Uniformity, text-side (lower = better, more spread):    {metrics['uniformity_text']:.4f}")
     print(f"Uniformity, pooled protein+text (lower = better):       {metrics['uniformity_pooled']:.4f}")
     print(f"  -- reference, genuinely random points (best case):   {metrics['uniformity_random_reference']:.4f}")
+
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = OUTPUT_DIR / f"summary_{Path(args.checkpoint).stem}.json"
+    with open(out_path, "w") as f:
+        json.dump(metrics, f, indent=2)
+    print(f"\nSummary saved to {out_path}")

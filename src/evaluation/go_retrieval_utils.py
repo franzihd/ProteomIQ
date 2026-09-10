@@ -11,9 +11,19 @@ cross-references, uncapped, NOT propagated up the GO DAG. See that script's
 docstring for the full direct-vs-propagated discussion; this project does
 not implement GO-DAG ancestor propagation ("true path rule") anywhere.
 
-Candidate pool: the existing homology-aware VALIDATION split
-(data/protein_splits_full_proteome.json, key "validation") -- test is never
-read by this module.
+Candidate pool: the existing homology-aware split
+(data/protein_splits_full_proteome.json). Validation is the default and was
+the ONLY pool used for every checkpoint comparison in this project's ablation
+study (unfreeze-depth, M0-M3 text concatenation, multiview, multi-positive) --
+by design, so those comparisons never touched test (CLAUDE.md 11ab). "test"
+is supported via load_pool_ensp_ids(split_key="test") but is meant to be
+spent exactly once, on the single final chosen checkpoint, never for repeat
+comparisons -- same discipline as unseen_test in the zero-shot classification
+evals and the --split-key flag added to cross_modal_eval.py for the same
+reason. build_go_retrieval_eligible_terms.py (Step 1, choosing --min-
+positives) always uses load_validation_ensp_ids() specifically and must keep
+doing so regardless -- that threshold has to be chosen from validation-only
+distributions, before any retrieval score exists.
 """
 import json
 from collections import defaultdict
@@ -32,10 +42,21 @@ BRANCHES = {
 }
 
 
-def load_validation_ensp_ids() -> set[str]:
+def load_pool_ensp_ids(split_key: str = "validation") -> set[str]:
+    if split_key not in ("validation", "test"):
+        raise ValueError(f"split_key must be 'validation' or 'test', got {split_key!r}")
     with open(SPLITS_PATH) as f:
         splits = json.load(f)
-    return set(splits["validation"])
+    return set(splits[split_key])
+
+
+def load_validation_ensp_ids() -> set[str]:
+    """Kept as its own function (rather than just calling
+    load_pool_ensp_ids("validation") at every call site) so
+    build_go_retrieval_eligible_terms.py's Step 1 -- which must ALWAYS use
+    validation, never test, to choose --min-positives -- can't accidentally
+    be switched to test by a future edit that changes a shared default."""
+    return load_pool_ensp_ids("validation")
 
 
 def load_ensp_accession_maps() -> tuple[dict[str, str], dict[str, str]]:

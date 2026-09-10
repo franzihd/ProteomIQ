@@ -132,7 +132,7 @@ from go_retrieval_utils import (
     BRANCHES,
     load_branch_ground_truth,
     load_ensp_accession_maps,
-    load_validation_ensp_ids,
+    load_pool_ensp_ids,
 )
 
 BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
@@ -141,20 +141,25 @@ OUTPUT_DIR = Path("data/evaluation/go_retrieval/results")
 QUERY_TYPES = ("name", "definition")
 
 
-def load_context(checkpoint_path: Path, biobert_filename: str = "biobert_embeddings_masked.h5") -> dict:
+def load_context(checkpoint_path: Path, biobert_filename: str = "biobert_embeddings_masked.h5",
+                  split_key: str = "validation") -> dict:
     """Loads everything that does NOT depend on --branch/--min-positives:
     checkpoint, projection heads, BioBERT, and -- since the protein side of
     this eval never depends on which GO term is being queried -- the
-    protein tower's embeddings for the full resolved VALIDATION pool,
-    computed once here. Mirrors the load_context()/run_condition() split
-    already used in the other zero-shot eval scripts (avoids reloading the
-    checkpoint/BioBERT per branch)."""
+    protein tower's embeddings for the full resolved pool, computed once
+    here. Mirrors the load_context()/run_condition() split already used in
+    the other zero-shot eval scripts (avoids reloading the checkpoint/
+    BioBERT per branch).
+
+    split_key: "validation" (default) for repeat checkpoint comparisons;
+    "test" is reserved -- spend it exactly once, on the single final chosen
+    checkpoint (see module/go_retrieval_utils.py docstrings)."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     print(f"Checkpoint: {checkpoint_path}\n")
 
-    validation_ensp_ids = load_validation_ensp_ids()
-    print(f"Validation split (candidate pool): {len(validation_ensp_ids)} proteins")
+    pool_ensp_ids = load_pool_ensp_ids(split_key)
+    print(f"{split_key.capitalize()} split (candidate pool): {len(pool_ensp_ids)} proteins")
 
     print("Loading checkpoint and building protein/text towers ...")
     checkpoint = torch.load(checkpoint_path, map_location=device)
@@ -171,16 +176,16 @@ def load_context(checkpoint_path: Path, biobert_filename: str = "biobert_embeddi
     biobert_model = AutoModel.from_pretrained(BIOBERT_PATH, local_files_only=True).to(device)
     biobert_model.eval()
 
-    print("Embedding the resolved validation pool with the protein tower ...")
+    print(f"Embedding the resolved {split_key} pool with the protein tower ...")
     dataset = ProteomicsDataset(
         cohorts=[], use_abundance=False,
         biobert_filename=biobert_filename,
-        restrict_to_protein_ids=validation_ensp_ids,
+        restrict_to_protein_ids=pool_ensp_ids,
     )
     ensp_ids = dataset.pairs
-    missing = validation_ensp_ids - set(ensp_ids)
+    missing = pool_ensp_ids - set(ensp_ids)
     if missing:
-        print(f"  WARNING: {len(missing)}/{len(validation_ensp_ids)} validation proteins have no "
+        print(f"  WARNING: {len(missing)}/{len(pool_ensp_ids)} {split_key} proteins have no "
               f"'{biobert_filename}' embedding and are dropped from the candidate pool this run")
     print(f"  Resolved candidate pool: {len(ensp_ids)} proteins\n")
 
@@ -199,6 +204,7 @@ def load_context(checkpoint_path: Path, biobert_filename: str = "biobert_embeddi
         "device": device,
         "checkpoint_path": checkpoint_path,
         "biobert_filename": biobert_filename,
+        "split_key": split_key,
         "ensp_ids": ensp_ids,
         "ensp_idx": ensp_idx,
         "protein_vecs": protein_vecs,
@@ -392,8 +398,12 @@ def run_branch(ctx: dict, branch: str, min_positives: int, k_values: list[int]) 
         print()
 
     checkpoint_stem = ctx["checkpoint_path"].stem
-    predictions_path = OUTPUT_DIR / f"predictions_{branch}_{checkpoint_stem}_min{min_positives}.csv"
-    summary_path = OUTPUT_DIR / f"summary_{branch}_{checkpoint_stem}_min{min_positives}.json"
+    # "validation" keeps the existing, un-suffixed filenames used by every
+    # comparison run so far; "test" gets its own _test-suffixed filename so
+    # it can never silently overwrite a validation result (or vice versa).
+    split_suffix = "" if ctx["split_key"] == "validation" else f"_{ctx['split_key']}"
+    predictions_path = OUTPUT_DIR / f"predictions_{branch}_{checkpoint_stem}_min{min_positives}{split_suffix}.csv"
+    summary_path = OUTPUT_DIR / f"summary_{branch}_{checkpoint_stem}_min{min_positives}{split_suffix}.json"
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     results_df.to_csv(predictions_path, index=False)
     with open(summary_path, "w") as f:
@@ -405,8 +415,9 @@ def run_branch(ctx: dict, branch: str, min_positives: int, k_values: list[int]) 
 
 
 def run(checkpoint_path: Path, branch: str, min_positives: int, k_values: list[int],
-        biobert_filename: str = "biobert_embeddings_masked.h5") -> dict:
-    ctx = load_context(checkpoint_path, biobert_filename)
+        biobert_filename: str = "biobert_embeddings_masked.h5",
+        split_key: str = "validation") -> dict:
+    ctx = load_context(checkpoint_path, biobert_filename, split_key)
     branches = list(BRANCHES.keys()) if branch == "all" else [branch]
     return {b: run_branch(ctx, b, min_positives, k_values) for b in branches}
 
@@ -426,10 +437,17 @@ if __name__ == "__main__":
                              "be included. REQUIRED, no default -- see "
                              "build_go_retrieval_eligible_terms.py for the distribution report "
                              "this choice must be based on. Must be chosen from the reported data "
-                             "distributions, never from retrieval performance.")
+                             "distributions, never from retrieval performance. Always chosen from "
+                             "the VALIDATION distribution (build_go_retrieval_eligible_terms.py), "
+                             "even when --split-key test -- the threshold itself must never be "
+                             "re-picked using test data.")
     parser.add_argument("--k-values", default="10,50,100",
                         help="comma-separated list of K values for Precision@K/Recall@K")
+    parser.add_argument("--split-key", choices=["validation", "test"], default="validation",
+                        help="candidate pool to evaluate against. 'validation' (default) for "
+                             "repeat checkpoint comparisons; 'test' is reserved -- spend it "
+                             "exactly once, on the single final chosen checkpoint.")
     args = parser.parse_args()
     k_values = [int(k) for k in args.k_values.split(",")]
     run(Path(args.checkpoint), args.branch, args.min_positives, k_values,
-        biobert_filename=args.biobert_filename)
+        biobert_filename=args.biobert_filename, split_key=args.split_key)

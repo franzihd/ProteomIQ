@@ -1,0 +1,11 @@
+{
+  "pool_size": 1689,
+  "alignment": 1.3428359031677246,
+  "alignment_mismatched_reference": 2.00620174407959,
+  "uniformity_protein": -3.7993648052215576,
+  "uniformity_text": -3.78904390335083,
+  "uniformity_pooled": -3.857027053833008,
+  "uniformity_random_reference": -3.9922039985656737,
+  "checkpoint": "data/runs/full_proteome/final_v2_dims_masked_best.pt",
+  "biobert_filename": "biobert_embeddings_masked.h5"
+}
