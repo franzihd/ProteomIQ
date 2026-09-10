@@ -44,9 +44,13 @@ from src.model.dataset import ProteomicsDataset
 from src.model.projection_head import ProjectionHead
 from src.preprocessing.normalize_uploaded_sample import normalize_uploaded_sample
 
-CHECKPOINT_PATH = "data/runs/full_proteome/final_v2_dims_masked_best.pt"
+CHECKPOINT_PATH = "data/runs/full_proteome/multiview_experiment/multiview_best.pt"
 BIOBERT_FILENAME = "biobert_embeddings_masked.h5"
-BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
+# HuggingFace model ID, not a machine-specific resolved cache path -- resolves
+# via transformers' own cache lookup (finds it locally if already downloaded,
+# fetches it otherwise) so this works on any machine, not just the one it was
+# first hardcoded on (CLAUDE.md, professor-facing tool portability fix).
+BIOBERT_PATH = "dmis-lab/biobert-base-cased-v1.2"
 
 
 def build_gene_lookup():
@@ -83,8 +87,12 @@ def load_model(device):
     protein_head.eval()
     text_head.eval()
 
-    tokenizer = AutoTokenizer.from_pretrained(BIOBERT_PATH, local_files_only=True)
-    biobert_model = AutoModel.from_pretrained(BIOBERT_PATH, local_files_only=True).to(device)
+    # local_files_only=False (the default) lets transformers download BioBERT
+    # on first run on a machine that doesn't have it cached yet; it's reused
+    # from the local cache on every run after that, same as any other
+    # HuggingFace model.
+    tokenizer = AutoTokenizer.from_pretrained(BIOBERT_PATH)
+    biobert_model = AutoModel.from_pretrained(BIOBERT_PATH).to(device)
     biobert_model.eval()
     return protein_head, text_head, tokenizer, biobert_model
 
