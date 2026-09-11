@@ -13,3 +13,4 @@ data/runs/luad*/
 data/luad/checkpoint.pt
 data/runs/full_proteome/archive/**/*.pt
 docs/
+dist/

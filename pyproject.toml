@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 dependencies = [
+    "adjusttext>=1.4.0",
     "anthropic>=0.111.0",
     "cptac>=1.5.14",
     "fair-esm>=2.0.0",
@@ -19,6 +20,7 @@ dependencies = [
     "nvidia-curand-cu12",
     "nvidia-nccl-cu12",
     "pandas>=3.0.2",
+    "pillow>=12.2.0",
     "scikit-learn>=1.9.0",
     "streamlit>=1.58.0",
     "torch==2.6.0",

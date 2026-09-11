@@ -50,8 +50,11 @@ def build_gene_to_ensp_lookup() -> dict:
 
 def normalize_uploaded_sample(input_path, gene_col: str = "gene", abundance_col: str = "abundance"):
     """Returns (result_df, unmatched_genes, n_ambiguous). result_df has columns
-    [gene_col, 'ENSP_ID', 'percentile'] -- ready to feed directly into Stage 2's
-    existing annotation lookup, same shape as a row from rank_normalized_proteomics.csv."""
+    [gene_col, 'ENSP_ID', 'percentile', 'raw_abundance'] -- percentile/ENSP_ID
+    are ready to feed directly into Stage 2's existing annotation lookup, same
+    shape as a row from rank_normalized_proteomics.csv; raw_abundance is kept
+    alongside for visualizations (e.g. a rank-abundance plot) where the
+    percentile alone isn't informative on a log scale."""
     df = pd.read_csv(input_path)
     gene_to_ensp = build_gene_to_ensp_lookup()
 
@@ -73,7 +76,11 @@ def normalize_uploaded_sample(input_path, gene_col: str = "gene", abundance_col:
     matched = df.dropna(subset=["ENSP_ID"]).copy()
     unmatched = df[df["ENSP_ID"].isna()][gene_col].tolist()
 
-    result = matched[[gene_col, "ENSP_ID", "percentile"]].reset_index(drop=True)
+    result = (
+        matched[[gene_col, "ENSP_ID", "percentile", abundance_col]]
+        .rename(columns={abundance_col: "raw_abundance"})
+        .reset_index(drop=True)
+    )
     return result, unmatched, n_ambiguous
 
 
