@@ -1,0 +1,51 @@
+eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
+ec_top_level,multi_positive_best,multi_positive,multi-positive,validation,ensemble,accuracy,0.2101449275362318
+ec_top_level,multi_positive_best,multi_positive,multi-positive,validation,ensemble,macro_f1,0.1562742735514618
+ec_top_level,multi_positive_best,multi_positive,multi-positive,validation,ensemble,majority_baseline_accuracy,0.4202898550724637
+ec_top_level,multi_positive_best,multi_positive,multi-positive,validation,ensemble,n,414.0
+ec_top_level,multi_positive_best,multi_positive,multi-positive,validation,ensemble,random_baseline_accuracy,0.1428571428571428
+ec_top_level,multiview_best,multiview,multiview (winner),validation,ensemble,accuracy,0.2053140096618357
+ec_top_level,multiview_best,multiview,multiview (winner),validation,ensemble,macro_f1,0.1830635519832182
+ec_top_level,multiview_best,multiview,multiview (winner),validation,ensemble,majority_baseline_accuracy,0.4202898550724637
+ec_top_level,multiview_best,multiview,multiview (winner),validation,ensemble,n,414.0
+ec_top_level,multiview_best,multiview,multiview (winner),validation,ensemble,random_baseline_accuracy,0.1428571428571428
+ec_top_level,location_only_masked_best,text,Function+Location,validation,ensemble,accuracy,0.1884057971014492
+ec_top_level,location_only_masked_best,text,Function+Location,validation,ensemble,macro_f1,0.1431752498561765
+ec_top_level,location_only_masked_best,text,Function+Location,validation,ensemble,majority_baseline_accuracy,0.4202898550724637
+ec_top_level,location_only_masked_best,text,Function+Location,validation,ensemble,n,414.0
+ec_top_level,location_only_masked_best,text,Function+Location,validation,ensemble,random_baseline_accuracy,0.1428571428571428
+ec_top_level,m1_family_masked_best,text,M1 (+Family),validation,ensemble,accuracy,0.1690821256038647
+ec_top_level,m1_family_masked_best,text,M1 (+Family),validation,ensemble,macro_f1,0.1128286206664977
+ec_top_level,m1_family_masked_best,text,M1 (+Family),validation,ensemble,majority_baseline_accuracy,0.4202898550724637
+ec_top_level,m1_family_masked_best,text,M1 (+Family),validation,ensemble,n,414.0
+ec_top_level,m1_family_masked_best,text,M1 (+Family),validation,ensemble,random_baseline_accuracy,0.1428571428571428
+ec_top_level,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,accuracy,0.1666666666666666
+ec_top_level,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,macro_f1,0.1242662749498999
+ec_top_level,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,majority_baseline_accuracy,0.4202898550724637
+ec_top_level,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,n,414.0
+ec_top_level,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,random_baseline_accuracy,0.1428571428571428
+ec_top_level,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,accuracy,0.2004830917874396
+ec_top_level,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,macro_f1,0.1697612250155088
+ec_top_level,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,majority_baseline_accuracy,0.4202898550724637
+ec_top_level,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,n,414.0
+ec_top_level,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,random_baseline_accuracy,0.1428571428571428
+ec_top_level,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,accuracy,0.1666666666666666
+ec_top_level,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,macro_f1,0.1233803896885627
+ec_top_level,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,majority_baseline_accuracy,0.4202898550724637
+ec_top_level,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,n,414.0
+ec_top_level,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,random_baseline_accuracy,0.1428571428571428
+ec_top_level,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,accuracy,0.1908212560386473
+ec_top_level,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,macro_f1,0.1385159900667419
+ec_top_level,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,majority_baseline_accuracy,0.4202898550724637
+ec_top_level,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,n,414.0
+ec_top_level,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,random_baseline_accuracy,0.1428571428571428
+ec_top_level,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,accuracy,0.1376811594202898
+ec_top_level,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,macro_f1,0.0903561625989238
+ec_top_level,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,majority_baseline_accuracy,0.4202898550724637
+ec_top_level,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,n,414.0
+ec_top_level,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,random_baseline_accuracy,0.1428571428571428
+ec_top_level,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,accuracy,0.1352657004830917
+ec_top_level,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,macro_f1,0.0947992959412499
+ec_top_level,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,majority_baseline_accuracy,0.4202898550724637
+ec_top_level,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,n,414.0
+ec_top_level,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,random_baseline_accuracy,0.1428571428571428

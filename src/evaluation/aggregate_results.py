@@ -44,6 +44,16 @@ proteins (by the model's own train split) underlie this number, and whether
 it's the repeat-comparison-safe pool (validation) or the once-only pool
 (test).
 
+Also writes two compact views of the same numbers, kept in SEPARATE files so
+validation and test never share a table (validation = choosing, test = the
+one final report on multiview):
+- data/evaluation/results_summary.csv -- validation only, one row per
+  ablation checkpoint, headline metric per topic eval.
+- data/evaluation/results_final_test.csv -- test only, multiview only, every
+  headline metric plus its baselines. The DeepLoc/EC/GO-MF scripts compute a
+  test row for every checkpoint as a by-product; those are deliberately NOT
+  included here and must not be cited.
+
 Usage:
     uv run python src/evaluation/aggregate_results.py
 """
@@ -59,6 +69,9 @@ KNN_DIR = Path("data/evaluation/knn_embedding_quality")
 LINEAR_PROBE_DIR = Path("data/evaluation/linear_probe")
 ALIGNMENT_UNIFORMITY_DIR = Path("data/evaluation/alignment_uniformity")
 OUTPUT_PATH = Path("data/evaluation/all_results.csv")
+SUMMARY_PATH = Path("data/evaluation/results_summary.csv")
+FINAL_TEST_PATH = Path("data/evaluation/results_final_test.csv")
+FINAL_CHECKPOINT = "multiview_best"
 
 # checkpoint filename stem -> (group, human-readable label)
 CHECKPOINT_INFO = {
@@ -247,6 +260,79 @@ def main():
     print(f"\nEvals: {sorted(df['eval'].unique())}")
     print(f"Checkpoints: {sorted(df['checkpoint'].unique())}")
     print(f"Pools: {sorted(df['pool'].unique())}")
+
+    write_validation_summary(df)
+    write_final_test_summary(df)
+
+
+def pick(df: pd.DataFrame, **conditions) -> pd.DataFrame:
+    for col, val in conditions.items():
+        df = df[df[col] == val]
+    return df
+
+
+def write_validation_summary(df: pd.DataFrame):
+    """One row per ablation checkpoint, headline metric per topic eval, validation pool only."""
+    val = df[df.pool == "validation"]
+    rows = []
+    for stem, (group, label) in CHECKPOINT_INFO.items():
+        if group == "baseline_prefix_fix":
+            continue  # superseded pre-fix M0, never cited
+
+        def v(**c):
+            hit = pick(val, checkpoint=stem, **c)
+            return float(hit.value.iloc[0]) if len(hit) else float("nan")
+
+        go_ret = pick(val, eval="go_retrieval", checkpoint=stem, metric="map")
+        rows.append({
+            "checkpoint": label,
+            "group": group,
+            "cross_modal_T2P_R1%(val)": round(v(eval="cross_modal", variant="text_to_protein", metric="r1"), 4),
+            "cross_modal_T2P_R50%(val)": round(v(eval="cross_modal", variant="text_to_protein", metric="r50"), 4),
+            "deeploc_acc%(val)": round(100 * v(eval="deeploc", metric="accuracy"), 2),
+            "ec_acc%(val)": round(100 * v(eval="ec_top_level", metric="accuracy"), 2),
+            "go_mf_acc%(val)": round(100 * v(eval="go_mf", metric="accuracy"), 2),
+            "go_retrieval_mean_mAP(val)": round(go_ret.value.mean(), 4) if len(go_ret) else float("nan"),
+        })
+    pd.DataFrame(rows).to_csv(SUMMARY_PATH, index=False)
+    print(f"Wrote {SUMMARY_PATH} (validation only, {len(rows)} checkpoints)")
+
+
+def write_final_test_summary(df: pd.DataFrame):
+    """Multiview on the reserved test pool only -- every headline number plus its baselines."""
+    test = pick(df, pool="test", checkpoint=FINAL_CHECKPOINT)
+    rows = []
+
+    def add(eval_name, variant, metric, value):
+        rows.append(dict(eval=eval_name, variant=variant, metric=metric, value=value))
+
+    for direction in ("text_to_protein", "protein_to_text"):
+        for metric in ("r1", "r5", "r10", "r50", "median_rank"):
+            hit = pick(test, eval="cross_modal", variant=direction, metric=metric)
+            if len(hit):
+                add("cross_modal", direction, metric, float(hit.value.iloc[0]))
+
+    for eval_name in ("deeploc", "ec_top_level", "go_mf"):
+        for metric in ("accuracy", "macro_f1", "random_baseline_accuracy", "majority_baseline_accuracy", "n"):
+            hit = pick(test, eval=eval_name, metric=metric)
+            if len(hit):
+                value = float(hit.value.iloc[0])
+                add(eval_name, "ensemble", metric, value if metric == "n" else round(100 * value, 2)
+                    if metric != "macro_f1" else round(value, 4))
+
+    go = test[test["eval"] == "go_retrieval"]
+    for variant in sorted(go.variant.unique()):
+        for metric in ("map", "map_random_baseline", "p10", "r100"):
+            hit = pick(go, variant=variant, metric=metric)
+            if len(hit):
+                add("go_retrieval", variant, metric, round(float(hit.value.iloc[0]), 4))
+    for query_type in ("name", "definition"):
+        maps = go[(go.metric == "map") & go.variant.str.endswith(f"_{query_type}")]
+        if len(maps):
+            add("go_retrieval", f"mean_{query_type}", "map", round(maps.value.mean(), 4))
+
+    pd.DataFrame(rows).to_csv(FINAL_TEST_PATH, index=False)
+    print(f"Wrote {FINAL_TEST_PATH} (test only, {FINAL_CHECKPOINT} only, {len(rows)} rows)")
 
 
 if __name__ == "__main__":

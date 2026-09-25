@@ -1,0 +1,101 @@
+eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
+cross_modal,multi_positive_best,multi_positive,multi-positive,validation,protein_to_text,median_rank,9.0
+cross_modal,multi_positive_best,multi_positive,multi-positive,validation,protein_to_text,r1,23.44582593250444
+cross_modal,multi_positive_best,multi_positive,multi-positive,validation,protein_to_text,r10,52.2202486678508
+cross_modal,multi_positive_best,multi_positive,multi-positive,validation,protein_to_text,r5,43.931320307874486
+cross_modal,multi_positive_best,multi_positive,multi-positive,validation,protein_to_text,r50,72.64653641207815
+cross_modal,multi_positive_best,multi_positive,multi-positive,validation,text_to_protein,median_rank,12.0
+cross_modal,multi_positive_best,multi_positive,multi-positive,validation,text_to_protein,r1,16.518650088809945
+cross_modal,multi_positive_best,multi_positive,multi-positive,validation,text_to_protein,r10,47.60213143872114
+cross_modal,multi_positive_best,multi_positive,multi-positive,validation,text_to_protein,r5,38.30669034931912
+cross_modal,multi_positive_best,multi_positive,multi-positive,validation,text_to_protein,r50,72.52812314979278
+cross_modal,multiview_best,multiview,multiview (winner),validation,protein_to_text,median_rank,9.0
+cross_modal,multiview_best,multiview,multiview (winner),validation,protein_to_text,r1,24.274718768502076
+cross_modal,multiview_best,multiview,multiview (winner),validation,protein_to_text,r10,52.45707519242156
+cross_modal,multiview_best,multiview,multiview (winner),validation,protein_to_text,r5,44.16814683244523
+cross_modal,multiview_best,multiview,multiview (winner),validation,protein_to_text,r50,73.4162226169331
+cross_modal,multiview_best,multiview,multiview (winner),validation,text_to_protein,median_rank,11.0
+cross_modal,multiview_best,multiview,multiview (winner),validation,text_to_protein,r1,16.873889875666073
+cross_modal,multiview_best,multiview,multiview (winner),validation,text_to_protein,r10,48.90467732386028
+cross_modal,multiview_best,multiview,multiview (winner),validation,text_to_protein,r5,38.06986382474837
+cross_modal,multiview_best,multiview,multiview (winner),validation,text_to_protein,r50,74.42273534635879
+cross_modal,location_only_masked_best,text,Function+Location,validation,protein_to_text,median_rank,8.0
+cross_modal,location_only_masked_best,text,Function+Location,validation,protein_to_text,r1,23.978685612788635
+cross_modal,location_only_masked_best,text,Function+Location,validation,protein_to_text,r10,53.99644760213144
+cross_modal,location_only_masked_best,text,Function+Location,validation,protein_to_text,r5,45.88513913558319
+cross_modal,location_only_masked_best,text,Function+Location,validation,protein_to_text,r50,71.16637063351095
+cross_modal,location_only_masked_best,text,Function+Location,validation,text_to_protein,median_rank,11.0
+cross_modal,location_only_masked_best,text,Function+Location,validation,text_to_protein,r1,20.071047957371228
+cross_modal,location_only_masked_best,text,Function+Location,validation,text_to_protein,r10,49.2599171107164
+cross_modal,location_only_masked_best,text,Function+Location,validation,text_to_protein,r5,40.319715808170514
+cross_modal,location_only_masked_best,text,Function+Location,validation,text_to_protein,r50,71.22557726465364
+cross_modal,m1_family_masked_best,text,M1 (+Family),validation,protein_to_text,median_rank,8.0
+cross_modal,m1_family_masked_best,text,M1 (+Family),validation,protein_to_text,r1,24.748371817643577
+cross_modal,m1_family_masked_best,text,M1 (+Family),validation,protein_to_text,r10,52.98993487270575
+cross_modal,m1_family_masked_best,text,M1 (+Family),validation,protein_to_text,r5,45.41148608644168
+cross_modal,m1_family_masked_best,text,M1 (+Family),validation,protein_to_text,r50,69.44937833037301
+cross_modal,m1_family_masked_best,text,M1 (+Family),validation,text_to_protein,median_rank,12.0
+cross_modal,m1_family_masked_best,text,M1 (+Family),validation,text_to_protein,r1,18.886915334517465
+cross_modal,m1_family_masked_best,text,M1 (+Family),validation,text_to_protein,r10,47.898164594434576
+cross_modal,m1_family_masked_best,text,M1 (+Family),validation,text_to_protein,r5,39.07637655417407
+cross_modal,m1_family_masked_best,text,M1 (+Family),validation,text_to_protein,r50,68.56127886323267
+cross_modal,m2_family_location_masked_best,text,M2 (+Family+Location),validation,protein_to_text,median_rank,9.0
+cross_modal,m2_family_location_masked_best,text,M2 (+Family+Location),validation,protein_to_text,r1,22.912966252220247
+cross_modal,m2_family_location_masked_best,text,M2 (+Family+Location),validation,protein_to_text,r10,51.09532267613973
+cross_modal,m2_family_location_masked_best,text,M2 (+Family+Location),validation,protein_to_text,r5,43.16163410301954
+cross_modal,m2_family_location_masked_best,text,M2 (+Family+Location),validation,protein_to_text,r50,67.67317939609237
+cross_modal,m2_family_location_masked_best,text,M2 (+Family+Location),validation,text_to_protein,median_rank,15.0
+cross_modal,m2_family_location_masked_best,text,M2 (+Family+Location),validation,text_to_protein,r1,16.873889875666073
+cross_modal,m2_family_location_masked_best,text,M2 (+Family+Location),validation,text_to_protein,r10,45.174659561870925
+cross_modal,m2_family_location_masked_best,text,M2 (+Family+Location),validation,text_to_protein,r5,37.18176435760805
+cross_modal,m2_family_location_masked_best,text,M2 (+Family+Location),validation,text_to_protein,r50,66.4890467732386
+cross_modal,m3_name_family_location_best,text,M3 (+unmasked name),validation,protein_to_text,median_rank,14.0
+cross_modal,m3_name_family_location_best,text,M3 (+unmasked name),validation,protein_to_text,r1,19.952634695085848
+cross_modal,m3_name_family_location_best,text,M3 (+unmasked name),validation,protein_to_text,r10,45.944345766725874
+cross_modal,m3_name_family_location_best,text,M3 (+unmasked name),validation,protein_to_text,r5,36.82652457075192
+cross_modal,m3_name_family_location_best,text,M3 (+unmasked name),validation,protein_to_text,r50,62.93664890467733
+cross_modal,m3_name_family_location_best,text,M3 (+unmasked name),validation,text_to_protein,median_rank,16.0
+cross_modal,m3_name_family_location_best,text,M3 (+unmasked name),validation,text_to_protein,r1,15.630550621669627
+cross_modal,m3_name_family_location_best,text,M3 (+unmasked name),validation,text_to_protein,r10,44.16814683244523
+cross_modal,m3_name_family_location_best,text,M3 (+unmasked name),validation,text_to_protein,r5,34.9911190053286
+cross_modal,m3_name_family_location_best,text,M3 (+unmasked name),validation,text_to_protein,r50,61.98934280639432
+cross_modal,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,protein_to_text,median_rank,7.0
+cross_modal,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,protein_to_text,r1,25.399644760213143
+cross_modal,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,protein_to_text,r10,55.23978685612788
+cross_modal,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,protein_to_text,r5,47.18768502072232
+cross_modal,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,protein_to_text,r50,72.88336293664891
+cross_modal,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,text_to_protein,median_rank,10.0
+cross_modal,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,text_to_protein,r1,18.650088809946716
+cross_modal,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,text_to_protein,r10,50.62166962699822
+cross_modal,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,text_to_protein,r5,40.26050917702783
+cross_modal,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,text_to_protein,r50,74.30432208407342
+cross_modal,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,protein_to_text,median_rank,11.0
+cross_modal,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,protein_to_text,r1,22.55772646536412
+cross_modal,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,protein_to_text,r10,49.615156897572525
+cross_modal,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,protein_to_text,r5,41.91829484902309
+cross_modal,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,protein_to_text,r50,68.20603907637656
+cross_modal,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,text_to_protein,median_rank,20.0
+cross_modal,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,text_to_protein,r1,14.505624629958556
+cross_modal,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,text_to_protein,r10,41.3854351687389
+cross_modal,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,text_to_protein,r5,32.326820603907635
+cross_modal,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,text_to_protein,r50,65.60094730609828
+cross_modal,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,protein_to_text,median_rank,14.0
+cross_modal,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,protein_to_text,r1,22.202486678507995
+cross_modal,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,protein_to_text,r10,46.714031971580816
+cross_modal,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,protein_to_text,r5,38.60272350503256
+cross_modal,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,protein_to_text,r50,62.75902901124925
+cross_modal,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,text_to_protein,median_rank,34.0
+cross_modal,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,text_to_protein,r1,10.005920663114267
+cross_modal,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,text_to_protein,r10,33.21492007104796
+cross_modal,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,text_to_protein,r5,24.748371817643577
+cross_modal,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,text_to_protein,r50,56.06867969212552
+cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,protein_to_text,median_rank,19.0
+cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,protein_to_text,r1,19.06453522794553
+cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,protein_to_text,r10,43.57608052101836
+cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,protein_to_text,r5,35.28715216104204
+cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,protein_to_text,r50,61.63410301953819
+cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,text_to_protein,median_rank,50.0
+cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,text_to_protein,r1,7.164002368265246
+cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,text_to_protein,r10,27.767910005920665
+cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,text_to_protein,r5,19.715808170515096
+cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,text_to_protein,r50,50.50325636471285

@@ -601,8 +601,8 @@
   },
   "generalization_gap": 0.05259364276452261,
   "generalization_gap_test_only": 0.03918815855875002,
-  "checkpoint": "data/runs/full_proteome/m3_name_family_location_best.pt",
-  "biobert_filename": "biobert_embeddings_family_location.h5",
+  "checkpoint": "data/runs/full_proteome/text_experiment/m3_name_family_location_best.pt",
+  "biobert_filename": "biobert_embeddings_masked.h5",
   "classes": [
     "Nucleus",
     "Cytoplasm",

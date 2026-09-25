@@ -1,0 +1,5 @@
+eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
+go_mf,multiview_best,multiview,multiview (winner),test,ensemble,accuracy,0.5020026702269693
+go_mf,multiview_best,multiview,multiview (winner),test,ensemble,majority_baseline_accuracy,0.2456608811748998
+go_mf,multiview_best,multiview,multiview (winner),test,ensemble,n,749.0
+go_mf,multiview_best,multiview,multiview (winner),test,ensemble,random_baseline_accuracy,0.1392523364485981

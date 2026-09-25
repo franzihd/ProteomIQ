@@ -10,8 +10,8 @@
   "n_terms_with_any_positive": 837,
   "n_eligible_terms": 112,
   "n_eligible_terms_with_resolved_positives": 112,
-  "checkpoint": "data/runs/full_proteome/m2_family_location_masked_best.pt",
-  "biobert_filename": "biobert_embeddings_masked_family_location.h5",
+  "checkpoint": "data/runs/full_proteome/text_experiment/m2_family_location_masked_best.pt",
+  "biobert_filename": "biobert_embeddings_masked.h5",
   "query_types": {
     "name": {
       "n_terms_scored": 112,

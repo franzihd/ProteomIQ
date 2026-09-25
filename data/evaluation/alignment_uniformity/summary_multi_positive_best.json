@@ -1,11 +1,11 @@
 {
   "pool_size": 1689,
   "alignment": 1.3642308712005615,
-  "alignment_mismatched_reference": 2.006955862045288,
+  "alignment_mismatched_reference": 2.0008792877197266,
   "uniformity_protein": -3.745112657546997,
   "uniformity_text": -3.7395071983337402,
   "uniformity_pooled": -3.825831651687622,
-  "uniformity_random_reference": -3.9921993255615233,
+  "uniformity_random_reference": -3.9921988964080812,
   "checkpoint": "data/runs/full_proteome/multi_positive_experiment/multi_positive_best.pt",
   "biobert_filename": "biobert_embeddings_masked.h5"
 }

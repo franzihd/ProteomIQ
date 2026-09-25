@@ -1,0 +1,241 @@
+eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,bp_definition,map,0.0670119108089658
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,bp_definition,map_random_baseline,0.0137834831440515
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,bp_definition,p10,0.0833333333333333
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,bp_definition,r100,0.2362288302135566
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,bp_name,map,0.0773837726206904
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,bp_name,map_random_baseline,0.0137834831440515
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,bp_name,p10,0.103030303030303
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,bp_name,r100,0.2588305907429786
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,cc_definition,map,0.1090759382862728
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,cc_definition,map_random_baseline,0.0301953818827708
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,cc_definition,p10,0.1517857142857142
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,cc_definition,r100,0.2691495091521901
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,cc_name,map,0.1120440539365733
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,cc_name,map_random_baseline,0.0301953818827708
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,cc_name,p10,0.1803571428571428
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,cc_name,r100,0.2497311489685962
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,mf_definition,map,0.0911532768530482
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,mf_definition,map_random_baseline,0.0191803460009499
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,mf_definition,p10,0.1164835164835164
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,mf_definition,r100,0.275599144584232
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,mf_name,map,0.1251917476601766
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,mf_name,map_random_baseline,0.0191803460009499
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,mf_name,p10,0.1637362637362637
+go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,mf_name,r100,0.3067293621377278
+go_retrieval,multiview_best,multiview,multiview (winner),validation,bp_definition,map,0.0699179917910331
+go_retrieval,multiview_best,multiview,multiview (winner),validation,bp_definition,map_random_baseline,0.0137834831440515
+go_retrieval,multiview_best,multiview,multiview (winner),validation,bp_definition,p10,0.0886363636363636
+go_retrieval,multiview_best,multiview,multiview (winner),validation,bp_definition,r100,0.2401656834285562
+go_retrieval,multiview_best,multiview,multiview (winner),validation,bp_name,map,0.0751092341858827
+go_retrieval,multiview_best,multiview,multiview (winner),validation,bp_name,map_random_baseline,0.0137834831440515
+go_retrieval,multiview_best,multiview,multiview (winner),validation,bp_name,p10,0.1
+go_retrieval,multiview_best,multiview,multiview (winner),validation,bp_name,r100,0.2539898895865345
+go_retrieval,multiview_best,multiview,multiview (winner),validation,cc_definition,map,0.1085298236382672
+go_retrieval,multiview_best,multiview,multiview (winner),validation,cc_definition,map_random_baseline,0.0301953818827708
+go_retrieval,multiview_best,multiview,multiview (winner),validation,cc_definition,p10,0.1473214285714286
+go_retrieval,multiview_best,multiview,multiview (winner),validation,cc_definition,r100,0.271302703966274
+go_retrieval,multiview_best,multiview,multiview (winner),validation,cc_name,map,0.1141480462303856
+go_retrieval,multiview_best,multiview,multiview (winner),validation,cc_name,map_random_baseline,0.0301953818827708
+go_retrieval,multiview_best,multiview,multiview (winner),validation,cc_name,p10,0.1741071428571428
+go_retrieval,multiview_best,multiview,multiview (winner),validation,cc_name,r100,0.2510376957401469
+go_retrieval,multiview_best,multiview,multiview (winner),validation,mf_definition,map,0.0835120721261308
+go_retrieval,multiview_best,multiview,multiview (winner),validation,mf_definition,map_random_baseline,0.0191803460009499
+go_retrieval,multiview_best,multiview,multiview (winner),validation,mf_definition,p10,0.0989010989010988
+go_retrieval,multiview_best,multiview,multiview (winner),validation,mf_definition,r100,0.2640402507767132
+go_retrieval,multiview_best,multiview,multiview (winner),validation,mf_name,map,0.1200388940194144
+go_retrieval,multiview_best,multiview,multiview (winner),validation,mf_name,map_random_baseline,0.0191803460009499
+go_retrieval,multiview_best,multiview,multiview (winner),validation,mf_name,p10,0.156043956043956
+go_retrieval,multiview_best,multiview,multiview (winner),validation,mf_name,r100,0.2925462501560143
+go_retrieval,location_only_masked_best,text,Function+Location,validation,bp_definition,map,0.0696513771022943
+go_retrieval,location_only_masked_best,text,Function+Location,validation,bp_definition,map_random_baseline,0.0137834831440515
+go_retrieval,location_only_masked_best,text,Function+Location,validation,bp_definition,p10,0.0909090909090909
+go_retrieval,location_only_masked_best,text,Function+Location,validation,bp_definition,r100,0.2279491552778015
+go_retrieval,location_only_masked_best,text,Function+Location,validation,bp_name,map,0.06037325227274
+go_retrieval,location_only_masked_best,text,Function+Location,validation,bp_name,map_random_baseline,0.0137834831440515
+go_retrieval,location_only_masked_best,text,Function+Location,validation,bp_name,p10,0.0719696969696969
+go_retrieval,location_only_masked_best,text,Function+Location,validation,bp_name,r100,0.2044707968755529
+go_retrieval,location_only_masked_best,text,Function+Location,validation,cc_definition,map,0.0802511592609921
+go_retrieval,location_only_masked_best,text,Function+Location,validation,cc_definition,map_random_baseline,0.0301953818827708
+go_retrieval,location_only_masked_best,text,Function+Location,validation,cc_definition,p10,0.1098214285714285
+go_retrieval,location_only_masked_best,text,Function+Location,validation,cc_definition,r100,0.200491004279175
+go_retrieval,location_only_masked_best,text,Function+Location,validation,cc_name,map,0.0568298051199662
+go_retrieval,location_only_masked_best,text,Function+Location,validation,cc_name,map_random_baseline,0.0301953818827708
+go_retrieval,location_only_masked_best,text,Function+Location,validation,cc_name,p10,0.08125
+go_retrieval,location_only_masked_best,text,Function+Location,validation,cc_name,r100,0.1499469381037649
+go_retrieval,location_only_masked_best,text,Function+Location,validation,mf_definition,map,0.0676771135927551
+go_retrieval,location_only_masked_best,text,Function+Location,validation,mf_definition,map_random_baseline,0.0191803460009499
+go_retrieval,location_only_masked_best,text,Function+Location,validation,mf_definition,p10,0.0912087912087912
+go_retrieval,location_only_masked_best,text,Function+Location,validation,mf_definition,r100,0.196094540968627
+go_retrieval,location_only_masked_best,text,Function+Location,validation,mf_name,map,0.0772698939632682
+go_retrieval,location_only_masked_best,text,Function+Location,validation,mf_name,map_random_baseline,0.0191803460009499
+go_retrieval,location_only_masked_best,text,Function+Location,validation,mf_name,p10,0.0978021978021977
+go_retrieval,location_only_masked_best,text,Function+Location,validation,mf_name,r100,0.2093437948070675
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,bp_definition,map,0.0574352678751411
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,bp_definition,map_random_baseline,0.0137834831440515
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,bp_definition,p10,0.075
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,bp_definition,r100,0.1906819679995913
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,bp_name,map,0.0534195331649925
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,bp_name,map_random_baseline,0.0137834831440515
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,bp_name,p10,0.0803030303030303
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,bp_name,r100,0.177884139051857
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,cc_definition,map,0.0695406883611051
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,cc_definition,map_random_baseline,0.0301953818827708
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,cc_definition,p10,0.0982142857142857
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,cc_definition,r100,0.1729881076716961
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,cc_name,map,0.0533418223787033
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,cc_name,map_random_baseline,0.0301953818827708
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,cc_name,p10,0.0598214285714285
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,cc_name,r100,0.1317974937840831
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,mf_definition,map,0.0671537373636977
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,mf_definition,map_random_baseline,0.0191803460009499
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,mf_definition,p10,0.1010989010989011
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,mf_definition,r100,0.2253643631126558
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,mf_name,map,0.0862075066117585
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,mf_name,map_random_baseline,0.0191803460009499
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,mf_name,p10,0.1142857142857142
+go_retrieval,m1_family_masked_best,text,M1 (+Family),validation,mf_name,r100,0.2339972337182482
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,bp_definition,map,0.0564156123923454
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,bp_definition,map_random_baseline,0.0137834831440515
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,bp_definition,p10,0.0742424242424242
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,bp_definition,r100,0.19452250944671
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,bp_name,map,0.0438084667928201
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,bp_name,map_random_baseline,0.0137834831440515
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,bp_name,p10,0.053030303030303
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,bp_name,r100,0.1624690088698524
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,cc_definition,map,0.0775065468854908
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,cc_definition,map_random_baseline,0.0301953818827708
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,cc_definition,p10,0.1098214285714285
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,cc_definition,r100,0.1871919801875675
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,cc_name,map,0.0554725247785034
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,cc_name,map_random_baseline,0.0301953818827708
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,cc_name,p10,0.075
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,cc_name,r100,0.1270812618633678
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,mf_definition,map,0.0625437226043169
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,mf_definition,map_random_baseline,0.0191803460009499
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,mf_definition,p10,0.0923076923076923
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,mf_definition,r100,0.1844820897419463
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,mf_name,map,0.066847875600082
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,mf_name,map_random_baseline,0.0191803460009499
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,mf_name,p10,0.089010989010989
+go_retrieval,m2_family_location_masked_best,text,M2 (+Family+Location),validation,mf_name,r100,0.1953894127905799
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,bp_definition,map,0.0529519015548032
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,bp_definition,map_random_baseline,0.0137834831440515
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,bp_definition,p10,0.0712121212121212
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,bp_definition,r100,0.1834765341617816
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,bp_name,map,0.04383097106488
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,bp_name,map_random_baseline,0.0137834831440515
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,bp_name,p10,0.0606060606060606
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,bp_name,r100,0.1442560373436663
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,cc_definition,map,0.07283931483021
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,cc_definition,map_random_baseline,0.0301953818827708
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,cc_definition,p10,0.1142857142857143
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,cc_definition,r100,0.1823915833198025
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,cc_name,map,0.060424544442054
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,cc_name,map_random_baseline,0.0301953818827708
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,cc_name,p10,0.0901785714285714
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,cc_name,r100,0.1390549774325569
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,mf_definition,map,0.0649679942753815
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,mf_definition,map_random_baseline,0.0191803460009499
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,mf_definition,p10,0.0846153846153846
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,mf_definition,r100,0.2015997564318271
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,mf_name,map,0.0757305207217438
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,mf_name,map_random_baseline,0.0191803460009499
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,mf_name,p10,0.1054945054945055
+go_retrieval,m3_name_family_location_best,text,M3 (+unmasked name),validation,mf_name,r100,0.2185198887788981
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,bp_definition,map,0.0771303270081112
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,bp_definition,map_random_baseline,0.0137834831440515
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,bp_definition,p10,0.1022727272727272
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,bp_definition,r100,0.2493038082301959
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,bp_name,map,0.0724692699328515
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,bp_name,map_random_baseline,0.0137834831440515
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,bp_name,p10,0.0901515151515151
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,bp_name,r100,0.2398849370158187
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,cc_definition,map,0.0896446865962404
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,cc_definition,map_random_baseline,0.0301953818827708
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,cc_definition,p10,0.1232142857142857
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,cc_definition,r100,0.226491833781323
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,cc_name,map,0.0742098734605818
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,cc_name,map_random_baseline,0.0301953818827708
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,cc_name,p10,0.0928571428571428
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,cc_name,r100,0.1720460347474742
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,mf_definition,map,0.0864715986210072
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,mf_definition,map_random_baseline,0.0191803460009499
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,mf_definition,p10,0.1087912087912088
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,mf_definition,r100,0.2516182082694805
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,mf_name,map,0.1181197526289463
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,mf_name,map_random_baseline,0.0191803460009499
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,mf_name,p10,0.1538461538461538
+go_retrieval,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,mf_name,r100,0.2887674619622266
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,bp_definition,map,0.0639104103945234
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,bp_definition,map_random_baseline,0.0137834831440515
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,bp_definition,p10,0.0833333333333333
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,bp_definition,r100,0.2312076913834097
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,bp_name,map,0.0643207566090626
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,bp_name,map_random_baseline,0.0137834831440515
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,bp_name,p10,0.0765151515151515
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,bp_name,r100,0.2110073319214611
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,cc_definition,map,0.073977617795917
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,cc_definition,map_random_baseline,0.0301953818827708
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,cc_definition,p10,0.0901785714285714
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,cc_definition,r100,0.1919671332294335
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,cc_name,map,0.0700078041939141
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,cc_name,map_random_baseline,0.0301953818827708
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,cc_name,p10,0.09375
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,cc_name,r100,0.1636986098303131
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,mf_definition,map,0.0705555119797478
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,mf_definition,map_random_baseline,0.0191803460009499
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,mf_definition,p10,0.0835164835164835
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,mf_definition,r100,0.2160850036339268
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,mf_name,map,0.1038514522857328
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,mf_name,map_random_baseline,0.0191803460009499
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,mf_name,p10,0.1219780219780219
+go_retrieval,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,mf_name,r100,0.2680449379054552
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,bp_definition,map,0.0521529786829591
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,bp_definition,map_random_baseline,0.0137834831440515
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,bp_definition,p10,0.0545454545454545
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,bp_definition,r100,0.180232585015805
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,bp_name,map,0.0497515118968375
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,bp_name,map_random_baseline,0.0137834831440515
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,bp_name,p10,0.0636363636363636
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,bp_name,r100,0.1802437875023416
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,cc_definition,map,0.0594774006002593
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,cc_definition,map_random_baseline,0.0301953818827708
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,cc_definition,p10,0.06875
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,cc_definition,r100,0.1619574595630742
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,cc_name,map,0.0555843489198044
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,cc_name,map_random_baseline,0.0301953818827708
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,cc_name,p10,0.0741071428571428
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,cc_name,r100,0.1406975785045153
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,mf_definition,map,0.0483426122274114
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,mf_definition,map_random_baseline,0.0191803460009499
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,mf_definition,p10,0.0472527472527472
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,mf_definition,r100,0.1529563177736649
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,mf_name,map,0.083939288221786
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,mf_name,map_random_baseline,0.0191803460009499
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,mf_name,p10,0.123076923076923
+go_retrieval,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,mf_name,r100,0.2348942375239849
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,bp_definition,map,0.0437080407241907
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,bp_definition,map_random_baseline,0.0137834831440515
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,bp_definition,p10,0.0431818181818181
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,bp_definition,r100,0.1579879581214728
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,bp_name,map,0.0489819550543415
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,bp_name,map_random_baseline,0.0137834831440515
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,bp_name,p10,0.0522727272727272
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,bp_name,r100,0.1707652879990709
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,cc_definition,map,0.0567977909411241
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,cc_definition,map_random_baseline,0.0301953818827708
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,cc_definition,p10,0.0598214285714285
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,cc_definition,r100,0.1616938603999385
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,cc_name,map,0.0559157466415306
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,cc_name,map_random_baseline,0.0301953818827708
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,cc_name,p10,0.0687499999999999
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,cc_name,r100,0.1371291090235753
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_definition,map,0.044615349408451
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_definition,map_random_baseline,0.0191803460009499
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_definition,p10,0.0538461538461538
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_definition,r100,0.1490705864078906
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_name,map,0.0785729291114821
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_name,map_random_baseline,0.0191803460009499
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_name,p10,0.1032967032967033
+go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_name,r100,0.2095168791203746

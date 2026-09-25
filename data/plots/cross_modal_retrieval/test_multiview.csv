@@ -1,0 +1,11 @@
+eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
+cross_modal,multiview_best,multiview,multiview (winner),test,protein_to_text,median_rank,8.0
+cross_modal,multiview_best,multiview,multiview (winner),test,protein_to_text,r1,23.50503256364713
+cross_modal,multiview_best,multiview,multiview (winner),test,protein_to_text,r10,52.81231497927767
+cross_modal,multiview_best,multiview,multiview (winner),test,protein_to_text,r5,43.81290704558911
+cross_modal,multiview_best,multiview,multiview (winner),test,protein_to_text,r50,72.70574304322083
+cross_modal,multiview_best,multiview,multiview (winner),test,text_to_protein,median_rank,10.0
+cross_modal,multiview_best,multiview,multiview (winner),test,text_to_protein,r1,18.82770870337478
+cross_modal,multiview_best,multiview,multiview (winner),test,text_to_protein,r10,50.38484310242747
+cross_modal,multiview_best,multiview,multiview (winner),test,text_to_protein,r5,40.61574896388396
+cross_modal,multiview_best,multiview,multiview (winner),test,text_to_protein,r50,73.47542924807578

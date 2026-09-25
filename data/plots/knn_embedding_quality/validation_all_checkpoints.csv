@@ -1,0 +1,148 @@
+eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
+knn,multi_positive_best,multi_positive,multi-positive,validation,deeploc,agreement_at_10,0.7642201834862412
+knn,multi_positive_best,multi_positive,multi-positive,validation,deeploc,agreement_at_20,0.7552960800667262
+knn,multi_positive_best,multi_positive,multi-positive,validation,deeploc,agreement_at_5,0.7761467889908217
+knn,multi_positive_best,multi_positive,multi-positive,validation,deeploc,random_baseline,0.1111111111111111
+knn,multi_positive_best,multi_positive,multi-positive,validation,deeploc,raw_esm2_agreement_at_10,0.5432443703085921
+knn,multi_positive_best,multi_positive,multi-positive,validation,deeploc,raw_esm2_agreement_at_20,0.5009174311926604
+knn,multi_positive_best,multi_positive,multi-positive,validation,deeploc,raw_esm2_agreement_at_5,0.5770642201834838
+knn,multi_positive_best,multi_positive,multi-positive,validation,ec,agreement_at_10,0.8174973767051447
+knn,multi_positive_best,multi_positive,multi-positive,validation,ec,agreement_at_20,0.7662513116474263
+knn,multi_positive_best,multi_positive,multi-positive,validation,ec,agreement_at_5,0.8576075550891937
+knn,multi_positive_best,multi_positive,multi-positive,validation,ec,random_baseline,0.1428571428571428
+knn,multi_positive_best,multi_positive,multi-positive,validation,ec,raw_esm2_agreement_at_10,0.6241867785939154
+knn,multi_positive_best,multi_positive,multi-positive,validation,ec,raw_esm2_agreement_at_20,0.5622245540398753
+knn,multi_positive_best,multi_positive,multi-positive,validation,ec,raw_esm2_agreement_at_5,0.6840503672612838
+knn,multi_positive_best,multi_positive,multi-positive,validation,go_mf,agreement_at_10,0.8441303377473591
+knn,multi_positive_best,multi_positive,multi-positive,validation,go_mf,agreement_at_20,0.8205624163070938
+knn,multi_positive_best,multi_positive,multi-positive,validation,go_mf,agreement_at_5,0.8671328671328726
+knn,multi_positive_best,multi_positive,multi-positive,validation,go_mf,random_baseline,0.1369736646332391
+knn,multi_positive_best,multi_positive,multi-positive,validation,go_mf,raw_esm2_agreement_at_10,0.6912215444130333
+knn,multi_positive_best,multi_positive,multi-positive,validation,go_mf,raw_esm2_agreement_at_20,0.6469498586519822
+knn,multi_positive_best,multi_positive,multi-positive,validation,go_mf,raw_esm2_agreement_at_5,0.7383722660318444
+knn,multiview_best,multiview,multiview (winner),validation,deeploc,agreement_at_10,0.7343619683069255
+knn,multiview_best,multiview,multiview (winner),validation,deeploc,agreement_at_20,0.7226021684737312
+knn,multiview_best,multiview,multiview (winner),validation,deeploc,agreement_at_5,0.7471226021684695
+knn,multiview_best,multiview,multiview (winner),validation,deeploc,random_baseline,0.1111111111111111
+knn,multiview_best,multiview,multiview (winner),validation,deeploc,raw_esm2_agreement_at_10,0.5432443703085921
+knn,multiview_best,multiview,multiview (winner),validation,deeploc,raw_esm2_agreement_at_20,0.5009174311926604
+knn,multiview_best,multiview,multiview (winner),validation,deeploc,raw_esm2_agreement_at_5,0.5770642201834838
+knn,multiview_best,multiview,multiview (winner),validation,ec,agreement_at_10,0.8267838405036761
+knn,multiview_best,multiview,multiview (winner),validation,ec,agreement_at_20,0.7750524658971648
+knn,multiview_best,multiview,multiview (winner),validation,ec,agreement_at_5,0.8639559286463825
+knn,multiview_best,multiview,multiview (winner),validation,ec,random_baseline,0.1428571428571428
+knn,multiview_best,multiview,multiview (winner),validation,ec,raw_esm2_agreement_at_10,0.6241867785939154
+knn,multiview_best,multiview,multiview (winner),validation,ec,raw_esm2_agreement_at_20,0.5622245540398753
+knn,multiview_best,multiview,multiview (winner),validation,ec,raw_esm2_agreement_at_5,0.6840503672612838
+knn,multiview_best,multiview,multiview (winner),validation,go_mf,agreement_at_10,0.8466746019937499
+knn,multiview_best,multiview,multiview (winner),validation,go_mf,agreement_at_20,0.8242746615087014
+knn,multiview_best,multiview,multiview (winner),validation,go_mf,agreement_at_5,0.8687397708674337
+knn,multiview_best,multiview,multiview (winner),validation,go_mf,random_baseline,0.1369736646332391
+knn,multiview_best,multiview,multiview (winner),validation,go_mf,raw_esm2_agreement_at_10,0.6912215444130333
+knn,multiview_best,multiview,multiview (winner),validation,go_mf,raw_esm2_agreement_at_20,0.6469498586519822
+knn,multiview_best,multiview,multiview (winner),validation,go_mf,raw_esm2_agreement_at_5,0.7383722660318444
+knn,location_only_masked_best,text,Function+Location,validation,deeploc,agreement_at_10,0.6894912427022539
+knn,location_only_masked_best,text,Function+Location,validation,deeploc,agreement_at_20,0.6675562969140969
+knn,location_only_masked_best,text,Function+Location,validation,deeploc,agreement_at_5,0.7071726438698882
+knn,location_only_masked_best,text,Function+Location,validation,deeploc,random_baseline,0.1111111111111111
+knn,location_only_masked_best,text,Function+Location,validation,deeploc,raw_esm2_agreement_at_10,0.5432443703085921
+knn,location_only_masked_best,text,Function+Location,validation,deeploc,raw_esm2_agreement_at_20,0.5009174311926604
+knn,location_only_masked_best,text,Function+Location,validation,deeploc,raw_esm2_agreement_at_5,0.5770642201834838
+knn,location_only_masked_best,text,Function+Location,validation,ec,agreement_at_10,0.8021511017838434
+knn,location_only_masked_best,text,Function+Location,validation,ec,agreement_at_20,0.7518756558237117
+knn,location_only_masked_best,text,Function+Location,validation,ec,agreement_at_5,0.8414480587618085
+knn,location_only_masked_best,text,Function+Location,validation,ec,random_baseline,0.1428571428571428
+knn,location_only_masked_best,text,Function+Location,validation,ec,raw_esm2_agreement_at_10,0.6241867785939154
+knn,location_only_masked_best,text,Function+Location,validation,ec,raw_esm2_agreement_at_20,0.5622245540398753
+knn,location_only_masked_best,text,Function+Location,validation,ec,raw_esm2_agreement_at_5,0.6840503672612838
+knn,location_only_masked_best,text,Function+Location,validation,go_mf,agreement_at_10,0.8336110697812809
+knn,location_only_masked_best,text,Function+Location,validation,go_mf,agreement_at_20,0.8099464365421775
+knn,location_only_masked_best,text,Function+Location,validation,go_mf,agreement_at_5,0.8580568367802457
+knn,location_only_masked_best,text,Function+Location,validation,go_mf,random_baseline,0.1369736646332391
+knn,location_only_masked_best,text,Function+Location,validation,go_mf,raw_esm2_agreement_at_10,0.6912215444130333
+knn,location_only_masked_best,text,Function+Location,validation,go_mf,raw_esm2_agreement_at_20,0.6469498586519822
+knn,location_only_masked_best,text,Function+Location,validation,go_mf,raw_esm2_agreement_at_5,0.7383722660318444
+knn,m1_family_masked_best,text,M1 (+Family),validation,deeploc,agreement_at_10,0.6567556296914118
+knn,m1_family_masked_best,text,M1 (+Family),validation,deeploc,agreement_at_20,0.628106755629693
+knn,m1_family_masked_best,text,M1 (+Family),validation,deeploc,agreement_at_5,0.6801501251042499
+knn,m1_family_masked_best,text,M1 (+Family),validation,deeploc,random_baseline,0.1111111111111111
+knn,m1_family_masked_best,text,M1 (+Family),validation,deeploc,raw_esm2_agreement_at_10,0.5432443703085921
+knn,m1_family_masked_best,text,M1 (+Family),validation,deeploc,raw_esm2_agreement_at_20,0.5009174311926604
+knn,m1_family_masked_best,text,M1 (+Family),validation,deeploc,raw_esm2_agreement_at_5,0.5770642201834838
+knn,m1_family_masked_best,text,M1 (+Family),validation,ec,agreement_at_10,0.8118310598111254
+knn,m1_family_masked_best,text,M1 (+Family),validation,ec,agreement_at_20,0.7652413431269655
+knn,m1_family_masked_best,text,M1 (+Family),validation,ec,agreement_at_5,0.8505246589716708
+knn,m1_family_masked_best,text,M1 (+Family),validation,ec,random_baseline,0.1428571428571428
+knn,m1_family_masked_best,text,M1 (+Family),validation,ec,raw_esm2_agreement_at_10,0.6241867785939154
+knn,m1_family_masked_best,text,M1 (+Family),validation,ec,raw_esm2_agreement_at_20,0.5622245540398753
+knn,m1_family_masked_best,text,M1 (+Family),validation,ec,raw_esm2_agreement_at_5,0.6840503672612838
+knn,m1_family_masked_best,text,M1 (+Family),validation,go_mf,agreement_at_10,0.8377324802856704
+knn,m1_family_masked_best,text,M1 (+Family),validation,go_mf,agreement_at_20,0.8128924267222092
+knn,m1_family_masked_best,text,M1 (+Family),validation,go_mf,agreement_at_5,0.8613599166790694
+knn,m1_family_masked_best,text,M1 (+Family),validation,go_mf,random_baseline,0.1369736646332391
+knn,m1_family_masked_best,text,M1 (+Family),validation,go_mf,raw_esm2_agreement_at_10,0.6912215444130333
+knn,m1_family_masked_best,text,M1 (+Family),validation,go_mf,raw_esm2_agreement_at_20,0.6469498586519822
+knn,m1_family_masked_best,text,M1 (+Family),validation,go_mf,raw_esm2_agreement_at_5,0.7383722660318444
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,deeploc,agreement_at_10,0.6788990825688097
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,deeploc,agreement_at_20,0.6534195162635549
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,deeploc,agreement_at_5,0.699999999999997
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,deeploc,random_baseline,0.1111111111111111
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,deeploc,raw_esm2_agreement_at_10,0.5432443703085921
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,deeploc,raw_esm2_agreement_at_20,0.5009174311926604
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,deeploc,raw_esm2_agreement_at_5,0.5770642201834838
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ec,agreement_at_10,0.8095750262329531
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ec,agreement_at_20,0.7619491080797459
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ec,agreement_at_5,0.8480062959076623
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ec,random_baseline,0.1428571428571428
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ec,raw_esm2_agreement_at_10,0.6241867785939154
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ec,raw_esm2_agreement_at_20,0.5622245540398753
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ec,raw_esm2_agreement_at_5,0.6840503672612838
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,go_mf,agreement_at_10,0.8367356048207101
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,go_mf,agreement_at_20,0.8125799732182671
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,go_mf,agreement_at_5,0.8599910727570336
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,go_mf,random_baseline,0.1369736646332391
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,go_mf,raw_esm2_agreement_at_10,0.6912215444130333
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,go_mf,raw_esm2_agreement_at_20,0.6469498586519822
+knn,m2_family_location_masked_best,text,M2 (+Family+Location),validation,go_mf,raw_esm2_agreement_at_5,0.7383722660318444
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,deeploc,agreement_at_10,0.6775646371976675
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,deeploc,agreement_at_20,0.6527522935779838
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,deeploc,agreement_at_5,0.6977481234361929
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,deeploc,random_baseline,0.1111111111111111
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,deeploc,raw_esm2_agreement_at_10,0.5432443703085921
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,deeploc,raw_esm2_agreement_at_20,0.5009174311926604
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,deeploc,raw_esm2_agreement_at_5,0.5770642201834838
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,ec,agreement_at_10,0.8095487932843689
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,ec,agreement_at_20,0.7608210912906581
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,ec,agreement_at_5,0.8493704092339999
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,ec,random_baseline,0.1428571428571428
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,ec,raw_esm2_agreement_at_10,0.6241867785939154
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,ec,raw_esm2_agreement_at_20,0.5622245540398753
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,ec,raw_esm2_agreement_at_5,0.6840503672612838
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,go_mf,agreement_at_10,0.8346823389376566
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,go_mf,agreement_at_20,0.8104671923820823
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,go_mf,agreement_at_5,0.85808659425681
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,go_mf,random_baseline,0.1369736646332391
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,go_mf,raw_esm2_agreement_at_10,0.6912215444130333
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,go_mf,raw_esm2_agreement_at_20,0.6469498586519822
+knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,go_mf,raw_esm2_agreement_at_5,0.7383722660318444
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,agreement_at_10,0.6625938281901602
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,agreement_at_20,0.6391159299416179
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,agreement_at_5,0.685654712260213
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,random_baseline,0.1111111111111111
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,raw_esm2_agreement_at_10,0.5432443703085921
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,raw_esm2_agreement_at_20,0.5009174311926604
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,raw_esm2_agreement_at_5,0.5770642201834838
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,agreement_at_10,0.7993704092340012
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,agreement_at_20,0.7480325288562417
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,agreement_at_5,0.8396642182581341
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,random_baseline,0.1428571428571428
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,raw_esm2_agreement_at_10,0.6241867785939154
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,raw_esm2_agreement_at_20,0.5622245540398753
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,raw_esm2_agreement_at_5,0.6840503672612838
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,agreement_at_10,0.8288647522690072
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,agreement_at_20,0.8043817884243396
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,agreement_at_5,0.8543669096860609
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,random_baseline,0.1369736646332391
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,raw_esm2_agreement_at_10,0.6912215444130333
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,raw_esm2_agreement_at_20,0.6469498586519822
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,raw_esm2_agreement_at_5,0.7383722660318444

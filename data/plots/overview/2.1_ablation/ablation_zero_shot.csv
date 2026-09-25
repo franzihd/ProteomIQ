@@ -1,0 +1,13 @@
+checkpoint,group,deeploc_acc%(val),ec_acc%(val),go_mf_acc%(val)
+N=0 (M0),unfreeze,20.45,16.67,41.58
+N=1,unfreeze,19.32,19.08,43.58
+N=2,unfreeze,14.02,13.77,35.56
+N=3,unfreeze,13.64,13.53,41.31
+M1 (+Family),text,15.53,16.91,38.37
+Function+Location,text,34.09,18.84,41.31
+M2 (+Family+Location),text,34.85,16.67,36.63
+M3 (+unmasked name),text,31.82,20.05,32.75
+multi-positive,multi_positive,49.62,21.01,44.52
+multiview (winner),multiview,48.48,20.53,52.81
+random baseline,baseline,11.11111111111111,14.28571428571428,13.930481283422461
+majority-class baseline,baseline,34.84848484848485,42.02898550724637,23.66310160427807

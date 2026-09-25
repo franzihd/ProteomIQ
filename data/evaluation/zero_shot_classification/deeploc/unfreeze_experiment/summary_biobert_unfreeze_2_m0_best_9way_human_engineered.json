@@ -601,7 +601,7 @@
   },
   "generalization_gap": 0.019966546657691986,
   "generalization_gap_test_only": 0.05040618632588248,
-  "checkpoint": "data/runs/full_proteome/biobert_unfreeze_2_m0_best.pt",
+  "checkpoint": "data/runs/full_proteome/unfreeze_experiment/biobert_unfreeze_2_m0_best.pt",
   "biobert_filename": "biobert_embeddings_masked.h5",
   "classes": [
     "Nucleus",

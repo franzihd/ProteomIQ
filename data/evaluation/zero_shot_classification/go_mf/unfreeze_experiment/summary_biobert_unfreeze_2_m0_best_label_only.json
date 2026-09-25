@@ -41,7 +41,7 @@
   },
   "generalization_gap": -0.008518292234896696,
   "generalization_gap_test_only": 0.0057282694242471455,
-  "checkpoint": "data/runs/full_proteome/biobert_unfreeze_2_m0_best.pt",
+  "checkpoint": "data/runs/full_proteome/unfreeze_experiment/biobert_unfreeze_2_m0_best.pt",
   "biobert_filename": "biobert_embeddings_masked.h5",
   "classes": [
     "hydrolase activity",

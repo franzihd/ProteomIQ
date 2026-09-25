@@ -10,7 +10,7 @@
   "n_terms_with_any_positive": 1568,
   "n_eligible_terms": 91,
   "n_eligible_terms_with_resolved_positives": 91,
-  "checkpoint": "data/runs/full_proteome/biobert_unfreeze_0_m0_best.pt",
+  "checkpoint": "data/runs/full_proteome/unfreeze_experiment/biobert_unfreeze_0_m0_best.pt",
   "biobert_filename": "biobert_embeddings_masked.h5",
   "query_types": {
     "name": {

@@ -41,8 +41,8 @@
   },
   "generalization_gap": 0.006691769609871001,
   "generalization_gap_test_only": 0.002907610280977302,
-  "checkpoint": "data/runs/full_proteome/m3_name_family_location_best.pt",
-  "biobert_filename": "biobert_embeddings_family_location.h5",
+  "checkpoint": "data/runs/full_proteome/text_experiment/m3_name_family_location_best.pt",
+  "biobert_filename": "biobert_embeddings_masked.h5",
   "classes": [
     "hydrolase activity",
     "transcription regulator activity",

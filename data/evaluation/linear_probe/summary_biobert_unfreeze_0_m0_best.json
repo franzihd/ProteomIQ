@@ -1,0 +1,38 @@
+{
+  "checkpoint": "data/runs/full_proteome/unfreeze_experiment/biobert_unfreeze_0_m0_best.pt",
+  "results": {
+    "deeploc": {
+      "eval_set": "deeploc",
+      "n_train": 2134,
+      "n_val": 264,
+      "n_classes": 9,
+      "random_baseline": 0.1111111111111111,
+      "majority_baseline": 0.3484848484848485,
+      "majority_class": "Nucleus",
+      "probe_accuracy": 0.7424242424242424,
+      "raw_esm2_probe_accuracy": 0.5
+    },
+    "ec": {
+      "eval_set": "ec",
+      "n_train": 3398,
+      "n_val": 414,
+      "n_classes": 7,
+      "random_baseline": 0.14285714285714285,
+      "majority_baseline": 0.42028985507246375,
+      "majority_class": "Transferases",
+      "probe_accuracy": 0.7801932367149759,
+      "raw_esm2_probe_accuracy": 0.5917874396135265
+    },
+    "go_mf": {
+      "eval_set": "go_mf",
+      "n_train": 5973,
+      "n_val": 748,
+      "n_classes": 10,
+      "random_baseline": 0.1393048128342246,
+      "majority_baseline": 0.23663101604278075,
+      "majority_class": "DNA binding",
+      "probe_accuracy": 0.766042780748663,
+      "raw_esm2_probe_accuracy": 0.36764705882352944
+    }
+  }
+}

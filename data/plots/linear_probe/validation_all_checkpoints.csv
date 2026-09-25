@@ -1,0 +1,37 @@
+eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,deeploc,majority_baseline,0.3484848484848485
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,deeploc,probe_accuracy,0.7651515151515151
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,deeploc,random_baseline,0.1111111111111111
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,deeploc,raw_esm2_probe_accuracy,0.5
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,ec,majority_baseline,0.4202898550724637
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,ec,probe_accuracy,0.7777777777777778
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,ec,random_baseline,0.1428571428571428
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,ec,raw_esm2_probe_accuracy,0.5917874396135265
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,go_mf,majority_baseline,0.2366310160427807
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,go_mf,probe_accuracy,0.7620320855614974
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,go_mf,random_baseline,0.1393048128342246
+linear_probe,multi_positive_best,multi_positive,multi-positive,validation,go_mf,raw_esm2_probe_accuracy,0.3676470588235294
+linear_probe,multiview_best,multiview,multiview (winner),validation,deeploc,majority_baseline,0.3484848484848485
+linear_probe,multiview_best,multiview,multiview (winner),validation,deeploc,probe_accuracy,0.7575757575757576
+linear_probe,multiview_best,multiview,multiview (winner),validation,deeploc,random_baseline,0.1111111111111111
+linear_probe,multiview_best,multiview,multiview (winner),validation,deeploc,raw_esm2_probe_accuracy,0.5
+linear_probe,multiview_best,multiview,multiview (winner),validation,ec,majority_baseline,0.4202898550724637
+linear_probe,multiview_best,multiview,multiview (winner),validation,ec,probe_accuracy,0.7971014492753623
+linear_probe,multiview_best,multiview,multiview (winner),validation,ec,random_baseline,0.1428571428571428
+linear_probe,multiview_best,multiview,multiview (winner),validation,ec,raw_esm2_probe_accuracy,0.5917874396135265
+linear_probe,multiview_best,multiview,multiview (winner),validation,go_mf,majority_baseline,0.2366310160427807
+linear_probe,multiview_best,multiview,multiview (winner),validation,go_mf,probe_accuracy,0.7874331550802139
+linear_probe,multiview_best,multiview,multiview (winner),validation,go_mf,random_baseline,0.1393048128342246
+linear_probe,multiview_best,multiview,multiview (winner),validation,go_mf,raw_esm2_probe_accuracy,0.3676470588235294
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,majority_baseline,0.3484848484848485
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,probe_accuracy,0.7424242424242424
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,random_baseline,0.1111111111111111
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,raw_esm2_probe_accuracy,0.5
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,majority_baseline,0.4202898550724637
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,probe_accuracy,0.7801932367149759
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,random_baseline,0.1428571428571428
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,raw_esm2_probe_accuracy,0.5917874396135265
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,majority_baseline,0.2366310160427807
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,probe_accuracy,0.766042780748663
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,random_baseline,0.1393048128342246
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,raw_esm2_probe_accuracy,0.3676470588235294

@@ -26,6 +26,7 @@ dependencies = [
     "torch==2.6.0",
     "tqdm>=4.67.3",
     "transformers>=5.8.0",
+    "umap-learn>=0.5.12",
     "wandb>=0.28.1",
 ]
 

@@ -1,22 +1,22 @@
 eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
-alignment_uniformity,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,n/a,alignment,1.3428359031677246
-alignment_uniformity,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,n/a,alignment_mismatched_reference,2.00620174407959
-alignment_uniformity,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,n/a,uniformity_pooled,-3.857027053833008
-alignment_uniformity,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,n/a,uniformity_protein,-3.7993648052215576
-alignment_uniformity,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,n/a,uniformity_random_reference,-3.9922039985656737
-alignment_uniformity,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,n/a,uniformity_text,-3.78904390335083
 alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,alignment,1.3642308712005615
-alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,alignment_mismatched_reference,2.006955862045288
+alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,alignment_mismatched_reference,2.0008792877197266
 alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,uniformity_pooled,-3.825831651687622
 alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,uniformity_protein,-3.745112657546997
-alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,uniformity_random_reference,-3.9921993255615233
+alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,uniformity_random_reference,-3.9921988964080812
 alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,uniformity_text,-3.7395071983337402
 alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,alignment,1.3506927490234375
-alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,alignment_mismatched_reference,2.0071067810058594
+alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,alignment_mismatched_reference,2.010491371154785
 alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,uniformity_pooled,-3.867691993713379
 alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,uniformity_protein,-3.8250229358673096
-alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,uniformity_random_reference,-3.992225408554077
+alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,uniformity_random_reference,-3.992215871810913
 alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,uniformity_text,-3.8189337253570557
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,alignment,1.3440122604370117
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,alignment_mismatched_reference,2.007222890853882
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,uniformity_pooled,-3.8489198684692383
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,uniformity_protein,-3.787656545639038
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,uniformity_random_reference,-3.9921833992004396
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,uniformity_text,-3.778704881668091
 cross_modal,multi_positive_best,multi_positive,multi-positive,validation,protein_to_text,median_rank,9.0
 cross_modal,multi_positive_best,multi_positive,multi-positive,validation,protein_to_text,r1,23.44582593250444
 cross_modal,multi_positive_best,multi_positive,multi-positive,validation,protein_to_text,r10,52.2202486678508
@@ -127,21 +127,6 @@ cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,text_to_protein,r
 cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,text_to_protein,r10,27.767910005920665
 cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,text_to_protein,r5,19.715808170515096
 cross_modal,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,text_to_protein,r50,50.50325636471285
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,accuracy,0.1826086956521739
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,macro_f1,0.17572375790048336
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,majority_baseline_accuracy,0.36786389413988657
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,n,2645.0
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,random_baseline_accuracy,0.1111111111111111
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,accuracy,0.1846298031865042
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,macro_f1,0.1786207883492832
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,majority_baseline_accuracy,0.37066541705716965
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,n,2134.0
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,random_baseline_accuracy,0.1111111111111111
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,accuracy,0.17416829745596868
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,macro_f1,0.16331999429826322
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,majority_baseline_accuracy,0.3561643835616438
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,n,511.0
-deeploc,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,random_baseline_accuracy,0.1111111111111111
 deeploc,multi_positive_best,multi_positive,multi-positive,all,ensemble,accuracy,0.6608695652173913
 deeploc,multi_positive_best,multi_positive,multi-positive,all,ensemble,macro_f1,0.5182651880674451
 deeploc,multi_positive_best,multi_positive,multi-positive,all,ensemble,majority_baseline_accuracy,0.36786389413988657
@@ -392,21 +377,6 @@ deeploc,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,macro_f1,0.1
 deeploc,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,majority_baseline_accuracy,0.3484848484848485
 deeploc,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,n,264.0
 deeploc,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,random_baseline_accuracy,0.1111111111111111
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,accuracy,0.17777254532611256
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,macro_f1,0.12408135155404697
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,majority_baseline_accuracy,0.4002825523899223
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,n,4247.0
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,random_baseline_accuracy,0.14285714285714285
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,accuracy,0.17951736315479694
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,macro_f1,0.12482084751673315
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,majority_baseline_accuracy,0.3975868157739847
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,n,3398.0
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,random_baseline_accuracy,0.14285714285714285
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,accuracy,0.1707891637220259
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,macro_f1,0.12224298867737371
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,majority_baseline_accuracy,0.4110718492343934
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,n,849.0
-ec_top_level,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,random_baseline_accuracy,0.14285714285714285
 ec_top_level,multi_positive_best,multi_positive,multi-positive,all,ensemble,accuracy,0.23875676948434188
 ec_top_level,multi_positive_best,multi_positive,multi-positive,all,ensemble,macro_f1,0.17296776963280128
 ec_top_level,multi_positive_best,multi_positive,multi-positive,all,ensemble,majority_baseline_accuracy,0.4002825523899223
@@ -657,18 +627,6 @@ ec_top_level,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,macro_f
 ec_top_level,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,majority_baseline_accuracy,0.42028985507246375
 ec_top_level,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,n,414.0
 ec_top_level,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,random_baseline_accuracy,0.14285714285714285
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,accuracy,0.40522088353413654
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,majority_baseline_accuracy,0.24029451137884872
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,n,7470.0
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",all,ensemble,random_baseline_accuracy,0.1372021419009371
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,accuracy,0.4056587979239913
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,majority_baseline_accuracy,0.24008036162732296
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,n,5973.0
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",seen,ensemble,random_baseline_accuracy,0.13668173447178972
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,accuracy,0.4034736138944556
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,majority_baseline_accuracy,0.24114896459585838
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,n,1497.0
-go_mf,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",unseen_combined,ensemble,random_baseline_accuracy,0.13927855711422846
 go_mf,multi_positive_best,multi_positive,multi-positive,all,ensemble,accuracy,0.449665327978581
 go_mf,multi_positive_best,multi_positive,multi-positive,all,ensemble,majority_baseline_accuracy,0.24029451137884872
 go_mf,multi_positive_best,multi_positive,multi-positive,all,ensemble,n,7470.0
@@ -869,72 +827,6 @@ go_mf,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,accuracy,0.413
 go_mf,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,majority_baseline_accuracy,0.23663101604278075
 go_mf,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,n,748.0
 go_mf,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,random_baseline_accuracy,0.1393048128342246
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_definition,map,0.07357598690431719
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_definition,map_random_baseline,0.013783483144051527
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_definition,p10,0.09924242424242426
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_definition,p100,0.04931818181818182
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_definition,p50,0.06560606060606061
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_definition,r10,0.052438869395220376
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_definition,r100,0.24481811927909622
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_definition,r100_normalized,0.2461390875539637
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_definition,r10_normalized,0.09924242424242426
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_definition,r50,0.1681947452865663
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_definition,r50_normalized,0.17341741354575485
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_name,map,0.07039246000085594
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_name,map_random_baseline,0.013783483144051527
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_name,p10,0.09545454545454546
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_name,p100,0.05106060606060606
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_name,p50,0.06424242424242424
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_name,r10,0.04986940068018925
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_name,r100,0.24196136037792976
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_name,r100_normalized,0.24446656772264594
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_name,r10_normalized,0.09545454545454546
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_name,r50,0.15950994477398364
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,bp_name,r50_normalized,0.1648524635838826
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_definition,map,0.09027171902448862
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_definition,map_random_baseline,0.030195381882770867
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_definition,p10,0.13125000000000003
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_definition,p100,0.07026785714285715
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_definition,p50,0.08767857142857143
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_definition,r10,0.050189800001640784
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_definition,r100,0.22583422583513293
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_definition,r100_normalized,0.2403371194611912
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_definition,r10_normalized,0.13125000000000003
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_definition,r50,0.1473363113398385
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_definition,r50_normalized,0.17059986476379865
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_name,map,0.07028190943426436
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_name,map_random_baseline,0.030195381882770867
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_name,p10,0.09375
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_name,p100,0.064375
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_name,p50,0.07214285714285716
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_name,r10,0.03529102206512091
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_name,r100,0.1846123807531527
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_name,r100_normalized,0.20192460490745429
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_name,r10_normalized,0.09375
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_name,r50,0.11352223373660543
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,cc_name,r50_normalized,0.13675711078050307
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_definition,map,0.08960956804794243
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_definition,map_random_baseline,0.019180346000949908
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_definition,p10,0.11318681318681317
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_definition,p100,0.06824175824175824
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_definition,p50,0.07868131868131868
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_definition,r10,0.04399260024872794
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_definition,r100,0.2659115203715501
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_definition,r100_normalized,0.2687183055831487
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_definition,r10_normalized,0.11318681318681317
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_definition,r50,0.15295088845460325
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_definition,r50_normalized,0.16383963475481136
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_name,map,0.11014349670522289
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_name,map_random_baseline,0.019180346000949908
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_name,p10,0.13076923076923078
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_name,p100,0.07406593406593408
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_name,p50,0.10131868131868134
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_name,r10,0.05610702497605335
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_name,r100,0.2893902878916713
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_name,r100_normalized,0.29190769396360305
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_name,r10_normalized,0.13076923076923078
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_name,r50,0.19911960505463788
-go_retrieval,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,mf_name,r50_normalized,0.21007345940730524
 go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,bp_definition,map,0.06701191080896582
 go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,bp_definition,map_random_baseline,0.013783483144051527
 go_retrieval,multi_positive_best,multi_positive,multi-positive,validation,bp_definition,p10,0.08333333333333333
@@ -1661,27 +1553,6 @@ go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_name,r100_nor
 go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_name,r10_normalized,0.1032967032967033
 go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_name,r50,0.1468885638374799
 go_retrieval,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,mf_name,r50_normalized,0.152613370991848
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,deeploc,agreement_at_10,0.6634278565471248
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,deeploc,agreement_at_20,0.6406588824020031
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,deeploc,agreement_at_5,0.6822351959966598
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,deeploc,random_baseline,0.1111111111111111
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,deeploc,raw_esm2_agreement_at_10,0.5432443703085921
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,deeploc,raw_esm2_agreement_at_20,0.5009174311926604
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,deeploc,raw_esm2_agreement_at_5,0.5770642201834838
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,ec,agreement_at_10,0.7999213011542515
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,ec,agreement_at_20,0.748399790136412
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,ec,agreement_at_5,0.8389821615949657
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,ec,random_baseline,0.14285714285714285
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,ec,raw_esm2_agreement_at_10,0.6241867785939154
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,ec,raw_esm2_agreement_at_20,0.5622245540398753
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,ec,raw_esm2_agreement_at_5,0.6840503672612838
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,go_mf,agreement_at_10,0.8302782324058923
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,go_mf,agreement_at_20,0.8056390418092516
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,go_mf,agreement_at_5,0.8551108466002107
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,go_mf,random_baseline,0.1369736646332391
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,go_mf,raw_esm2_agreement_at_10,0.6912215444130333
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,go_mf,raw_esm2_agreement_at_20,0.6469498586519822
-knn,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,go_mf,raw_esm2_agreement_at_5,0.7383722660318444
 knn,multi_positive_best,multi_positive,multi-positive,validation,deeploc,agreement_at_10,0.7642201834862412
 knn,multi_positive_best,multi_positive,multi-positive,validation,deeploc,agreement_at_20,0.7552960800667262
 knn,multi_positive_best,multi_positive,multi-positive,validation,deeploc,agreement_at_5,0.7761467889908217
@@ -1808,18 +1679,27 @@ knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,go_mf,rando
 knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,go_mf,raw_esm2_agreement_at_10,0.6912215444130333
 knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,go_mf,raw_esm2_agreement_at_20,0.6469498586519822
 knn,m3_name_family_location_best,text,M3 (+unmasked name),validation,go_mf,raw_esm2_agreement_at_5,0.7383722660318444
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,deeploc,majority_baseline,0.3484848484848485
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,deeploc,probe_accuracy,0.7348484848484849
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,deeploc,random_baseline,0.1111111111111111
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,deeploc,raw_esm2_probe_accuracy,0.5
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,ec,majority_baseline,0.42028985507246375
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,ec,probe_accuracy,0.7922705314009661
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,ec,random_baseline,0.14285714285714285
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,ec,raw_esm2_probe_accuracy,0.5917874396135265
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,go_mf,majority_baseline,0.23663101604278075
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,go_mf,probe_accuracy,0.7687165775401069
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,go_mf,random_baseline,0.1393048128342246
-linear_probe,final_v2_dims_masked_best,baseline_prefix_fix,"M0 (pre-11y-fix, superseded)",validation,go_mf,raw_esm2_probe_accuracy,0.36764705882352944
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,agreement_at_10,0.6625938281901602
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,agreement_at_20,0.6391159299416179
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,agreement_at_5,0.685654712260213
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,random_baseline,0.1111111111111111
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,raw_esm2_agreement_at_10,0.5432443703085921
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,raw_esm2_agreement_at_20,0.5009174311926604
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,raw_esm2_agreement_at_5,0.5770642201834838
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,agreement_at_10,0.7993704092340012
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,agreement_at_20,0.7480325288562417
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,agreement_at_5,0.8396642182581341
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,random_baseline,0.14285714285714285
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,raw_esm2_agreement_at_10,0.6241867785939154
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,raw_esm2_agreement_at_20,0.5622245540398753
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,raw_esm2_agreement_at_5,0.6840503672612838
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,agreement_at_10,0.8288647522690072
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,agreement_at_20,0.8043817884243396
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,agreement_at_5,0.8543669096860609
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,random_baseline,0.1369736646332391
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,raw_esm2_agreement_at_10,0.6912215444130333
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,raw_esm2_agreement_at_20,0.6469498586519822
+knn,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,raw_esm2_agreement_at_5,0.7383722660318444
 linear_probe,multi_positive_best,multi_positive,multi-positive,validation,deeploc,majority_baseline,0.3484848484848485
 linear_probe,multi_positive_best,multi_positive,multi-positive,validation,deeploc,probe_accuracy,0.7651515151515151
 linear_probe,multi_positive_best,multi_positive,multi-positive,validation,deeploc,random_baseline,0.1111111111111111
@@ -1844,3 +1724,15 @@ linear_probe,multiview_best,multiview,multiview (winner),validation,go_mf,majori
 linear_probe,multiview_best,multiview,multiview (winner),validation,go_mf,probe_accuracy,0.7874331550802139
 linear_probe,multiview_best,multiview,multiview (winner),validation,go_mf,random_baseline,0.1393048128342246
 linear_probe,multiview_best,multiview,multiview (winner),validation,go_mf,raw_esm2_probe_accuracy,0.36764705882352944
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,majority_baseline,0.3484848484848485
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,probe_accuracy,0.7424242424242424
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,random_baseline,0.1111111111111111
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,deeploc,raw_esm2_probe_accuracy,0.5
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,majority_baseline,0.42028985507246375
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,probe_accuracy,0.7801932367149759
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,random_baseline,0.14285714285714285
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ec,raw_esm2_probe_accuracy,0.5917874396135265
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,majority_baseline,0.23663101604278075
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,probe_accuracy,0.766042780748663
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,random_baseline,0.1393048128342246
+linear_probe,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,go_mf,raw_esm2_probe_accuracy,0.36764705882352944

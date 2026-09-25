@@ -1,0 +1,11 @@
+{
+  "pool_size": 1689,
+  "alignment": 1.3440122604370117,
+  "alignment_mismatched_reference": 2.007222890853882,
+  "uniformity_protein": -3.787656545639038,
+  "uniformity_text": -3.778704881668091,
+  "uniformity_pooled": -3.8489198684692383,
+  "uniformity_random_reference": -3.9921833992004396,
+  "checkpoint": "data/runs/full_proteome/unfreeze_experiment/biobert_unfreeze_0_m0_best.pt",
+  "biobert_filename": "biobert_embeddings_masked.h5"
+}

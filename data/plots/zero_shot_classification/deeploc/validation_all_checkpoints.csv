@@ -1,0 +1,51 @@
+eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
+deeploc,multi_positive_best,multi_positive,multi-positive,validation,ensemble,accuracy,0.4962121212121212
+deeploc,multi_positive_best,multi_positive,multi-positive,validation,ensemble,macro_f1,0.3936571899715052
+deeploc,multi_positive_best,multi_positive,multi-positive,validation,ensemble,majority_baseline_accuracy,0.3484848484848485
+deeploc,multi_positive_best,multi_positive,multi-positive,validation,ensemble,n,264.0
+deeploc,multi_positive_best,multi_positive,multi-positive,validation,ensemble,random_baseline_accuracy,0.1111111111111111
+deeploc,multiview_best,multiview,multiview (winner),validation,ensemble,accuracy,0.4848484848484848
+deeploc,multiview_best,multiview,multiview (winner),validation,ensemble,macro_f1,0.3873589373589374
+deeploc,multiview_best,multiview,multiview (winner),validation,ensemble,majority_baseline_accuracy,0.3484848484848485
+deeploc,multiview_best,multiview,multiview (winner),validation,ensemble,n,264.0
+deeploc,multiview_best,multiview,multiview (winner),validation,ensemble,random_baseline_accuracy,0.1111111111111111
+deeploc,location_only_masked_best,text,Function+Location,validation,ensemble,accuracy,0.3409090909090909
+deeploc,location_only_masked_best,text,Function+Location,validation,ensemble,macro_f1,0.2683970479491477
+deeploc,location_only_masked_best,text,Function+Location,validation,ensemble,majority_baseline_accuracy,0.3484848484848485
+deeploc,location_only_masked_best,text,Function+Location,validation,ensemble,n,264.0
+deeploc,location_only_masked_best,text,Function+Location,validation,ensemble,random_baseline_accuracy,0.1111111111111111
+deeploc,m1_family_masked_best,text,M1 (+Family),validation,ensemble,accuracy,0.1553030303030303
+deeploc,m1_family_masked_best,text,M1 (+Family),validation,ensemble,macro_f1,0.1305304738111699
+deeploc,m1_family_masked_best,text,M1 (+Family),validation,ensemble,majority_baseline_accuracy,0.3484848484848485
+deeploc,m1_family_masked_best,text,M1 (+Family),validation,ensemble,n,264.0
+deeploc,m1_family_masked_best,text,M1 (+Family),validation,ensemble,random_baseline_accuracy,0.1111111111111111
+deeploc,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,accuracy,0.3484848484848485
+deeploc,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,macro_f1,0.2667727710575536
+deeploc,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,majority_baseline_accuracy,0.3484848484848485
+deeploc,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,n,264.0
+deeploc,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,random_baseline_accuracy,0.1111111111111111
+deeploc,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,accuracy,0.3181818181818182
+deeploc,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,macro_f1,0.2540770181981107
+deeploc,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,majority_baseline_accuracy,0.3484848484848485
+deeploc,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,n,264.0
+deeploc,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,random_baseline_accuracy,0.1111111111111111
+deeploc,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,accuracy,0.2045454545454545
+deeploc,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,macro_f1,0.1709782165675998
+deeploc,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,majority_baseline_accuracy,0.3484848484848485
+deeploc,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,n,264.0
+deeploc,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,random_baseline_accuracy,0.1111111111111111
+deeploc,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,accuracy,0.1931818181818181
+deeploc,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,macro_f1,0.1755610177762117
+deeploc,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,majority_baseline_accuracy,0.3484848484848485
+deeploc,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,n,264.0
+deeploc,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,random_baseline_accuracy,0.1111111111111111
+deeploc,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,accuracy,0.1401515151515151
+deeploc,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,macro_f1,0.1343193731354489
+deeploc,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,majority_baseline_accuracy,0.3484848484848485
+deeploc,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,n,264.0
+deeploc,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,random_baseline_accuracy,0.1111111111111111
+deeploc,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,accuracy,0.1363636363636363
+deeploc,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,macro_f1,0.126764072208373
+deeploc,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,majority_baseline_accuracy,0.3484848484848485
+deeploc,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,n,264.0
+deeploc,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,random_baseline_accuracy,0.1111111111111111

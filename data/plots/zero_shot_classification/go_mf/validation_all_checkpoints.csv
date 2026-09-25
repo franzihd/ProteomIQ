@@ -1,0 +1,41 @@
+eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
+go_mf,multi_positive_best,multi_positive,multi-positive,validation,ensemble,accuracy,0.4451871657754011
+go_mf,multi_positive_best,multi_positive,multi-positive,validation,ensemble,majority_baseline_accuracy,0.2366310160427807
+go_mf,multi_positive_best,multi_positive,multi-positive,validation,ensemble,n,748.0
+go_mf,multi_positive_best,multi_positive,multi-positive,validation,ensemble,random_baseline_accuracy,0.1393048128342246
+go_mf,multiview_best,multiview,multiview (winner),validation,ensemble,accuracy,0.5280748663101604
+go_mf,multiview_best,multiview,multiview (winner),validation,ensemble,majority_baseline_accuracy,0.2366310160427807
+go_mf,multiview_best,multiview,multiview (winner),validation,ensemble,n,748.0
+go_mf,multiview_best,multiview,multiview (winner),validation,ensemble,random_baseline_accuracy,0.1393048128342246
+go_mf,location_only_masked_best,text,Function+Location,validation,ensemble,accuracy,0.4131016042780748
+go_mf,location_only_masked_best,text,Function+Location,validation,ensemble,majority_baseline_accuracy,0.2366310160427807
+go_mf,location_only_masked_best,text,Function+Location,validation,ensemble,n,748.0
+go_mf,location_only_masked_best,text,Function+Location,validation,ensemble,random_baseline_accuracy,0.1393048128342246
+go_mf,m1_family_masked_best,text,M1 (+Family),validation,ensemble,accuracy,0.3836898395721925
+go_mf,m1_family_masked_best,text,M1 (+Family),validation,ensemble,majority_baseline_accuracy,0.2366310160427807
+go_mf,m1_family_masked_best,text,M1 (+Family),validation,ensemble,n,748.0
+go_mf,m1_family_masked_best,text,M1 (+Family),validation,ensemble,random_baseline_accuracy,0.1393048128342246
+go_mf,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,accuracy,0.3663101604278075
+go_mf,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,majority_baseline_accuracy,0.2366310160427807
+go_mf,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,n,748.0
+go_mf,m2_family_location_masked_best,text,M2 (+Family+Location),validation,ensemble,random_baseline_accuracy,0.1393048128342246
+go_mf,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,accuracy,0.3275401069518716
+go_mf,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,majority_baseline_accuracy,0.2366310160427807
+go_mf,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,n,748.0
+go_mf,m3_name_family_location_best,text,M3 (+unmasked name),validation,ensemble,random_baseline_accuracy,0.1393048128342246
+go_mf,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,accuracy,0.4157754010695187
+go_mf,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,majority_baseline_accuracy,0.2366310160427807
+go_mf,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,n,748.0
+go_mf,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,ensemble,random_baseline_accuracy,0.1393048128342246
+go_mf,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,accuracy,0.4358288770053476
+go_mf,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,majority_baseline_accuracy,0.2366310160427807
+go_mf,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,n,748.0
+go_mf,biobert_unfreeze_1_m0_best,unfreeze,N=1,validation,ensemble,random_baseline_accuracy,0.1393048128342246
+go_mf,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,accuracy,0.355614973262032
+go_mf,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,majority_baseline_accuracy,0.2366310160427807
+go_mf,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,n,748.0
+go_mf,biobert_unfreeze_2_m0_best,unfreeze,N=2,validation,ensemble,random_baseline_accuracy,0.1393048128342246
+go_mf,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,accuracy,0.4131016042780748
+go_mf,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,majority_baseline_accuracy,0.2366310160427807
+go_mf,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,n,748.0
+go_mf,biobert_unfreeze_3_m0_best,unfreeze,N=3,validation,ensemble,random_baseline_accuracy,0.1393048128342246

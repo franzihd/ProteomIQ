@@ -1,0 +1,19 @@
+eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
+alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,alignment,1.3642308712005615
+alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,alignment_mismatched_reference,2.0008792877197266
+alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,uniformity_pooled,-3.825831651687622
+alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,uniformity_protein,-3.745112657546997
+alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,uniformity_random_reference,-3.992198896408081
+alignment_uniformity,multi_positive_best,multi_positive,multi-positive,validation,n/a,uniformity_text,-3.73950719833374
+alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,alignment,1.3506927490234375
+alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,alignment_mismatched_reference,2.010491371154785
+alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,uniformity_pooled,-3.867691993713379
+alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,uniformity_protein,-3.8250229358673096
+alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,uniformity_random_reference,-3.992215871810913
+alignment_uniformity,multiview_best,multiview,multiview (winner),validation,n/a,uniformity_text,-3.818933725357056
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,alignment,1.3440122604370115
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,alignment_mismatched_reference,2.007222890853882
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,uniformity_pooled,-3.8489198684692383
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,uniformity_protein,-3.787656545639038
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,uniformity_random_reference,-3.99218339920044
+alignment_uniformity,biobert_unfreeze_0_m0_best,unfreeze,N=0 (M0),validation,n/a,uniformity_text,-3.778704881668091

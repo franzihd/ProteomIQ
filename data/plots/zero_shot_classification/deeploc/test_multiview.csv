@@ -1,0 +1,6 @@
+eval,checkpoint,checkpoint_group,checkpoint_label,pool,variant,metric,value
+deeploc,multiview_best,multiview,multiview (winner),test,ensemble,accuracy,0.5060728744939271
+deeploc,multiview_best,multiview,multiview (winner),test,ensemble,macro_f1,0.3838881628264992
+deeploc,multiview_best,multiview,multiview (winner),test,ensemble,majority_baseline_accuracy,0.3643724696356275
+deeploc,multiview_best,multiview,multiview (winner),test,ensemble,n,247.0
+deeploc,multiview_best,multiview,multiview (winner),test,ensemble,random_baseline_accuracy,0.1111111111111111

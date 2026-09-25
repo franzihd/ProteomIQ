@@ -1,0 +1,39 @@
+checkpoint,metric,task,value
+M0,alignment,n/a,1.3440122604370117
+M0,uniformity_pooled,n/a,-3.8489198684692383
+M0,linear_probe_accuracy%,deeploc,74.24242424242425
+M0,knn_agreement@10%,deeploc,66.25938281901603
+M0,linear_probe_accuracy%,ec,78.01932367149759
+M0,knn_agreement@10%,ec,79.93704092340012
+M0,linear_probe_accuracy%,go_mf,76.6042780748663
+M0,knn_agreement@10%,go_mf,82.88647522690073
+Multi-positive,alignment,n/a,1.3642308712005615
+Multi-positive,uniformity_pooled,n/a,-3.825831651687622
+Multi-positive,linear_probe_accuracy%,deeploc,76.51515151515152
+Multi-positive,knn_agreement@10%,deeploc,76.42201834862412
+Multi-positive,linear_probe_accuracy%,ec,77.77777777777779
+Multi-positive,knn_agreement@10%,ec,81.74973767051446
+Multi-positive,linear_probe_accuracy%,go_mf,76.20320855614973
+Multi-positive,knn_agreement@10%,go_mf,84.41303377473591
+Multiview,alignment,n/a,1.3506927490234375
+Multiview,uniformity_pooled,n/a,-3.867691993713379
+Multiview,linear_probe_accuracy%,deeploc,75.75757575757575
+Multiview,knn_agreement@10%,deeploc,73.43619683069255
+Multiview,linear_probe_accuracy%,ec,79.71014492753623
+Multiview,knn_agreement@10%,ec,82.67838405036761
+Multiview,linear_probe_accuracy%,go_mf,78.7433155080214
+Multiview,knn_agreement@10%,go_mf,84.66746019937499
+reference: mismatched pairs,alignment,n/a,2.010491371154785
+reference: random points,uniformity_pooled,n/a,-3.992215871810913
+frozen ESM2,linear_probe_accuracy%,deeploc,50.0
+majority-class baseline,linear_probe_accuracy%,deeploc,34.84848484848485
+frozen ESM2,knn_agreement@10%,deeploc,54.32443703085921
+random baseline,knn_agreement@10%,deeploc,11.11111111111111
+frozen ESM2,linear_probe_accuracy%,ec,59.17874396135265
+majority-class baseline,linear_probe_accuracy%,ec,42.028985507246375
+frozen ESM2,knn_agreement@10%,ec,62.418677859391536
+random baseline,knn_agreement@10%,ec,14.285714285714285
+frozen ESM2,linear_probe_accuracy%,go_mf,36.76470588235294
+majority-class baseline,linear_probe_accuracy%,go_mf,23.663101604278076
+frozen ESM2,knn_agreement@10%,go_mf,69.12215444130332
+random baseline,knn_agreement@10%,go_mf,13.69736646332391

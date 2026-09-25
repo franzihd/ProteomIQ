@@ -411,7 +411,7 @@
   },
   "generalization_gap": 0.01931434759308981,
   "generalization_gap_test_only": 0.024927442105904085,
-  "checkpoint": "data/runs/full_proteome/biobert_unfreeze_1_m0_best.pt",
+  "checkpoint": "data/runs/full_proteome/unfreeze_experiment/biobert_unfreeze_1_m0_best.pt",
   "biobert_filename": "biobert_embeddings_masked.h5",
   "classes": [
     "Oxidoreductases",

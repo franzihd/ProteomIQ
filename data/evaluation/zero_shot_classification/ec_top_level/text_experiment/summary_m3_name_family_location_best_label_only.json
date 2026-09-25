@@ -411,8 +411,8 @@
   },
   "generalization_gap": -0.0007182219707983217,
   "generalization_gap_test_only": -0.0057464499063005214,
-  "checkpoint": "data/runs/full_proteome/m3_name_family_location_best.pt",
-  "biobert_filename": "biobert_embeddings_family_location.h5",
+  "checkpoint": "data/runs/full_proteome/text_experiment/m3_name_family_location_best.pt",
+  "biobert_filename": "biobert_embeddings_masked.h5",
   "classes": [
     "Oxidoreductases",
     "Transferases",
