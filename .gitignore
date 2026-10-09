@@ -18,5 +18,3 @@ data/runs/full_proteome/datasize_experiment/*.pt
 
 # internal process docs (kept locally, not part of the submission)
 CLAUDE.md
-THESIS_LOG.md
-MIDTERM_TALK_OUTLINE.md
