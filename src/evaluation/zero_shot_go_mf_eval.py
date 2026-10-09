@@ -25,7 +25,7 @@ from src.model.query_evaluation import encode_query
 EVAL_SET_PATH = Path("data/evaluation/zero_shot_classification/go_mf/test_set.csv")
 CLASS_SELECTION_PATH = Path("data/evaluation/zero_shot_classification/go_mf/class_selection.json")
 PROMPT_TEMPLATES_PATH = Path("data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json")
-BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
+BIOBERT_PATH = "dmis-lab/biobert-base-cased-v1.2"
 
 # Templates come from the frozen 5-prompt pool in PROMPT_TEMPLATES_PATH (see
 # generate_zero_shot_prompt_templates.py), generated once via a fixed LLM
@@ -152,8 +152,8 @@ def load_context(checkpoint_path: Path, biobert_filename: str = "biobert_embeddi
     protein_head.eval()
     text_head.eval()
 
-    tokenizer = AutoTokenizer.from_pretrained(BIOBERT_PATH, local_files_only=True)
-    biobert_model = AutoModel.from_pretrained(BIOBERT_PATH, local_files_only=True).to(device)
+    tokenizer = AutoTokenizer.from_pretrained(BIOBERT_PATH, revision="67c9c25b46986521ca33df05d8540da1210b3256")
+    biobert_model = AutoModel.from_pretrained(BIOBERT_PATH, revision="67c9c25b46986521ca33df05d8540da1210b3256").to(device)
     biobert_model.eval()
 
     with open(PROMPT_TEMPLATES_PATH) as f:

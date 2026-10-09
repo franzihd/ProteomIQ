@@ -128,9 +128,9 @@ def run():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}\n")
 
-    BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256"
-    tokenizer = AutoTokenizer.from_pretrained(BIOBERT_PATH, local_files_only=True)
-    biobert_model = AutoModel.from_pretrained(BIOBERT_PATH, local_files_only=True).to(device)
+    BIOBERT_PATH = "dmis-lab/biobert-base-cased-v1.2"
+    tokenizer = AutoTokenizer.from_pretrained(BIOBERT_PATH, revision="67c9c25b46986521ca33df05d8540da1210b3256")
+    biobert_model = AutoModel.from_pretrained(BIOBERT_PATH, revision="67c9c25b46986521ca33df05d8540da1210b3256").to(device)
 
     protein_head = ProjectionHead(input_dim=641, hidden_dim=512, output_dim=256).to(device)
     text_head = ProjectionHead(input_dim=768, hidden_dim=512, output_dim=256).to(device)
