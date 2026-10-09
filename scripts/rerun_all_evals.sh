@@ -28,7 +28,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 RUNS=data/runs/full_proteome
-SPLITS=data/protein_splits_full_proteome.json
+SPLITS=data/splits/protein_splits_full_proteome.json
 TEXT=biobert_embeddings_masked.h5   # fixed Function-only text for every checkpoint (verified to reproduce the saved numbers)
 
 # checkpoint paths, grouped the same way as the ablation study

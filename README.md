@@ -56,7 +56,7 @@ deploy/                      Streamlit Community Cloud demo deployment
 data/
   full_proteome/             UniProt annotations, sequences, CD-HIT clusters (Stage 1 data)
   cptac/<cohort>/            CPTAC abundance matrices (used by Stage 2 and example samples)
-  protein_splits_full_proteome.json   the homology-aware train/validation/test split
+  splits/                    CD-HIT clusters + the homology-aware train/validation/test split
   runs/full_proteome/        trained checkpoints (final model + every ablation)
   evaluation/                eval outputs; all_results.csv, results_summary.csv (validation),
                              results_final_test.csv (test, final model only)
@@ -93,7 +93,7 @@ uv run python src/model/train_protein_level.py \
     --biobert-filename biobert_embeddings_masked.h5 \
     --view-biobert-filenames biobert_embeddings_masked.h5 biobert_embeddings_family_view.h5 \
                              biobert_embeddings_location_view.h5 \
-    --splits-file data/protein_splits_full_proteome.json
+    --splits-file data/splits/protein_splits_full_proteome.json
 
 # 4. All evaluations + consolidated tables, then the Results figures
 bash scripts/rerun_all_evals.sh

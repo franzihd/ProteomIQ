@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pandas as pd
 
-SPLITS_PATH = Path("data/protein_splits_full_proteome.json")
+SPLITS_PATH = Path("data/splits/protein_splits_full_proteome.json")
 PROTEOME_ANNOTATIONS = Path("data/full_proteome/protein_annotations.csv")
 GO_ANNOTATIONS_PATH = Path("data/full_proteome/uniprot_go_annotations_uncapped.csv")
 

@@ -5,7 +5,7 @@ Usage:
     uv run python src/evaluation/cross_modal_eval.py \\
         --checkpoint data/runs/full_proteome/multiview_experiment/multiview_best.pt \\
         --biobert-filename biobert_embeddings_masked.h5 \\
-        --splits-file data/protein_splits_full_proteome.json \\
+        --splits-file data/splits/protein_splits_full_proteome.json \\
         --split-key validation
 """
 import sys
@@ -33,7 +33,7 @@ def recall_at_k(sim: torch.Tensor, ks: list[int]) -> dict:
 
 
 def compute_cross_modal_eval(checkpoint_path: str, biobert_filename: str,
-                              splits_file: str = "data/protein_splits.json",
+                              splits_file: str = "data/splits/protein_splits_full_proteome.json",
                               split_key: str = "validation"):
     if split_key not in ("validation", "test"):
         raise ValueError(f"split_key must be 'validation' or 'test', got {split_key!r}")
@@ -90,8 +90,8 @@ if __name__ == "__main__":
     parser.add_argument("--biobert-filename", default="biobert_embeddings.h5",
                         help="must match the text variant the checkpoint was trained on, "
                              "e.g. biobert_embeddings_masked.h5 or biobert_embeddings_masked_go.h5")
-    parser.add_argument("--splits-file", default="data/protein_splits.json",
-                        help="e.g. data/protein_splits_full_proteome.json for the full-proteome split")
+    parser.add_argument("--splits-file", default="data/splits/protein_splits_full_proteome.json",
+                        help="e.g. data/splits/protein_splits_full_proteome.json for the full-proteome split")
     parser.add_argument("--split-key", choices=["validation", "test"], default="validation",
                         help="pool to evaluate against. 'validation' for repeat checkpoint "
                              "comparisons; 'test' is reserved -- spend it exactly once, on "

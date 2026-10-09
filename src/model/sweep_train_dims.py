@@ -18,7 +18,7 @@ FIXED = {
     "epochs": 100,
     "early_stopping_patience": 10,
     "biobert_filename": "biobert_embeddings_masked.h5",
-    "splits_file": "data/protein_splits_full_proteome.json",
+    "splits_file": "data/splits/protein_splits_full_proteome.json",
 }
 
 

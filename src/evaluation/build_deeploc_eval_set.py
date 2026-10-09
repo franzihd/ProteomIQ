@@ -15,7 +15,7 @@ DEEPLOC_URL = "https://services.healthtech.dtu.dk/services/DeepLoc-1.0/deeploc_d
 RAW_FASTA_PATH = Path("data/deeploc/deeploc_data.fasta")
 OUTPUT_PATH = Path("data/evaluation/zero_shot_classification/deeploc/test_set.csv")
 FULL_PROTEOME_ANNOTATIONS = Path("data/full_proteome/protein_annotations.csv")
-SPLITS_FILE = Path("data/protein_splits_full_proteome.json")
+SPLITS_FILE = Path("data/splits/protein_splits_full_proteome.json")
 
 SOLUBILITY_SUFFIXES = {"M", "S", "U"}  # membrane / soluble / unknown -- not used here
 

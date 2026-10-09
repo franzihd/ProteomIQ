@@ -14,7 +14,7 @@ from goatools.obo_parser import GODag
 from goatools.mapslim import mapslim
 
 FULL_PROTEOME_ANNOTATIONS = Path("data/full_proteome/protein_annotations.csv")
-SPLITS_FILE = Path("data/protein_splits_full_proteome.json")
+SPLITS_FILE = Path("data/splits/protein_splits_full_proteome.json")
 RAW_GO_MF_PATH = Path("data/full_proteome/uniprot_go_mf_terms.csv")
 GO_OBO_PATH = Path("data/go/go-basic.obo")
 GOSLIM_OBO_PATH = Path("data/go/goslim_generic.obo")

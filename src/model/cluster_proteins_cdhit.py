@@ -12,7 +12,7 @@ WORD_LENGTH = 5  # CD-HIT's recommended word length for -c 0.9 (0.7-1.0 band)
 
 FASTA_PATH = Path("data/full_proteome/proteins.fasta")
 CDHIT_OUTPUT_PATH = Path("data/full_proteome/proteins_cdhit")
-CLUSTERS_OUTPUT_PATH = Path("data/protein_clusters.json")
+CLUSTERS_OUTPUT_PATH = Path("data/splits/protein_clusters.json")
 
 
 def write_fasta(annotations, fasta_path):

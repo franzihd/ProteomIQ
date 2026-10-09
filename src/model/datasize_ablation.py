@@ -20,7 +20,7 @@ import pandas as pd
 import src.model.dataset as dataset_module
 import src.model.train_protein_level as train_module
 
-SPLITS_FILE = "data/protein_splits_full_proteome.json"
+SPLITS_FILE = "data/splits/protein_splits_full_proteome.json"
 VAL_BIOBERT = "biobert_embeddings_masked.h5"
 VIEW_BIOBERTS = ["biobert_embeddings_masked.h5",
                  "biobert_embeddings_family_view.h5",

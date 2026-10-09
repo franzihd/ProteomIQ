@@ -10,7 +10,7 @@ Usage:
         --biobert-filename biobert_embeddings_masked.h5 \\
         --view-biobert-filenames biobert_embeddings_masked.h5 \\
             biobert_embeddings_family_view.h5 biobert_embeddings_location_view.h5 \\
-        --splits-file data/protein_splits_full_proteome.json
+        --splits-file data/splits/protein_splits_full_proteome.json
 """
 import sys
 import argparse
@@ -139,7 +139,7 @@ def encode_text_live(texts, tokenizer, model, device):
 
 def train(checkpoint_path: str, epochs: int,
           biobert_filename: str = "biobert_embeddings.h5",
-          splits_file: str = "data/protein_splits.json",
+          splits_file: str = "data/splits/protein_splits_full_proteome.json",
           lr: float = MAX_LR, batch_size: int = BATCH_SIZE, hidden_dim: int = 512,
           output_dim: int = 256, on_epoch_end=None, early_stopping_patience: int | None = None,
           unfreeze_biobert_layers: int = 0, biobert_lr: float = DEFAULT_BIOBERT_LR,
@@ -408,8 +408,8 @@ if __name__ == "__main__":
                              "be set deliberately — watch val_loss and stop once it plateaus")
     parser.add_argument("--biobert-filename", default="biobert_embeddings.h5",
                         help="e.g. biobert_embeddings_masked.h5 for the gene-name-masking ablation")
-    parser.add_argument("--splits-file", default="data/protein_splits.json",
-                        help="e.g. data/protein_splits_full_proteome.json for the full-proteome split")
+    parser.add_argument("--splits-file", default="data/splits/protein_splits_full_proteome.json",
+                        help="e.g. data/splits/protein_splits_full_proteome.json for the full-proteome split")
     parser.add_argument("--lr", type=float, default=MAX_LR,
                         help=f"peak learning rate after warmup (default {MAX_LR})")
     parser.add_argument("--batch-size", type=int, default=BATCH_SIZE,

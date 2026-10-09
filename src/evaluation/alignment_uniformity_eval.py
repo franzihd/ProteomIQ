@@ -5,7 +5,7 @@ Usage:
     uv run python src/evaluation/alignment_uniformity_eval.py \\
         --checkpoint data/runs/full_proteome/multiview_experiment/multiview_best.pt \\
         --biobert-filename biobert_embeddings_masked.h5 \\
-        --splits-file data/protein_splits_full_proteome.json
+        --splits-file data/splits/protein_splits_full_proteome.json
 """
 import sys
 import json
@@ -37,7 +37,7 @@ def uniformity_loss(x: torch.Tensor, t: float = UNIFORMITY_T) -> float:
 
 
 def compute_alignment_uniformity(checkpoint_path: str, biobert_filename: str,
-                                  splits_file: str = "data/protein_splits_full_proteome.json"):
+                                  splits_file: str = "data/splits/protein_splits_full_proteome.json"):
     with open(splits_file) as f:
         protein_splits = json.load(f)
     validation_protein_ids = set(protein_splits["validation"])
@@ -123,7 +123,7 @@ if __name__ == "__main__":
                         help="FIXED for every checkpoint compared -- default is the masked "
                              "Function-only text, same convention validation loss already uses. "
                              "Do not vary this per checkpoint when comparing results.")
-    parser.add_argument("--splits-file", default="data/protein_splits_full_proteome.json")
+    parser.add_argument("--splits-file", default="data/splits/protein_splits_full_proteome.json")
     args = parser.parse_args()
 
     metrics = compute_alignment_uniformity(args.checkpoint, args.biobert_filename, args.splits_file)

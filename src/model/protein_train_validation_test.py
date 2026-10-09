@@ -15,8 +15,8 @@ import h5py
 VAL_FRACTION = 0.10
 TEST_FRACTION = 0.10
 FULL_PROTEOME_DIR = Path("data/full_proteome")
-CLUSTERS_PATH = Path("data/protein_clusters.json")
-OUT = Path("data/protein_splits_full_proteome.json")
+CLUSTERS_PATH = Path("data/splits/protein_clusters.json")
+OUT = Path("data/splits/protein_splits_full_proteome.json")
 
 
 def main():
@@ -28,7 +28,7 @@ def main():
                              "Isolates whether the homology-aware split's effect on eval "
                              "metrics is really about paralog leakage, not a side effect of "
                              "some other change (protein universe, hyperparameters). Written "
-                             "to data/protein_splits_full_proteome_random.json instead of "
+                             "to data/splits/protein_splits_full_proteome_random.json instead of "
                              "overwriting the real homology-aware split.")
     args = parser.parse_args()
 
@@ -101,7 +101,7 @@ def main():
     assert not (test_clusters & train_clusters), "a cluster spans test and train"
     assert not (set(validation) & set(test) & set(train)), "a protein appears in multiple splits"
 
-    out_path = Path("data/protein_splits_full_proteome_random.json") if args.random_control else OUT
+    out_path = Path("data/splits/protein_splits_full_proteome_random.json") if args.random_control else OUT
     with open(out_path, "w") as f:
         json.dump({"validation": validation, "test": test}, f, indent=2)
 

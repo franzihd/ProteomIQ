@@ -18,7 +18,7 @@ FIXED = {
     "output_dim": 128,  # matches ProteinCLIP's dshared=128 (Lucas et al., 2024) -- not swept here
     "early_stopping_patience": 10,
     "biobert_filename": "biobert_embeddings_masked.h5",
-    "splits_file": "data/protein_splits_full_proteome.json",
+    "splits_file": "data/splits/protein_splits_full_proteome.json",
 }
 # temperature (0.07) is already hardcoded in train_protein_level.py's
 # infonce_loss -- matches the spec exactly, nothing to configure here.
