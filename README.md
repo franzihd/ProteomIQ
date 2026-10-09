@@ -18,9 +18,10 @@ Final model: `data/runs/full_proteome/multiview_experiment/multiview_best.pt`
 
 ## Requirements
 
-Linux, Python ≥ 3.11, [uv](https://docs.astral.sh/uv/). PyTorch is pinned to a CUDA 11.8 build,
-so installation fails on macOS. A GPU is recommended for computing the embeddings but not
-required. To only try the app, use the online version or ProteomIQ-demo.
+Linux (x86_64), Python ≥ 3.11, [uv](https://docs.astral.sh/uv/). Some pinned packages
+(PyTorch CUDA 11.8 build, NVIDIA libraries) are only available for Linux, so installation fails
+on macOS and Windows. A GPU is recommended for computing the embeddings but not required.
+To only try the app, use the online version or ProteomIQ-demo.
 
 ## Data sources
 
