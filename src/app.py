@@ -1265,18 +1265,8 @@ with main_col:
         )
         rank_plot_result = render_rank_plot(raw_abundance, top, gene_lookup)
         if rank_plot_result is not None:
-            rank_fig, used_log_scale = rank_plot_result
+            rank_fig, _ = rank_plot_result
             st.pyplot(rank_fig, width="stretch")
-            if used_log_scale:
-                scale_clause = " on a log scale, since proteomes span several orders of magnitude,"
-            else:
-                scale_clause = ""
-            st.caption(
-                f"The standard single-sample proteomics view: every measured protein ranked by "
-                f"abundance{scale_clause} most abundant on the left. Highlighted points are the "
-                "proteins shown above, so you can see whether a relevant protein is backed by real "
-                "expression or is a low-abundance long-shot."
-            )
 
 # Step 4: interpretation -- a real conversation with Claude about this
 # sample, beside the results (not stacked below them) so the retrieved
