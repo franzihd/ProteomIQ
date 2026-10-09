@@ -96,8 +96,8 @@ export ANTHROPIC_API_KEY="..."   # optional, your own key for the Claude interpr
 uv run streamlit run src/app.py
 ```
 
-[ProteomIQ-demo](https://github.com/franzihd/ProteomIQ-demo) contains only the app (it is the
-source of the online app) and also runs on macOS and Windows.
+[ProteomIQ-demo](https://github.com/franzihd/ProteomIQ-demo) contains only the app and is the
+source of the online app.
 
 Upload a CSV with one row per protein, or use the built-in example sample:
 
