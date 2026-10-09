@@ -5,6 +5,8 @@ __pycache__/
 .vscode/data/
 *.h5
 *.h5.bak
+!data/full_proteome/esm2_embeddings.h5
+!data/full_proteome/biobert_embeddings_masked.h5
 .vscode/
 wandb/
 data/runs/*/wandb_sweep*/

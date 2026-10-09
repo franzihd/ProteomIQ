@@ -16,13 +16,7 @@ Final model: `data/runs/full_proteome/multiview_experiment/multiview_best.pt`
 
 Linux (x86_64), Python ≥ 3.11, [uv](https://docs.astral.sh/uv/). Some pinned packages
 (PyTorch CUDA 11.8 build, NVIDIA libraries) are only available for Linux, so installation fails
-on macOS and Windows. A GPU is recommended for computing the embeddings but not required.
-To only try the app, use the online version or ProteomIQ-demo.
-
-## Data sources
-
-CPTAC (proteomics), UniProt (sequences, annotations), DeepLoc 1.0 (localization labels),
-Gene Ontology (GO terms).
+on macOS and Windows. A GPU speeds up retraining but is not required.
 
 ## Structure
 
@@ -39,7 +33,7 @@ configs/               W&B sweep configs
 scripts/               re-run all evaluations
 deploy/                Streamlit Cloud demo
 data/
-  full_proteome/       UniProt annotations and sequences
+  full_proteome/       UniProt annotations, sequences and embeddings
   cptac/               CPTAC abundance data
   splits/              CD-HIT clusters and train/validation/test split
   runs/                trained checkpoints
@@ -50,16 +44,13 @@ data/
 
 ## Reproducing the results
 
-UniProt data, CD-HIT clusters, the split and the trained checkpoints are included in `data/`.
-The embedding files (`.h5`) are not and are created first (GPU recommended).
+UniProt data, CD-HIT clusters, the split, the trained checkpoints and the embeddings needed
+for evaluation are included in `data/`.
 
 Test results of the final model:
 
 ```bash
 uv sync
-
-uv run python src/embeddings/protein/esm2_embeddings.py --cohort full_proteome
-uv run python src/embeddings/textual/embed_biobert.py --cohort full_proteome --mask-gene-names
 
 CKPT=data/runs/full_proteome/multiview_experiment/multiview_best.pt
 uv run python src/evaluation/cross_modal_eval.py --checkpoint $CKPT \
@@ -73,7 +64,8 @@ uv run python src/evaluation/aggregate_results.py      # -> data/evaluation/resu
 uv run python src/plotting/plot_final_test_results.py
 ```
 
-Retraining the final model (seeded, but not bit-identical on GPU):
+Retraining the final model (seeded, but not bit-identical on GPU). This first computes the
+Family and Location embeddings:
 
 ```bash
 uv run python src/embeddings/textual/embed_biobert.py --cohort full_proteome --field family
@@ -91,19 +83,20 @@ uv run python src/model/train_protein_level.py \
 
 ## Running the app
 
-The app is online at [proteomiq.streamlit.app](https://proteomiq.streamlit.app/). To run it
-locally without reproducing the pipeline, use
-[ProteomIQ-demo](https://github.com/franzihd/ProteomIQ-demo), which includes all required
-data (built from this repository by `deploy/sync_space.sh`).
+**Online:** [proteomiq.streamlit.app](https://proteomiq.streamlit.app/). The optional
+interpretation by Claude uses my own API key with a limited budget. If it stops
+responding, it's used up.
 
-From this repository, the app requires `data/full_proteome/esm2_embeddings.h5`
-(see Reproducing the results).
-For the optional Claude interpretation, set `ANTHROPIC_API_KEY`.
+**Locally:**
 
 ```bash
 uv sync
 uv run streamlit run src/app.py
 ```
+
+For the optional Claude interpretation, set your own `ANTHROPIC_API_KEY`.
+[ProteomIQ-demo](https://github.com/franzihd/ProteomIQ-demo) contains only the app (it is the
+source of the online app) and also runs on macOS and Windows.
 
 Upload a CSV with one row per protein, or use the built-in example sample:
 
