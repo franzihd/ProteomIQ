@@ -18,6 +18,9 @@ of the reported thesis results. It is kept only for transparency and traceabilit
 - `src/embeddings/textual/{fuse_protein_text_llm,generate_function_paraphrases}.py` and
   `data/full_proteome/protein_function_paraphrases_sample*.csv`: LLM text-augmentation
   experiments. They never went beyond a sample run because of API budget limits.
+- `data/`: pathway results, old figures, the patient-level and random control splits,
+  and two superseded checkpoints (`final_v2_dims_masked_best.pt` is M0 before the
+  data-order fix).
 
 Relative paths inside these scripts point to their original location under `src/`. They are
 not expected to run from here without adjustment.
