@@ -91,10 +91,10 @@ responding, it's used up.
 
 ```bash
 uv sync
+export ANTHROPIC_API_KEY="..."   # optional, your own key for the Claude interpretation
 uv run streamlit run src/app.py
 ```
 
-For the optional Claude interpretation, set your own `ANTHROPIC_API_KEY`.
 [ProteomIQ-demo](https://github.com/franzihd/ProteomIQ-demo) contains only the app (it is the
 source of the online app) and also runs on macOS and Windows.
 
