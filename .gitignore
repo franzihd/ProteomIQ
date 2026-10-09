@@ -13,7 +13,6 @@ data/runs/luad*/
 data/luad/checkpoint.pt
 data/runs/full_proteome/archive/**/*.pt
 docs/
-dist/
 data/runs/full_proteome/datasize_experiment/*.pt
 
 # internal process docs (kept locally, not part of the submission)

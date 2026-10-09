@@ -1,21 +1,9 @@
-# v1 sweep: joint search over lr, batch_size, and epochs. Projection
-# dimensions stay fixed (see FIXED dict in sweep_train_lr_only.py) --
-# that axis is left to the separate, AUROC-based Stage B search.
-#
-# Selects by gap_below_random = ln(batch_size) - val_loss (the maximum
-# value observed per run), NOT raw val_loss -- val_loss's own
-# random-guessing floor (ln(batch_size)) differs per batch_size candidate,
-# so subtracting it out is required for a fair comparison across this
-# sweep's batch_size values (same correction already validated once in
-# this project's earlier grid search, see CLAUDE.md section 11e).
-#
-# This sweep never touches pathway AUROC or the test split -- selection is
-# entirely within the validation split's InfoNCE loss, so there is no
-# leakage risk.
+# Sweep 1: lr, batch size and epochs. Selected by ln(batch_size) - val_loss
+# (validation split), so runs with different batch sizes are comparable.
 #
 # Run with:
-#   uv run wandb sweep sweep_config_v1_lr_only.yaml
-#   uv run wandb agent <sweep-id-printed-above> --count 30
+#   uv run wandb sweep configs/sweep_config_v1_lr_only.yaml
+#   uv run wandb agent <sweep-id> --count 30
 program: src/model/sweep_train_lr_only.py
 project: proteomiq-full-proteome-v1-lr-sweep
 method: bayes

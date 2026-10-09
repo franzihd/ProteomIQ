@@ -1,24 +1,9 @@
-# Stage B sweep: searches hidden_dim/output_dim only. lr, batch_size, and
-# epochs are held fixed at the v1 sweep's winner (fancy-sweep-18 /
-# 11exn1fv: lr=1.16e-4, batch_size=512, epochs=100, patience=10 -- see
-# data/runs/full_proteome/final_v1_sweep_masked_best.pt).
-#
-# Scored on best_val_loss, same as the v1 lr/batch_size/epochs sweep --
-# deliberately kept independent of any evaluation-side metric (pathway
-# AUROC, recall@K, cross-modal). batch_size is fixed at 512 for every run
-# here, so there's no ln(batch_size)-floor mismatch between candidates --
-# plain val_loss is directly comparable across all dims combinations.
-#
-# "dims" is a single categorical parameter ("{hidden_dim}_{output_dim}")
-# rather than two independent parameters, so only valid combinations
-# (output_dim <= hidden_dim) are ever tried -- see CLAUDE.md 11f for why
-# output_dim > hidden_dim is a structurally invalid test (rank-capped by
-# the preceding Linear layer). method: grid gives exhaustive coverage of
-# this small (14-combination), fully enumerable space.
+# Sweep 2: hidden_dim / output_dim (only output_dim <= hidden_dim), with lr,
+# batch size and epochs fixed from sweep 1. Selected by validation loss.
 #
 # Run with:
-#   uv run wandb sweep sweep_config_stage_b_dims.yaml
-#   uv run wandb agent <sweep-id-printed-above> --count 14
+#   uv run wandb sweep configs/sweep_config_stage_b_dims.yaml
+#   uv run wandb agent <sweep-id> --count 14
 program: src/model/sweep_train_dims.py
 project: proteomiq-full-proteome-stage-b-dims
 method: grid

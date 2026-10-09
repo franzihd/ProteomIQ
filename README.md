@@ -24,7 +24,7 @@ src/
   evaluation/          all evaluations
   plotting/            all figures
 configs/               W&B sweep configs
-scripts/               re-run all evaluations, package the app
+scripts/               re-run all evaluations
 deploy/                Streamlit Cloud demo
 data/
   full_proteome/       UniProt annotations and sequences
@@ -34,7 +34,6 @@ data/
   evaluation/          evaluation results (all_results.csv, results_final_test.csv)
   plots/               figures (overview/ = Results figures)
   test_abundance_matrix/  example samples for the app
-archive/               earlier, superseded code
 ```
 
 ## Reproducing the results
