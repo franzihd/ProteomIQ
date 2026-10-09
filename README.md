@@ -1,9 +1,5 @@
 # ProteomIQ
 
-Natural-language search over the proteins of a proteomics sample. A CLIP-style model maps
-protein sequences (ESM2, frozen) and UniProt text (BioBERT, frozen) into a shared embedding
-space via two trained projection heads (InfoNCE loss).
-
 Code for the bachelor thesis *A Contrastive Multimodal Embedding Approach For Natural Language
 Retrieval in Clinical Proteomics*, Franziska Hald, Eberhard Karls University of Tübingen, 2026.
 Supervisor: Prof. Dr. Sven Nahnsen.
