@@ -4,10 +4,13 @@ Natural-language search over the proteins of a proteomics sample. A CLIP-style m
 protein sequences (ESM2, frozen) and UniProt text (BioBERT, frozen) into a shared embedding
 space via two trained projection heads (InfoNCE loss).
 
-Final model: `data/runs/full_proteome/multiview_experiment/multiview_best.pt`
+This repository contains the code of the thesis: data processing, training, evaluation and
+figures. The app is provided separately:
 
-App: [proteomiq.streamlit.app](https://proteomiq.streamlit.app/) ·
-standalone app repository: [ProteomIQ-demo](https://github.com/franzihd/ProteomIQ-demo)
+- App: [proteomiq.streamlit.app](https://proteomiq.streamlit.app/)
+- App repository: [ProteomIQ-demo](https://github.com/franzihd/ProteomIQ-demo)
+
+Final model: `data/runs/full_proteome/multiview_experiment/multiview_best.pt`
 
 ## Structure
 
