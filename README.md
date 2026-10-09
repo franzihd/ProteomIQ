@@ -44,8 +44,9 @@ data/
 
 ## Reproducing the results
 
-UniProt data, CD-HIT clusters, the split, the trained checkpoints and the embeddings needed
-for evaluation are included in `data/`.
+UniProt data, CPTAC data, CD-HIT clusters, the split, the trained checkpoints and the
+embeddings needed for evaluation are included in `data/`. Re-downloading the CPTAC data
+(`src/data_acquisition/import_cptac.py`) requires `uv sync --extra data`.
 
 Test results of the final model:
 
