@@ -1,18 +1,5 @@
 """
-Thesis figure for Results 2.3: the final checkpoint (multiview) on the
-reserved TEST split, against its baselines -- the one legitimate test
-result (CLAUDE.md 11ai). Three panels: (A) cross-modal retrieval Recall@K in both
-directions (vs. random) and (B) zero-shot classification accuracy
-(DeepLoc/EC/GO-MF vs. random + majority-class baseline) on one shared % axis, and
-(C) GO-term retrieval mAP per branch and query style (vs. random ranking) on
-its own axis.
-
-Deliberately shows NO other checkpoint: M0 and the ablation variants have
-no legitimate test numbers -- their comparison lives in the validation
-figures (plot_ablation_comparison.py, plot_task_agnostic_comparison.py).
-
-Plotting-only: reads data/evaluation/results_final_test.csv (written by
-aggregate_results.py), computes nothing.
+Figure for Results 2.3: final model (multiview) on the test split vs. baselines.
 
 Usage:
     uv run python src/plotting/plot_final_test_results.py

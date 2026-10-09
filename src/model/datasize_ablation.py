@@ -1,45 +1,5 @@
 """
-Training-data-size ablation for the final multiview configuration (validation only).
-
-Question: does validation performance keep improving as the number of training
-proteins grows, or does it already saturate within the ~13,500-protein human
-training set? Either outcome is allowed -- nothing here assumes more data helps.
-
-Design (see the methodology notes printed by --plan, and CLAUDE.md):
-  - Fractions 25/50/75/100% of the EXISTING training split. Validation and test
-    are untouched. Subsets are nested (25 ⊂ 50 ⊂ 75 ⊂ 100): the sorted training
-    pool is shuffled ONCE with --subset-seed and each fraction takes a prefix.
-  - Subsetting reuses train()'s existing held_out_protein_ids argument: the
-    unused part of the training pool is simply passed as additional held-out
-    proteins, so train_protein_level.py itself is not modified.
-  - Training randomness (weight init, DataLoader shuffle, multiview view draws)
-    is varied per run via --seeds, by setting train_protein_level.SEED and
-    dataset.MULTI_VIEW_SEED before each call. Both are read at call/construction
-    time, so this changes nothing for any other caller. The subset seed is a
-    separate, fixed value -- repeated runs at one fraction see the same proteins.
-  - Constant optimizer-step budget: the final multiview run used epochs=100 at
-    27 steps/epoch (13,515 proteins / batch 512) = 2,700 steps. Each fraction
-    gets epochs = round(target_steps / steps_per_epoch), so every run sees
-    ~2,700 gradient updates and the identical warmup/cosine-decay shape
-    (scheduler length is defined in steps).
-  - Early stopping is disabled (the final run stopped at 92/100 epochs, i.e.
-    almost the full schedule): patience is counted in epochs, which would mean
-    a 4x shorter patience in steps at 25%. Every run trains the full step
-    budget; the evaluated checkpoint is the lowest-val_loss one (*_best.pt),
-    the same selection rule as every other checkpoint in this project.
-  - Evaluation: cross-modal retrieval on the validation pool (both directions,
-    R@1/5/10/50 + median rank), GO-term retrieval (all 3 branches,
-    min_positives=10, validation pool) and zero-shot DeepLoc (9-way human) / EC /
-    GO-Slim-MF on unseen_validation only, ensemble condition. The test split is
-    never read for scoring.
-
-Outputs (kept OUT of data/evaluation/{cross_modal_retrieval,zero_shot_classification}
-so aggregate_results.py / all_results.csv are not affected):
-  data/runs/full_proteome/datasize_experiment/          checkpoints + subsets.json + train logs
-  data/evaluation/datasize_experiment/raw_runs.csv       one row per (fraction, seed)
-  data/evaluation/datasize_experiment/aggregated.csv     mean/std per fraction
-  data/evaluation/datasize_experiment/zero_shot/<task>/  per-run zero-shot predictions/summaries
-  data/evaluation/datasize_experiment/go_retrieval/      per-run GO-retrieval predictions/summaries
+Training-data-size ablation for multiview: 25/50/75/100 % of the training split, 3 seeds each.
 
 Usage:
     uv run python src/model/datasize_ablation.py                 # train missing runs + evaluate all

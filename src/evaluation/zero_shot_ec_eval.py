@@ -1,58 +1,9 @@
 """
-Zero-shot Enzyme Commission (EC) top-level-class classification.
-
-Same recipe as zero_shot_deeploc_eval.py, applied to a different label set:
-the model is never trained on EC labels. Each of the 7 EC top-level classes
-(Oxidoreductases, Transferases, Hydrolases, Lyases, Isomerases, Ligases,
-Translocases) is turned into a text prompt, embedded with our text tower,
-into one class embedding. Each test protein (already filtered to enzymes
-only -- see build_ec_eval_set.py) is embedded with our protein tower and
-assigned to whichever class embedding it is most cosine-similar to.
-
-Three prompt conditions (--condition / --all-conditions), run and compared
-separately rather than merged into one ensemble -- mirrors the ablation
-CLIP's own paper (Radford et al. 2021, section 3.1.4) uses to isolate how
-much prompt engineering and ensembling each contribute individually, on top
-of a bare-label baseline:
-  - label_only (N=0): a single bare class-name prompt per class (e.g.
-    "Oxidoreductases"), no sentence wrapping.
-  - engineered (N=1): the first template from the frozen 5-template pool in
-    data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json (see
-    generate_zero_shot_prompt_templates.py), fixed a priori -- not
-    validation-selected, unlike CLIP's own single-prompt choice for e.g.
-    ImageNet (performance-based template selection is exactly the kind of
-    leakage this project avoids elsewhere, see CLAUDE.md 11j).
-  - ensemble (N=5, default): all 5 templates, embedding-space-averaged +
-    re-normalized ("prompt ensembling", same as zero_shot_deeploc_eval.py).
-    {label} is filled with the lowercased canonical class name
-    ("hydrolases") -- lowercasing is the only transformation EC needs,
-    since CLASSES' plural forms are already correct English nouns once
-    de-capitalized (unlike DeepLoc, which needs real per-class rewording --
-    see zero_shot_deeploc_eval.py).
-
-Comparing label_only against the other two matters here more than usual: EC
-class names double as the exact vocabulary UniProt's own FUNCTION
-annotations use to describe catalytic activity (e.g. "...has serine
-hydrolase activity"), so label_only risks scoring well via lexical
-shortcut-matching rather than genuine understanding -- the "name shortcut"
-pattern documented throughout CLAUDE.md for pathway/gene names (see e.g.
-section 8e's raw-name vs. explanatory-NL pathway query comparison). Running
-all three conditions, rather than picking one, is how this project has
-consistently handled that risk.
-
-Loading the checkpoint, BioBERT, and embedding every test protein with the
-protein tower is the expensive part of this script -- and none of it
-depends on which prompt condition is being scored (only the class/text side
-does). --all-conditions therefore loads that context ONCE and runs all
-three conditions against it, instead of the ~3x slower approach of invoking
-this script three times with --condition and reloading everything each time.
-
-Run src/evaluation/build_ec_eval_set.py first to build the test set this
-script reads.
+Zero-shot enzyme class classification (EC top level).
 
 Usage:
     uv run python src/evaluation/zero_shot_ec_eval.py \\
-        --checkpoint data/runs/full_proteome/final_hparams_masked_best.pt \\
+        --checkpoint data/runs/full_proteome/multiview_experiment/multiview_best.pt \\
         --biobert-filename biobert_embeddings_masked.h5 \\
         --all-conditions
 """
@@ -235,7 +186,7 @@ def run_condition(ctx: dict, condition: str) -> dict:
     # choice for e.g. ImageNet, which they picked by iterating against a
     # held-out set). Deliberately different from CLIP here: performance-based
     # template selection is exactly the kind of leakage this project has
-    # avoided elsewhere (see CLAUDE.md 11j).
+    # avoided elsewhere.
     if condition == "label_only":
         templates_used = []
     elif condition == "engineered":
@@ -265,7 +216,7 @@ def run_condition(ctx: dict, condition: str) -> dict:
     # including the validation-loss-based hyperparameter/architecture
     # selection in 11l/11p -- and is the one to prefer when a clean
     # test-only claim matters (same discipline as validation_only_auroc /
-    # test_only_auroc in pathway_auroc_protein_level.py, CLAUDE.md 11j).
+    # test_only_auroc in pathway_auroc_protein_level.py).
     subsets = {
         "all": eval_df,
         "seen": eval_df[eval_df["split"] == "seen"],

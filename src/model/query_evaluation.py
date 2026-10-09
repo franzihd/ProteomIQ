@@ -1,9 +1,8 @@
 """
-query_eval.py — run a fixed set of obvious biological queries through the trained
-ProteomIQ model and print a clean results table for thesis evaluation.
+Runs fixed example queries through a checkpoint; encode_query() is shared by the evals.
 
 Usage:
-    uv run python src/model/query_eval.py
+    uv run python src/model/query_evaluation.py
 """
 
 import sys

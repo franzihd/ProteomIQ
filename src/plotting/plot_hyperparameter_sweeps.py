@@ -1,19 +1,5 @@
 """
-Two figures for the hyperparameter/architecture selection (Results 2.0) --
-sweep1_lr_batchsize_epochs.png (panels A, B) and sweep2_hidden_output_dims.png
-(the grid, formerly panel C) -- from the two W&B sweeps exported to data/evaluation/hyperparameter_sweeps/:
-
-- Sweep 1 (lr x batch_size x epochs, Bayesian, 30 runs, W&B sweep ylbhz1y5):
-  A: raw best validation loss vs. lr, colored by batch_size -- smaller batches
-     LOOK better only because InfoNCE's random-guessing floor is ln(batch_size).
-  B: the corrected selection metric gap_below_random = ln(batch_size) - val_loss,
-     where batch_size=512 takes every top-7 spot.
-- Sweep 2 (hidden_dim x output_dim, grid over the 14 valid combinations,
-  W&B sweep mpn4jdhr, lr/batch_size/epochs fixed at sweep 1's winner):
-  C: best validation loss as a hidden_dim x output_dim grid.
-
-Both sweeps select on validation loss only -- no evaluation metric involved.
-Plotting-only: reads the two CSVs, computes nothing new.
+Figures for the two W&B hyperparameter sweeps.
 
 Usage:
     uv run python src/plotting/plot_hyperparameter_sweeps.py

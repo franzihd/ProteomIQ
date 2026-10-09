@@ -1,50 +1,9 @@
 """
-Zero-shot subcellular-localization classification via DeepLoc labels.
-
-Standard CLIP-style zero-shot classification (Radford et al. 2021, section
-3.1.4): the model is never trained on DeepLoc at all. Each of the 10 DeepLoc
-classes is turned into a handful of natural-language prompts, embedded with
-our text tower, and averaged into one class embedding ("prompt ensembling" --
-same idea as CLIP's "a photo of a {label}" / "a photo of many {label}"
-ensemble: different phrasings of the same class reduce sensitivity to any
-one prompt's exact wording). Each test protein is embedded with our protein
-tower and assigned to whichever class embedding it is most cosine-similar to.
-
-Three prompt conditions (--condition / --all-conditions), run and compared
-separately -- mirrors the ablation CLIP's own paper uses to isolate how much
-prompt engineering and ensembling each contribute individually on top of a
-bare-label baseline: label_only (N=0, bare class name), engineered (N=1,
-the first template from the frozen pool below, fixed a priori -- not
-validation-selected, unlike CLIP's own single-prompt choice), ensemble
-(N=5, default, all 5 templates averaged). Templates come from the frozen
-5-prompt pool in data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json (see
-generate_zero_shot_prompt_templates.py), generated once via a fixed LLM
-meta-prompt before any evaluation was run. {label} is filled with
-DEEPLOC_SENTENCE_LABELS, a dedicated sentence-ready phrase per class (not
-just CLASSES_10WAY.lower()) -- see that dict's comment for why a few classes
-need real rewording rather than de-capitalization.
-
-This is a genuinely different evaluation from pathway_auroc_protein_level.py:
-pathway AUROC is a ranking metric (does the model rank pathway members above
-non-members), computed one pathway at a time. This is a forced-choice
-classification over a small, fixed, mutually-exclusive label set (a protein
-has exactly one primary DeepLoc location) -- closer to conventional zero-shot
-image classification benchmarks, and a useful sanity check that doesn't
-depend on gseapy/KEGG at all.
-
-Loading the checkpoint, BioBERT, and embedding every test protein with the
-protein tower is the expensive part of this script -- and none of it
-depends on which prompt condition is being scored (only the class/text side
-does). --all-conditions therefore loads that context ONCE and runs all
-three conditions against it, instead of the ~3x slower approach of invoking
-this script three times with --condition and reloading everything each time.
-
-Run src/evaluation/build_deeploc_eval_set.py first to build the human-only,
-seen/unseen-labeled test set this script reads.
+Zero-shot subcellular localization classification (DeepLoc).
 
 Usage:
     uv run python src/evaluation/zero_shot_deeploc_eval.py \\
-        --checkpoint data/runs/full_proteome/final_hparams_masked_best.pt \\
+        --checkpoint data/runs/full_proteome/multiview_experiment/multiview_best.pt \\
         --biobert-filename biobert_embeddings_masked.h5 \\
         --drop-chloroplast --all-conditions
 """
@@ -255,7 +214,7 @@ def run_condition(ctx: dict, condition: str, calibrate: bool = False) -> dict:
     # choice, which they picked by iterating against a held-out set).
     # Deliberately different from CLIP here: performance-based template
     # selection is exactly the kind of leakage this project avoids
-    # elsewhere (see CLAUDE.md 11j).
+    # elsewhere.
     if condition == "label_only":
         templates_used = []
     elif condition == "engineered":
@@ -303,7 +262,7 @@ def run_condition(ctx: dict, condition: str, calibrate: bool = False) -> dict:
     # anything, including the validation-loss-based hyperparameter/
     # architecture selection in 11l/11p -- and is the one to prefer when a
     # clean test-only claim matters (same discipline as validation_only_auroc
-    # / test_only_auroc in pathway_auroc_protein_level.py, CLAUDE.md 11j).
+    # / test_only_auroc in pathway_auroc_protein_level.py).
     subsets = {
         "all": eval_df,
         "seen": eval_df[eval_df["split"] == "seen"],

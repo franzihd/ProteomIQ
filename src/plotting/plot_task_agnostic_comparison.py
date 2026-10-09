@@ -1,15 +1,5 @@
 """
-Bar-chart visualization of the three task-agnostic embedding-space-quality
-checks (CLAUDE.md 11ag/11ah) across M0 / multi-positive / multiview -- the
-evidence that actually decides between multiview and multi-positive where
-the ablation-study topic-eval numbers alone are close or tied (see
-plot_ablation_comparison.py and the discussion around it).
-
-Reads directly from the three checks' saved JSON summaries -- no numbers
-are computed here, this is a plotting-only script. Companion figure to
-plot_ablation_comparison.py; meant to be shown together so a reader sees
-both "the topic evals were close on 3 of 5 metrics" and "the task-agnostic
-evidence was not close" in one place.
+Figure for Results 2.2: task-agnostic checks for M0, multi-positive and multiview.
 
 Usage:
     uv run python src/plotting/plot_task_agnostic_comparison.py

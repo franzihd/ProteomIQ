@@ -1,52 +1,8 @@
 """
-Adds two new columns, `Family` and `Location`, to the existing
-data/full_proteome/protein_annotations.csv -- built for the ProtST-inspired
-M0-M3 training-text ablation (CLAUDE.md "Next steps as of 2026-08-16"):
-    M0 = Function only (existing baseline)
-    M1 = M0 + Family
-    M2 = M1 + Location
-    M3 = M2 + unmasked Gene Name
+Adds the UniProt Family and Subcellular Location fields to data/full_proteome/protein_annotations.csv.
 
-Does NOT touch any existing column (ENSP_ID, UniProt_Accession, Gene,
-Annotation, Sequence, GO_Biological_Process, GO_Cellular_Component) --
-additive only, same precedent as the _masked/_go embedding variants
-(never overwrite, always add alongside).
-
-Family = UniProt's SIMILARITY comment (protein family/superfamily
-membership), e.g. "Belongs to the small GTPase superfamily, Arf family."
-Citation-stripped with the exact same regex fetch_full_human_proteome.py
-already uses for FUNCTION text.
-
-Location = UniProt's SUBCELLULAR LOCATION comment, TOP-LEVEL COMPARTMENT
-ONLY, deduplicated -- deliberately NOT the full hierarchical path UniProt
-returns. Each `subcellularLocations[].location.value` is often already a
-full comma-joined hierarchy string on its own (e.g. "Cytoplasm,
-cytoskeleton, spindle pole" is ONE location entry, not three). A
-multi-localizing protein can have several such entries sharing the same
-top-level prefix -- naively joining them all produces a repetitive,
-term-list-like sentence (worst case found during validation: RGS14, 11
-raw entries -> 298 chars with "Cytoplasm" repeated 3 times), structurally
-close to the GO-term-list format that was diagnosed as a self-ID shortcut
-and abandoned in section 10n. Taking only the first comma-segment of each
-entry and deduplicating fixes this (RGS14 -> 6 distinct compartments, 94
-chars, zero repetition) and is arguably the more query-relevant
-granularity anyway (a natural-language query is more likely to ask "is
-this a nuclear protein" than "is this at the spindle pole specifically").
-Verified empirically (2026-08-16, live UniProt sample, n=500): worst-case
-length drops from 404->153 chars project-wide under this rule.
-
-Both fields were validated for length/coverage before this script was
-written (CLAUDE.md "Next steps as of 2026-08-16"): over the actual
-16,893-protein set, Family covers 75.4% (mean 48 chars), Location covers
-92.6% (mean 49 chars, using the full-hierarchy length estimate --
-top-level-only is shorter still). Token-budget impact is small: adding
-both fields to the masked Function baseline raises mean BioBERT token
-count from ~155 to ~180 (+16%), and the >512-truncation rate barely moves
-(3.7% -> 3.9%) -- confirmed with the real BioBERT tokenizer, not a rough
-character estimate.
-
-To run:
-    uv run python src/Textual/fetch_family_location.py
+Usage:
+    uv run python src/data_acquisition/fetch_family_location.py
 """
 import argparse
 import re

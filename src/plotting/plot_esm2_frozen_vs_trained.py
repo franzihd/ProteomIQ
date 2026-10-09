@@ -1,16 +1,5 @@
 """
-Presentation figure: frozen, untrained ESM2 embeddings vs. the trained
-protein projection head (M0, multiview), on the two protein-side
-task-agnostic checks -- linear probe (CLAUDE.md 11ah) and k-NN label
-agreement@10 (11ag). Answers one question only: does the contrastive
-training add structure beyond what ESM2 already had?
-
-Plotting-only: reads the saved JSON summaries, computes nothing. The
-raw-ESM2 numbers are checkpoint-independent (same embeddings every time),
-so they're read from the multiview summary.
-
-M0 here = biobert_unfreeze_0_m0_best (the post-11y-fix M0, same one
-plot_m0_vs_multiview.py and results_summary.csv use).
+Presentation figure: frozen ESM2 vs. trained protein head (linear probe, k-NN).
 
 Usage:
     uv run python src/plotting/plot_esm2_frozen_vs_trained.py

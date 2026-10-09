@@ -1,50 +1,5 @@
 """
-Builds the human-only DeepLoc subcellular-localization test set used by
-zero_shot_deeploc_eval.py.
-
-DeepLoc-1.0 (Almagro Armenteros et al. 2017) is a general eukaryote dataset
-(~14,000 proteins across many species) -- it is NOT human-specific, so using
-it as-is would let non-human proteins into the eval. We only care about
-human proteins here (comparing against a model trained entirely on human
-CPTAC data would otherwise not be a fair test), so this script filters to
-the intersection with data/full_proteome/protein_annotations.csv -- our own
-already-vetted, reviewed, organism_id:9606-only UniProt pull (see CLAUDE.md
-section 11b). Intersecting by UniProt accession is a simple, safe way to
-guarantee human-only: any accession that made it into our own human-only
-pull is human by construction, no extra taxonomy lookup needed. The cost is
-a small number of missed proteins where UniProt has since updated/merged the
-accession since DeepLoc was published (2017) -- acceptable, not chased down
-further (same spirit as other small, quantified data-loss footnotes in this
-project, e.g. CLAUDE.md's "9 genes genuinely absent" note in section 11b).
-
-DeepLoc's FASTA headers look like:
-    >Q9H400 Cell.membrane-M test
-    >P83456 Cell.membrane-M
-The second token is "{Location}-{Membrane}" where Membrane in {M,S,U} is a
-separate soluble/membrane-bound label DeepLoc also predicts -- irrelevant
-here, stripped and discarded. Some proteins carry a compound location, e.g.
-"Cytoplasm-Nucleus-U" (dual localization) -- excluded, since this eval is a
-single-label argmax classification, not multi-label. The optional trailing
-"test" token is DeepLoc's OWN train/test split, from a different task (they
-used it to train their own classifier) -- irrelevant to us since we do zero-
-shot classification (no training on DeepLoc labels at all), so it's kept
-only as an informational column, not used for anything.
-
-The seen/unseen split that matters here is defined relative to OUR model's
-own training data: "seen" = protein was in the training portion of
-data/protein_splits_full_proteome.json (i.e. the model's protein_head could
-plausibly have learned this protein's representation during contrastive
-training). The "unseen" side is further split into "unseen_validation" and
-"unseen_test" (Revision 2026-08-15: previously a single combined "unseen"
-bucket, which mirrored the *intent* of the test_only_auroc /
-validation_only_auroc distinction in pathway_auroc_protein_level.py but not
-the actual implementation -- validation and test proteins were merged, so
-there was no way to report a validation-untouched test-only figure. Now
-there is: "unseen_test" is never touched by anything, including the
-validation-loss-based hyperparameter/architecture selection in 11l/11p;
-"unseen_validation" was looked at during that selection, just never via
-these classification labels. "unseen" -- validation+test combined -- is
-still available for backward compatibility with earlier reported numbers.)
+Builds the human-only DeepLoc test set for zero_shot_deeploc_eval.py.
 
 Usage:
     uv run python src/evaluation/build_deeploc_eval_set.py
@@ -155,7 +110,7 @@ def run(force_download: bool = False):
     # process, just never by this eval's own labels. Reporting unseen_test
     # separately gives a clean, once-touched figure, same discipline as
     # validation_only_auroc vs. test_only_auroc in pathway_auroc_protein_level.py
-    # (CLAUDE.md 11j). "unseen" (validation+test combined) is still assigned
+    #. "unseen" (validation+test combined) is still assigned
     # too, purely for backward compatibility with existing seen/unseen
     # reporting -- see split_bucket().
     validation_ensp_ids = set(splits["validation"])

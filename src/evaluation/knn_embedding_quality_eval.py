@@ -1,45 +1,5 @@
 """
-k-NN embedding-space-quality check (Wu, Xiong, Yu, Lin, CVPR 2018,
-"Unsupervised Feature Learning via Non-Parametric Instance Discrimination",
-arXiv:1805.01978 -- the paper that introduced weighted-kNN-on-frozen-features
-as a representation-quality check; also used as the primary evaluation in
-Caron et al. 2021, "Emerging Properties in Self-Supervised Vision
-Transformers" / DINO, arXiv:2104.14294).
-
-Genuinely different from every other eval in this project's suite: uses
-PROTEIN-SIDE EMBEDDINGS ONLY (ESM2 -> protein_head), no text encoder, no
-zero-shot query, no true (protein, text) pair needed at all -- just a
-protein's embedding and an already-known fact about it (its true DeepLoc
-location / EC class / GO-MF class, reused directly from the existing
-zero-shot eval sets' ground truth). See CLAUDE.md for the full discussion
-of why this complements (not replaces) alignment_uniformity_eval.py, which
-needs a true text pair, and the topic-specific zero-shot evals, which need
-a text-side query.
-
-Mechanics, per label set (run independently -- DeepLoc/EC/GO-MF are
-unrelated categorization systems, not merged):
-  1. Embed every eligible protein: ESM2 -> protein_head (L2-normalized,
-     same as everywhere else in this project).
-  2. For each protein, find its K nearest OTHER proteins by cosine
-     similarity (excluding itself).
-  3. Check what fraction of those K neighbors share the protein's own true
-     class. GO-MF is multi-label (lenient scoring, same convention as
-     zero_shot_go_mf_eval.py) -- a neighbor counts as agreeing if ANY of
-     its valid classes overlaps with the query protein's valid classes,
-     not exact single-label match.
-  4. Average over all eligible proteins -> one number per K, per label set.
-  5. Compare against the random-chance baseline for that label set
-     (1/n_classes for DeepLoc/EC; mean per-protein valid-set-size / n_classes
-     for GO-MF's lenient rule, same baseline logic as
-     zero_shot_go_mf_eval.py) -- same "never trust a raw number without a
-     baseline" discipline as every other eval here.
-
-VALIDATION-STYLE POOL BY DEFAULT: `unseen_test` rows are excluded from the
-neighbor pool by default (--include-test to override), matching the
-standing rule elsewhere in this project (CLAUDE.md 11ab) that test stays
-reserved for a single final confirmatory check, not repeated
-checkpoint-comparison use -- this script is meant for comparing
-checkpoints (multiview vs. multi-positive vs. M0), not a final report.
+k-NN label agreement on the protein embeddings (DeepLoc / EC / GO-MF labels).
 
 Usage:
     uv run python src/evaluation/knn_embedding_quality_eval.py \\
@@ -189,7 +149,7 @@ if __name__ == "__main__":
     parser.add_argument("--k-values", default="5,10,20")
     parser.add_argument("--include-test", action="store_true",
                         help="include unseen_test rows in the neighbor pool -- default off, "
-                             "test stays reserved (same standing rule as GO-retrieval, CLAUDE.md 11ab)")
+                             "test stays reserved (same standing rule as GO-retrieval)")
     args = parser.parse_args()
     k_values = [int(k) for k in args.k_values.split(",")]
     main(args.checkpoint, args.eval, k_values, args.include_test)

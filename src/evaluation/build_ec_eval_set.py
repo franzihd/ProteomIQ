@@ -1,28 +1,5 @@
 """
-Builds the EC (Enzyme Commission) top-level-class test set used by
-zero_shot_ec_eval.py.
-
-Same overall recipe as build_deeploc_eval_set.py, applied to a different
-label source. EC numbers aren't in data/full_proteome/protein_annotations.csv
-(fetch_full_human_proteome.py never requested that field), so this script
-re-queries the UniProt REST search API -- same organism_id:9606 AND
-reviewed:true query as fetch_full_human_proteome.py, just asking for the
-`ec` field instead of function/sequence/GO text -- and merges the result
-back onto our own already-vetted human proteome pull by UniProt accession.
-Merging (rather than using the fresh fetch directly) guarantees every
-protein in the eval set already has a resolved ENSP_ID and passed the same
-FUNCTION-annotation/Ensembl-xref filtering as the rest of the project.
-
-A UniProt entry can carry more than one EC number (e.g. multi-domain or
-multi-function enzymes) via proteinDescription.recommendedName.ecNumbers,
-.alternativeNames[].ecNumbers, and per-domain names. We collect all of them
-and take the EC top-level class (the first "N" in "N.n.n.n") -- exactly the
-kind of thing that is ambiguous for a single-label task if a protein's EC
-numbers span more than one top-level class, so we drop those (a handful),
-same spirit as build_deeploc_eval_set.py dropping dual-localization entries.
-
-Proteins with zero EC numbers are non-enzymes and dropped -- this eval only
-covers enzymes, by construction.
+Builds the EC top-level class test set for zero_shot_ec_eval.py.
 
 Usage:
     uv run python src/evaluation/build_ec_eval_set.py
@@ -175,7 +152,7 @@ def run(force_fetch: bool = False):
     # process, just never by this eval's own labels. Reporting unseen_test
     # separately gives a clean, once-touched figure, same discipline as
     # validation_only_auroc vs. test_only_auroc in pathway_auroc_protein_level.py
-    # (CLAUDE.md 11j). "unseen" (validation+test combined) is still assigned
+    #. "unseen" (validation+test combined) is still assigned
     # too, purely for backward compatibility with existing seen/unseen
     # reporting -- see split_bucket().
     validation_ensp_ids = set(splits["validation"])

@@ -40,14 +40,15 @@ UniProt text     → BioBERT (frozen)             → MLP projection head ─┘
 ```
 src/
   app.py                     Streamlit tool (Stages 1–3)
-  import_cptac.py            download CPTAC proteomics + clinical data
-  Textual/                   UniProt fetching (full human proteome, Family/Location fields)
+  data_acquisition/          download CPTAC data; fetch UniProt annotations (full human proteome,
+                             Family/Location fields)
   preprocessing/             within-sample rank normalization; uploaded-sample normalization
   embeddings/                pre-compute ESM2 (protein) and BioBERT (text) embeddings
   model/                     dataset, projection head, CD-HIT split, training, W&B sweeps,
                              data-size ablation, retrieval + interpretation used by the tool
   evaluation/                all evaluations + aggregate_results.py (→ all_results.csv)
   plotting/                  every thesis figure
+configs/                     W&B hyperparameter-sweep definitions
 scripts/
   rerun_all_evals.sh         re-run every evaluation and rebuild the results tables
   build_app_release.py       package the tool for distribution
@@ -63,7 +64,6 @@ data/
                              overview/ holds the Results figures
   test_abundance_matrix/     example patient samples in upload format
 archive/                     superseded code from the exploratory phase (see archive/README.md)
-notebooks/                   early data exploration
 ```
 
 ## Reproducing the results
@@ -74,8 +74,8 @@ with the embedding scripts below.
 
 ```bash
 # 1. Data
-uv run python src/Textual/fetch_full_human_proteome.py
-uv run python src/Textual/fetch_family_location.py
+uv run python src/data_acquisition/fetch_full_human_proteome.py
+uv run python src/data_acquisition/fetch_family_location.py
 uv run python src/model/cluster_proteins_cdhit.py
 uv run python src/model/protein_train_validation_test.py
 
@@ -104,7 +104,7 @@ uv run python src/plotting/plot_per_eval.py                   # per-eval detail 
 ```
 
 Hyperparameters were selected with Weights & Biases sweeps on validation loss
-(`sweep_config_v1_lr_only.yaml`, `sweep_config_stage_b_dims.yaml`); the exported sweep results
+(`configs/sweep_config_v1_lr_only.yaml`, `configs/sweep_config_stage_b_dims.yaml`); the exported sweep results
 are in `data/evaluation/hyperparameter_sweeps/`. Every checkpoint stores its own
 hyperparameters, so `torch.load(...)` shows exactly how it was trained.
 

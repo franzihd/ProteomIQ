@@ -1,47 +1,5 @@
 """
-Alignment & Uniformity (Wang & Isola, ICML 2020, "Understanding Contrastive
-Representation Learning through Alignment and Uniformity on the Hypersphere")
--- a task-agnostic pair of embedding-space-quality metrics, computed from
-embeddings alone, with NO labeled downstream task and NO topic-specific
-ground truth at all. Complementary to, not a replacement for, the five
-topic-specific zero-shot evals (cross-modal, DeepLoc, EC, GO-MF, GO-retrieval)
--- those measure "can this space answer THIS specific kind of question,"
-this measures "is the space itself well-formed" independent of any one
-question. See CLAUDE.md for the full discussion of why this was added and
-how it differs from (and partly overlaps with) cross_modal_eval.py's R@K.
-
-Both projection heads L2-normalize their output (ProjectionHead.forward),
-so every embedding already lives on the unit hypersphere -- "alignment" and
-"uniformity" describe how points are arranged on that sphere.
-
-Alignment: average squared distance between TRUE (protein, matching text)
-pairs. For unit vectors, ||x-y||^2 = 2 - 2*cos_sim(x,y) -- this is exactly
-the same true-pair cosine similarity infonce_loss already tries to push up,
-reported on its own as one plain number, with no batch/negative machinery
-around it. LOWER is better (true matches sit close together).
-
-Uniformity: log(mean over all i != j pairs of exp(-t * ||x_i - x_j||^2)),
-t=2 (the paper's standard choice). Catches a failure mode alignment alone
-cannot: if every embedding collapsed to one point, alignment would look
-PERFECT (distance 0 for every true pair) while the space became useless
-(nothing distinguishable from anything else). Uniformity measures how
-evenly points are spread across the whole sphere -- LOWER (more negative)
-is better (points spread apart, not clumped).
-
-FIXED TEXT SOURCE FOR ALL CHECKPOINTS, deliberately: computed using the
-single fixed --biobert-filename (default: masked Function-only text) for
-every checkpoint being compared, regardless of whether that checkpoint was
-itself trained with view_biobert_filenames/multi_positive. Same principle
-train_protein_level.py already applies to validation loss -- comparability
-across different training setups requires holding the evaluation input
-fixed, otherwise a checkpoint trained with more text per protein could look
-"better" simply from having more/different data at eval time, not from
-having a better space.
-
-VALIDATION SPLIT, not test: this is a comparison tool for choosing between
-checkpoints (like validation_only_auroc in pathway_auroc_protein_level.py),
-not the final, one-time confirmatory check -- test stays reserved per the
-standing rule (see CLAUDE.md 11ab) until a final checkpoint is locked in.
+Alignment and uniformity of the embedding space (Wang & Isola, 2020), validation split.
 
 Usage:
     uv run python src/evaluation/alignment_uniformity_eval.py \\

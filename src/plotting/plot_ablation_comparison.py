@@ -1,17 +1,5 @@
 """
-Bar-chart visualization of the four-lever training-signal ablation study
-(CLAUDE.md 11x/11y/11z/11ac/11ae): BioBERT-unfreeze depth, text-field
-concatenation (M0-M3), multiview, and multi-positive, compared across all
-5 topic evals in two figures (retrieval / zero-shot classification), each a
-2+1 layout of horizontal-bar panels, plus one combined 3x2 overview figure
-(ablation_comparison.png) with all six panels, also saved split into
-ablation_comparison_part1.png (rows 1-2) and ablation_comparison_part2.png (row 3). All percentage panels share one 0-80 % x-axis so bar
-lengths are directly comparable; mAP is a different unit and keeps its own
-axis. ProteomIQ brand colors.
-
-Reads directly from data/evaluation/results_summary.csv (the corrected,
-validation-only, post-11ai source of truth built by aggregate_results.py)
--- no numbers are computed here, this is a plotting-only script.
+Figure for Results 2.1: ablation study on the validation split.
 
 Usage:
     uv run python src/plotting/plot_ablation_comparison.py

@@ -7,8 +7,7 @@ import pandas as pd
 
 CDHIT_BINARY = str(Path.home() / "tools" / "cdhit" / "cd-hit")
 IDENTITY_THRESHOLD = 0.9  # strict: catches near-duplicate/isoform leakage
-# without wiping small pathway families out of training entirely -- see
-# CLAUDE.md section 11a.
+# without wiping small pathway families out of training entirely.
 WORD_LENGTH = 5  # CD-HIT's recommended word length for -c 0.9 (0.7-1.0 band)
 
 FASTA_PATH = Path("data/full_proteome/proteins.fasta")

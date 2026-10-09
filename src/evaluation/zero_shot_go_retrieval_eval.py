@@ -1,116 +1,10 @@
 """
-Zero-shot TEXT-TO-PROTEIN RETRIEVAL evaluation, over GO Molecular Function /
-Biological Process / Cellular Component terms, run separately per branch.
+GO-term retrieval, step 2: text-to-protein retrieval per GO branch (mAP, P@K, R@K).
 
-Inspired by ProtST's (Xu et al. 2023) zero-shot text-to-protein retrieval
-idea -- given a text query, rank proteins by embedding-space similarity and
-check whether the true annotated proteins land near the top. This script is
-explicitly NOT a reproduction of ProtST's protocol: ProtST evaluates a
-different model family (its own jointly-trained protein-text encoder) on
-its own label/split setup. The AP / mAP / Precision@K / Recall@K design
-here, evaluated per-GO-branch against this project's own homology-aware
-validation split, is this project's own quantitative design, built to
-directly reuse the existing ProteomIQ text encoder + projection head and
-the existing protein-level split -- nothing here is copied from ProtST's
-own evaluation code or numbers.
-
-This is the fifth evaluation in this project's suite (after cross-modal
-retrieval, DeepLoc, EC top-level, and GO-Slim-MF zero-shot classification),
-and structurally different from all four: those are all *forced-choice*
-classification (one prediction per protein, scored against a small fixed
-class list). This is *retrieval* -- for each of potentially hundreds of GO
-terms, one query, ranked against the whole candidate pool, scored the way
-an information-retrieval system is scored (AP/mAP/P@K/R@K), not the way a
-classifier is scored (accuracy/F1).
-
-THIS PROTOCOL IS FROZEN BEFORE, AND INDEPENDENT OF, THE PLANNED M0-M3
-TRAINING-TEXT ABLATION (M0=Function, M1=Function+Family, M2=+Location,
-M3=+Pathway). It is designed to be reusable UNCHANGED across all four
-checkpoints once they exist -- only --checkpoint and --biobert-filename
-change between runs. No result from any M0-M3 checkpoint has been produced
-or consulted while writing this script.
-
-Methodological rules enforced by this script's design (not just described
-in prose):
-  - Genuine zero-shot: nothing here trains or fine-tunes on GO labels --
-    GO annotations are read only to build evaluation queries/ground truth,
-    never written into any training-text file.
-  - VALIDATION SPLIT ONLY. The candidate pool is data/protein_splits_full_
-    proteome.json's "validation" list; the "test" key is never read by
-    this script, directly or indirectly (see go_retrieval_utils.py, which
-    also only ever loads "validation").
-  - No cherry-picking of GO terms by performance: which terms are
-    "eligible" is decided purely by build_go_retrieval_eligible_terms.py's
-    positive-count distributions (see that script), reviewed BEFORE any
-    retrieval number existed. --min-positives here is a required argument
-    (no default) -- forces an explicit, already-justified choice at
-    invocation time rather than a silently baked-in threshold.
-  - Direct (not GO-DAG-propagated) GO annotations -- see
-    fetch_go_annotations_uncapped.py and go_retrieval_utils.py docstrings
-    for the full discussion; an explicit, disclosed simplification.
-
-Two query representations per GO term, scored and reported SEPARATELY
-(never merged/ensembled) so it's possible to see whether the richer
-definition text helps over the bare term name:
-  - "name": the official GO term name (e.g. "DNA binding")
-  - "definition": the official GO natural-language definition (e.g. "Any
-    molecular function by which a gene product interacts selectively and
-    non-covalently with DNA (deoxyribonucleic acid).")
-Both come from data/go/go-basic.obo via go_obo_utils.py -- official
-GO-Consortium text, not LLM-generated, not paraphrased.
-
-Metrics, per GO term and then averaged across all eligible terms in a
-branch (macro-average over terms, standard for this kind of per-query IR
-evaluation, same principle as macro-F1 elsewhere in this project's zero-
-shot classification evals):
-  - AP  (Average Precision) -- area-under-the-precision-recall-curve
-    equivalent; standard rank-quality metric per query.
-  - mAP (mean AP) -- AP averaged over all eligible terms in the branch.
-  - Precision@K, Recall@K for each K in --k-values (default 10,50,100).
-
-Random-ranking baseline is computed ANALYTICALLY, not simulated -- for a
-uniformly random ranking of a candidate pool of size N containing n_pos
-true positives for a given term:
-    E[AP]      = n_pos / N   (well-known result: expected AP of a random
-                               ranking equals the positive prevalence)
-    E[P@K]     = n_pos / N   (independent of K)
-    E[R@K]     = K   / N     (independent of n_pos, as long as K <= N)
-Reported per term and macro-averaged the same way as the real metrics, so
-the baseline is directly comparable term-for-term.
-
-Normalized Recall@K (added after a manual review of the raw macro-averaged
-R@K numbers): raw Recall@K = hits@K / n_positives has a hard, purely
-mechanical ceiling of min(K, n_positives) / n_positives whenever a term has
-more positives than K -- e.g. GO-CC "nucleus" has 531 validation positives,
-so even a PERFECT ranking can only ever reach R@100 = 100/531 = 18.8%. This
-ceiling has nothing to do with model quality, but macro-averaging raw R@K
-across terms with wildly different positive counts (10 to 500+ in this
-dataset) mixes terms that are structurally capped low with terms that
-could in principle reach 100%, understating how well the model is actually
-doing relative to what's achievable. Normalized Recall@K fixes this by
-dividing by the term's own achievable ceiling instead of by its raw
-positive count:
-    normalized R@K = hits@K / min(K, n_positives)
-This is bounded in [0, 1] regardless of n_positives and directly answers
-"how close to the best possible ranking are we for this term" rather than
-"what fraction of a possibly-much-larger-than-K positive set did we find".
-Reported ADDITIONALLY, not as a replacement -- raw R@K is kept because it
-is the standard IR quantity and stays comparable to literature; normalized
-R@K is the fairer per-term comparison and the more informative number when
-looking across terms of very different positive-count. mAP is unaffected
-by this ceiling effect in the first place (it scores the full ranking, not
-a fixed cutoff), so it remains the single fairest headline number of the
-three.
-
-Usage (VALIDATION split only -- see module docstring; do not run against
-test):
+Usage:
     uv run python src/evaluation/zero_shot_go_retrieval_eval.py \\
-        --checkpoint data/runs/full_proteome/final_v2_dims_masked_best.pt \\
-        --branch mf \\
-        --min-positives 10 \\
-        --k-values 10,50,100
-Run with --branch all to do mf+bp+cc in one process (protein embeddings
-are branch-independent and are computed only once either way).
+        --checkpoint data/runs/full_proteome/multiview_experiment/multiview_best.pt \\
+        --branch all --min-positives 10 --k-values 10,50,100
 """
 import sys
 import argparse
@@ -268,7 +162,7 @@ def run_branch(ctx: dict, branch: str, min_positives: int, k_values: list[int]) 
 
     positives, uniprot_labels = load_branch_ground_truth(branch, ctx["resolved_accessions"])
     term_info = ctx["term_info"]
-    # Obsolete-term filter (CLAUDE.md / build_go_retrieval_eligible_terms.py,
+    # Obsolete-term filter (build_go_retrieval_eligible_terms.py,
     # 2026-08-15 dataset sanity check): a term is only eligible if it also
     # has a non-obsolete go-basic.obo entry with a real name, i.e. can
     # actually supply query text. Two IDs (GO:0005615, GO:0051082) were

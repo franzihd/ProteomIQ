@@ -1,29 +1,5 @@
 """
-Shared loading utilities for the zero-shot text-to-protein RETRIEVAL
-evaluation (build_go_retrieval_eligible_terms.py / zero_shot_go_retrieval_
-eval.py). Factored out so both scripts use exactly the same ground-truth
-construction -- no risk of the distribution report and the actual
-evaluation silently disagreeing on what counts as a positive.
-
-Ground truth source: data/full_proteome/uniprot_go_annotations_uncapped.csv
-(built by fetch_go_annotations_uncapped.py) -- DIRECT UniProt GO
-cross-references, uncapped, NOT propagated up the GO DAG. See that script's
-docstring for the full direct-vs-propagated discussion; this project does
-not implement GO-DAG ancestor propagation ("true path rule") anywhere.
-
-Candidate pool: the existing homology-aware split
-(data/protein_splits_full_proteome.json). Validation is the default and was
-the ONLY pool used for every checkpoint comparison in this project's ablation
-study (unfreeze-depth, M0-M3 text concatenation, multiview, multi-positive) --
-by design, so those comparisons never touched test (CLAUDE.md 11ab). "test"
-is supported via load_pool_ensp_ids(split_key="test") but is meant to be
-spent exactly once, on the single final chosen checkpoint, never for repeat
-comparisons -- same discipline as unseen_test in the zero-shot classification
-evals and the --split-key flag added to cross_modal_eval.py for the same
-reason. build_go_retrieval_eligible_terms.py (Step 1, choosing --min-
-positives) always uses load_validation_ensp_ids() specifically and must keep
-doing so regardless -- that threshold has to be chosen from validation-only
-distributions, before any retrieval score exists.
+Shared ground-truth loading for the GO-term retrieval eval.
 """
 import json
 from collections import defaultdict
@@ -62,7 +38,7 @@ def load_validation_ensp_ids() -> set[str]:
 def load_ensp_accession_maps() -> tuple[dict[str, str], dict[str, str]]:
     """Returns (ensp_to_accession, accession_to_ensp). protein_annotations.csv
     is one row per ENSP_ID (the full-proteome dedup already resolved the
-    multi-isoform-per-accession problem, CLAUDE.md 11b), so this mapping is
+    multi-isoform-per-accession problem), so this mapping is
     effectively 1:1 in each direction; on the rare case of a collision when
     inverting, the last row encountered wins (not chased further -- same
     negligible-edge-case tolerance already accepted elsewhere for this data,

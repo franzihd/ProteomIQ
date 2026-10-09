@@ -1,59 +1,9 @@
 """
-Zero-shot GO Molecular Function (GO-Slim-MF) classification.
-
-Same recipe as zero_shot_deeploc_eval.py / zero_shot_ec_eval.py, applied to a
-label set that -- unlike DeepLoc's 10 fixed locations or EC's 7 fixed
-top-level numbers -- was itself derived from the data (see
-build_go_mf_eval_set.py): the smallest set of GO-Slim-MF classes covering
-~75-80% of GO-MF-annotated proteins, selected over the FULL seen+unseen pool
-to avoid tailoring the class list to the held-out split. The class list and
-per-class training-pool frequency are loaded from
-data/evaluation/zero_shot_classification/go_mf/class_selection.json (not hardcoded), since they are a
-function of that data-derived selection, not a fixed external taxonomy.
-
-Scoring is deliberately NOT single-label exact-match. Most proteins genuinely
-have more than one molecular function (measured directly: ~33% of the test
-set has more than one of the 10 selected classes among their real GO-MF
-terms, see build_go_mf_eval_set.py's Step 6b) -- unlike DeepLoc's
-subcellular location (largely single-valued biologically) or EC's top-level
-class (multi-class enzymes are explicitly dropped as ambiguous at eval-set
-build time). Forcing a single "correct" answer here would penalize
-biologically valid predictions just because they weren't UniProt's
-first-listed term for that protein. So a prediction is scored correct if it
-falls anywhere in the protein's full set of valid selected classes
-(all_valid_classes, built in build_go_mf_eval_set.py). There is no separate
-"strict" single-label accuracy/macro-F1/confusion-matrix in this script --
-they were tried and dropped as not meaningful for this label set.
-
-Three prompt conditions (--condition / --all-conditions), run and compared
-separately rather than merged into one ensemble -- mirrors the ablation
-CLIP's own paper (Radford et al. 2021, section 3.1.4) uses to isolate how
-much prompt engineering and ensembling each contribute individually, same
-pattern as zero_shot_ec_eval.py:
-  - label_only (N=0): a single bare class-name prompt per class (e.g.
-    "hydrolase activity"), no sentence wrapping.
-  - engineered (N=1): the first template from the frozen 5-template pool in
-    data/evaluation/zero_shot_classification/zero_shot_prompt_templates.json (see
-    generate_zero_shot_prompt_templates.py), fixed a priori -- not
-    validation-selected, unlike CLIP's own single-prompt choice.
-  - ensemble (N=5, default): all 5 templates, embedding-space-averaged +
-    re-normalized ("prompt ensembling"). {label} is filled with the class
-    name unchanged -- unlike DeepLoc/EC, GO-Slim-MF class names are already
-    sentence-ready noun phrases and need no rewording or de-capitalization.
-
-Loading the checkpoint, BioBERT, and embedding every test protein with the
-protein tower is the expensive part of this script -- and none of it
-depends on which prompt condition is being scored (only the class/text side
-does). --all-conditions therefore loads that context ONCE and runs all
-three conditions against it, instead of the ~3x slower approach of invoking
-this script three times with --condition and reloading everything each time.
-
-Run src/evaluation/build_go_mf_eval_set.py first to build the test set and
-class selection file this script reads.
+Zero-shot molecular function classification (GO-Slim MF, multi-label scoring).
 
 Usage:
     uv run python src/evaluation/zero_shot_go_mf_eval.py \\
-        --checkpoint data/runs/full_proteome/final_hparams_masked_best.pt \\
+        --checkpoint data/runs/full_proteome/multiview_experiment/multiview_best.pt \\
         --biobert-filename biobert_embeddings_masked.h5 \\
         --all-conditions
 """
@@ -83,8 +33,7 @@ BIOBERT_PATH = "/home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert
 # class names ("hydrolase activity", "DNA binding") need no sentence-fitting
 # transformation at all -- they are already lowercase, sentence-ready noun
 # phrases and are filled into {label} unchanged, checked directly by filling
-# all 10 classes into all 5 templates before use (see conversation log /
-# CLAUDE.md section 11 zero-shot prompt engineering notes).
+# all 10 classes into all 5 templates before use.
 
 CONDITION_SUFFIXES = {"label_only": "_label_only", "engineered": "_engineered", "ensemble": ""}
 ALL_CONDITIONS = ("label_only", "engineered", "ensemble")
@@ -259,7 +208,7 @@ def run_condition(ctx: dict, condition: str) -> dict:
     # choice, which they picked by iterating against a held-out set).
     # Deliberately different from CLIP here: performance-based template
     # selection is exactly the kind of leakage this project avoids
-    # elsewhere (see CLAUDE.md 11j).
+    # elsewhere.
     if condition == "label_only":
         templates_used = []
     elif condition == "engineered":
@@ -292,7 +241,7 @@ def run_condition(ctx: dict, condition: str) -> dict:
     # anything, including the validation-loss-based hyperparameter/
     # architecture selection in 11l/11p -- and is the one to prefer when a
     # clean test-only claim matters (same discipline as validation_only_auroc
-    # / test_only_auroc in pathway_auroc_protein_level.py, CLAUDE.md 11j).
+    # / test_only_auroc in pathway_auroc_protein_level.py).
     subsets = {
         "all": eval_df,
         "seen": eval_df[eval_df["split"] == "seen"],

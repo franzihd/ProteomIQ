@@ -1,58 +1,6 @@
 """
-Walks every eval output on disk -- the 5 topic-specific evals (cross-modal,
-GO-term retrieval, DeepLoc/EC-top-level/GO-Slim-MF zero-shot classification)
-plus the 3 task-agnostic checks (k-NN, linear probe, alignment/uniformity)
--- and writes ONE long-format CSV, data/evaluation/all_results.csv, so a
-thesis table or plot never has to be built by hand-grepping a dozen
-scattered JSON files across experiment subfolders again.
-
-Coverage differs by eval, and this file does NOT paper over that -- it
-reflects whatever is actually saved on disk:
-- The 5 topic evals + linear probe: validation-pool numbers exist for all
-  10 ablation checkpoints (unfreeze N=0-3, the 4 text variants, multi-
-  positive, multiview); linear probe itself was only ever run for 3
-  (baseline, multi-positive, multiview) -- narrower by original design.
-- k-NN: saved for 7 checkpoints (baseline + the 4 text variants + multi-
-  positive + multiview) -- NOT the unfreeze checkpoints. This is broader
-  than the "3 checkpoints only" scope decided for the task-agnostic checks
-  in CLAUDE.md's text -- the actual saved files disagree with that
-  description; not reconciled further here, just reported as found.
-- Alignment/uniformity: only ever run for 3 checkpoints (baseline, multi-
-  positive, multiview), matching linear probe's scope.
-Every row's absence for a given (eval, checkpoint) pair means it was never
-run, not that it was filtered out.
-
-Scope, deliberately narrowed rather than exhaustive:
-- Only the 10 checkpoints that make up the reported ablation study (unfreeze
-  N=0-3, the 4 text-concatenation variants, multi-positive, multiview) plus
-  final_v2_dims_masked_best (the pre-11y-fix M0, kept for reference, labeled
-  distinctly -- see CLAUDE.md's note on two separate M0 checkpoints).
-- Only the "ensemble" prompt condition for the 3 classification evals (the
-  condition used throughout the ablation comparisons) -- --engineered/
-  --label-only files exist on disk but are out of scope here.
-- Only min_positives=10 for GO-term retrieval (the value used everywhere).
-- DeepLoc: only the 9-way (--drop-chloroplast) variant, the one actually
-  used in every reported comparison.
-
-One row per (eval, checkpoint, pool, variant, metric). "pool" unifies what
-each eval calls its held-out-protein grouping: cross-modal/GO-retrieval have
-two literal separate runs (validation/test); the 3 classification evals
-report several subsets from ONE run (all/seen/unseen/unseen_validation/
-unseen_test) -- these are renamed here to seen/all/unseen_combined/
-validation/test so "pool" means the same thing across every eval: which
-proteins (by the model's own train split) underlie this number, and whether
-it's the repeat-comparison-safe pool (validation) or the once-only pool
-(test).
-
-Also writes two compact views of the same numbers, kept in SEPARATE files so
-validation and test never share a table (validation = choosing, test = the
-one final report on multiview):
-- data/evaluation/results_summary.csv -- validation only, one row per
-  ablation checkpoint, headline metric per topic eval.
-- data/evaluation/results_final_test.csv -- test only, multiview only, every
-  headline metric plus its baselines. The DeepLoc/EC/GO-MF scripts compute a
-  test row for every checkpoint as a by-product; those are deliberately NOT
-  included here and must not be cited.
+Collects all evaluation outputs into data/evaluation/all_results.csv,
+results_summary.csv (validation) and results_final_test.csv (test, multiview only).
 
 Usage:
     uv run python src/evaluation/aggregate_results.py
@@ -166,7 +114,7 @@ def rows_from_classification(path: Path, eval_name: str) -> list[dict]:
 
 def rows_from_knn(path: Path) -> list[dict]:
     """knn_embedding_quality_eval.py output: task-agnostic (no query text) --
-    always validation pool per its own design (CLAUDE.md 11ag/11ah), and only
+    always validation pool per its own design, and only
     ever run for a subset of checkpoints (see aggregate_results.py's own
     docstring)."""
     d = json.load(open(path))
@@ -191,7 +139,7 @@ def rows_from_knn(path: Path) -> list[dict]:
 def rows_from_linear_probe(path: Path) -> list[dict]:
     """linear_probe_eval.py output: trained on the 'seen' (training) split,
     scored on unseen_validation -- test reserved, same standing rule as
-    everything else (CLAUDE.md 11ah)."""
+    everything else."""
     d = json.load(open(path))
     stem = Path(d["checkpoint"]).stem
     group, label = ckpt_group_label(stem)
@@ -206,7 +154,7 @@ def rows_from_linear_probe(path: Path) -> list[dict]:
 
 def rows_from_alignment_uniformity(path: Path) -> list[dict]:
     """alignment_uniformity_eval.py output: no downstream task at all, no
-    'variant' axis -- always validation pool (CLAUDE.md 11ag)."""
+    'variant' axis -- always validation pool."""
     d = json.load(open(path))
     stem = Path(d["checkpoint"]).stem
     group, label = ckpt_group_label(stem)

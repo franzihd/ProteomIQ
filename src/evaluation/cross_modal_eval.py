@@ -1,29 +1,9 @@
 """
-Basic bidirectional cross-modal retrieval eval (the standard CLIP protocol):
-closed gallery, R@K computed in both directions.
-
-Distinct from recall_at_k_protein_level.py, which uses a mixed train+val+test
-candidate pool to simulate a realistic researcher upload, and only queries
-text->protein. This script instead restricts BOTH the query set and the
-candidate pool to one split only (data/protein_splits.json), so results are
-directly comparable to standard CLIP retrieval benchmarks (e.g. Flickr30k/COCO
-closed test-set R@1/5/10) and cleanly isolate the checkpoint as the only
-variable across a run-to-run comparison.
-
---split-key {validation,test} (default: validation). Before this flag existed,
-the pool was hardcoded to the test split -- meaning every checkpoint
-comparison run across the unfreeze-depth (11x) and training-text ablations
-(11z, 11ac, 11ae) repeatedly used the test split for model selection, the
-same category of leakage caught and fixed for pathway AUROC in 11j, just not
-caught here until later. Fix: default to "validation" so repeat comparisons
-can no longer touch test by accident; "test" must be passed explicitly, and
-is meant to be spent exactly once, on the single final checkpoint (same
-discipline as unseen_test in the zero-shot classification evals and the
-standing GO-retrieval test_only rule, 11ab).
+Cross-modal retrieval (CLIP protocol): Recall@K in both directions within one split.
 
 Usage:
     uv run python src/evaluation/cross_modal_eval.py \\
-        --checkpoint data/runs/.../checkpoint_full_proteome_masked_best.pt \\
+        --checkpoint data/runs/full_proteome/multiview_experiment/multiview_best.pt \\
         --biobert-filename biobert_embeddings_masked.h5 \\
         --splits-file data/protein_splits_full_proteome.json \\
         --split-key validation

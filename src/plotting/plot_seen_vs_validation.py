@@ -1,16 +1,5 @@
 """
-Overfitting diagnostic for Results 2.1: zero-shot accuracy on training-split
-proteins ("seen") vs. validation proteins, for all 10 ablation checkpoints,
-DeepLoc / EC / GO-Slim-MF side by side (ensemble prompts). The best epoch
-(early stopping) is read from each checkpoint and shown in the row label.
-
-Seen accuracies are a DIAGNOSTIC, not results -- the reported performance is
-always the validation (or, in 2.3, test) number. Shown as absolute accuracies
-(two bars per variant) instead of the bare gap, so the reader sees both levels.
-
-Same variant order, labels and ProteomIQ colors as plot_ablation_comparison.py;
-all percentage panels share one 0-80 % x-axis. Plotting-only: reads
-data/evaluation/all_results.csv and the checkpoints' saved "epoch".
+Seen vs. validation zero-shot accuracy for all ablation checkpoints.
 
 Usage:
     uv run python src/plotting/plot_seen_vs_validation.py

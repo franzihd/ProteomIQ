@@ -14,7 +14,7 @@ MAX_GO_TERMS_PER_CATEGORY = 10
 # These carry no biological content for a text encoder -- just noise tokens
 # that eat into BioBERT's 512-token budget, and disproportionately so for
 # well-studied proteins (more citations = more research attention = longer,
-# more truncation-prone annotations -- see CLAUDE.md section 10n).
+# more truncation-prone annotations).
 CITATION_PATTERN = re.compile(
     r'\s*\((?:PubMed:\d+(?:,\s*PubMed:\d+)*|By similarity|Probable|Potential)\)'
 )

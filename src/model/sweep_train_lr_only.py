@@ -1,32 +1,9 @@
 """
-v1 W&B sweep entry point: jointly searches lr, batch_size, and epochs
-(projection dimensions stay fixed, see FIXED below -- that axis is left to
-the separate, AUROC-based Stage B search, not tuned here).
+W&B sweep over lr, batch size and epochs.
 
-Selects by `gap_below_random = ln(batch_size) - val_loss` -- NOT raw
-val_loss, because val_loss's own random-guessing floor is ln(batch_size)
-(the expected InfoNCE loss of a model that hasn't learned anything), which
-is different for each swept batch_size value. Subtracting it out makes
-val_loss fairly comparable across different batch_size candidates within
-this sweep. Same correction already used once in this project's earlier
-grid search (see CLAUDE.md section 11e) -- applied here from the start,
-not discovered after the fact.
-
-This sweep never touches pathway AUROC or the test split -- selection is
-based entirely on the validation split's InfoNCE loss, so there is no
-leakage risk (contrast with the leakage found in the earlier 11e/11f
-search, fixed in 11j).
-
-All W&B-specific code lives here -- train_protein_level.py's optional
-early_stopping_patience param is used with patience=10 (stop once val_loss
-hasn't improved for 10 consecutive epochs), so a run's sampled epochs value
-is a ceiling, not a guarantee every run trains that long.
-
-Not meant to be run directly -- launched by `wandb agent` once a sweep has
-been created from sweep_config_v1_lr_only.yaml:
-
-    uv run wandb sweep sweep_config_v1_lr_only.yaml
-    uv run wandb agent <sweep-id-printed-above> --count 30
+Usage:
+    uv run wandb sweep configs/sweep_config_v1_lr_only.yaml
+    uv run wandb agent <sweep-id> --count 30
 """
 import math
 import sys

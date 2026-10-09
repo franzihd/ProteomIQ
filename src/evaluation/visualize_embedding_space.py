@@ -1,53 +1,5 @@
 """
-Visualize the trained protein-embedding space via UMAP -- a qualitative,
-illustrative RESULTS figure, scoped narrowly to two claims a UMAP projection
-can actually support:
-
-  1. Do proteins sharing a true label (DeepLoc/EC/GO-MF class) form any
-     visible local structure at all? (Panels 1-3.)
-  2. Do held-out (unseen) proteins land interleaved among trained (seen)
-     proteins, rather than forming their own separate island? (Panel 4 --
-     the more load-bearing panel: this is the kind of local-neighborhood
-     question UMAP is actually suited to answer.)
-
-An earlier version of this script also produced a 3-way grid comparing
-UMAP layouts across checkpoints (M0 / multiview / multi-positive) to argue
-"multiview's space is visually better organized." That was deliberately
-removed: each checkpoint's embeddings get their own separate UMAP fit, and
-UMAP does not reliably preserve global distances or cluster tightness
-across separate fits -- so "does this cluster look tighter than that one"
-is not a controlled measurement, just an impression that happens to agree
-with the real evidence (linear_probe_eval.py / alignment_uniformity_eval.py
-/ knn_embedding_quality_eval.py) exactly when it agrees, and gets waved
-away as "well, UMAP just doesn't show it" when it doesn't -- confirmation,
-not evidence. This script makes no cross-checkpoint claim.
-
-Computes no new numbers itself (beyond picking which 3 classes to
-highlight per label set) -- the actual evidence for "the space is
-well-organized" is the three task-agnostic evals; this figure is for a
-reader's intuition, not additional proof.
-
-Reuses the exact same DeepLoc/EC/GO-MF eval-set CSVs and their `split`
-column (seen / unseen_validation / unseen_test, derived from
-data/protein_splits_full_proteome.json) as linear_probe_eval.py and
-knn_embedding_quality_eval.py -- no new label logic, same standing
-test-reserve rule (CLAUDE.md 11ab): meant to be run on the one final
-chosen checkpoint, not per-ablation-candidate, since it does touch
-`unseen_test` points for the split panel (visualization only, not used to
-pick a winner).
-
-Category-coloring design note: a categorical palette cannot be made
-colorblind-safe for *all pairs* once a scatter plot shows more than ~3
-simultaneous categories (a hard limit of categorical color perception, not
-a shortcut -- see the dataviz skill's palette.md, "past three, fold to
-Other or facet"). DeepLoc (9 classes), EC (7), and GO-MF (10, and
-genuinely multi-label, see build_go_mf_eval_set.py) all exceed that.
-Rather than ship an all-pairs-unsafe rainbow that would also just be
-unreadable at that cardinality, each panel highlights only its top-3 most
-frequent classes in the dataviz skill's first 3 (all-pairs-validated)
-categorical slots, and folds every other class into a neutral "Other"
-gray. The seen/unseen panel has only 2-3 classes, so it needs no such
-folding.
+UMAP of the trained protein embedding space.
 
 Usage:
     uv run python src/evaluation/visualize_embedding_space.py \\

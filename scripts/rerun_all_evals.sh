@@ -12,7 +12,7 @@
 #                  checkpoint as a by-product -- those rows exist in all_results.csv, but only
 #                  multiview's may be cited.
 #   4. SORT     -- moves ablation outputs back into unfreeze_experiment/ / text_experiment/
-#                  subfolders (same layout as before, CLAUDE.md 11aa).
+#                  subfolders (same layout as before).
 #   5. AGGREGATE -- rebuilds all_results.csv, results_summary.csv (validation) and
 #                  results_final_test.csv (test, multiview only).
 #   6. COMPARE  -- prints every number that differs between the backup and the fresh run.

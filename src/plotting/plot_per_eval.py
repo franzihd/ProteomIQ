@@ -1,22 +1,5 @@
 """
-One comparison figure per evaluation, mirroring data/evaluation/'s layout
-under data/plots/<eval>/, each saved next to a CSV holding exactly the
-numbers the figure shows.
-
-Per eval there are (at most) two figures, never mixed:
-- validation_all_checkpoints.png/.csv -- every checkpoint that eval was run
-  for, validation pool (the ablation comparison, Results 2.1/2.2)
-- test_multiview.png/.csv -- the final checkpoint on the reserved test pool
-  (Results 2.3). Only for the 5 topic evals; the 3 task-agnostic checks are
-  validation-only by design.
-
-The three cross-eval thesis figures (ablation overview, task-agnostic
-overview, final test overview) live in data/plots/overview/ and are made by
-plot_ablation_comparison.py, plot_task_agnostic_comparison.py and
-plot_final_test_results.py.
-
-Plotting-only: reads data/evaluation/all_results.csv (written by
-aggregate_results.py), computes nothing new.
+One figure per evaluation, saved to data/plots/<eval>/ with a CSV of the plotted numbers.
 
 Usage:
     uv run python src/plotting/plot_per_eval.py

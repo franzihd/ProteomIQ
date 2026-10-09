@@ -1,44 +1,5 @@
 """
-Linear probe embedding-space-quality check -- standard representation-learning
-diagnostic (used as the headline eval in SimCLR, MoCo, DINO, and others): freeze
-the encoder completely and fit the smallest possible classifier (one linear
-layer, no hidden layers/nonlinearities) on top of its embeddings, then measure
-how accurately that classifier recovers a known label.
-
-Complements (does not replace) knn_embedding_quality_eval.py and
-alignment_uniformity_eval.py -- same "protein-side embeddings only, no text
-encoder, no zero-shot query" design, reusing the exact same DeepLoc/EC/GO-MF
-label sets and seen/unseen split as every other eval in this project. The
-difference from k-NN: k-NN asks "do nearby points already agree on a label,
-with zero fitting at all"; a linear probe asks the stricter question "can a
-*trained* minimal classifier decode the label directly from the embedding" --
-a more standard, more citable form of evidence that the space is not just
-locally clustered but genuinely linearly decodable. See CLAUDE.md for the
-full discussion of how this fits alongside k-NN/alignment-uniformity.
-
-Mechanics, per label set (run independently -- DeepLoc/EC/GO-MF are unrelated
-categorization systems, not merged):
-  1. Embed every eligible protein: ESM2 -> protein_head (L2-normalized, same
-     as everywhere else in this project). Also compute the raw-untrained-ESM2
-     version, same "trained vs. untrained" comparison as the k-NN eval.
-  2. Split by the eval set's own `split` column: `seen` rows train the probe,
-     `unseen_validation` rows are what accuracy is reported on. `unseen_test`
-     is never touched here -- same standing rule as everywhere else in this
-     project (CLAUDE.md 11ab) that test stays reserved for a single final
-     confirmatory check, not repeated checkpoint-comparison use.
-  3. Train: nn.Linear(output_dim, n_classes), full-batch Adam. DeepLoc/EC are
-     single-label (cross-entropy). GO-MF is genuinely multi-label (11o) --
-     trained with a multi-hot BCE target (a protein's full `all_valid_classes`
-     set, not just its arbitrary first-listed term), scored the same lenient
-     way as every other GO-MF eval in this suite: a prediction (argmax of the
-     probe's output) counts as correct if it lands in ANY of the protein's
-     valid classes, not just the single primary one.
-  4. Evaluate accuracy on `unseen_validation`, for both the trained-checkpoint
-     embeddings and the raw-ESM2 baseline.
-  5. Report against a random baseline and a majority-class baseline (the most
-     common class among the *training* (`seen`) rows, evaluated on
-     `unseen_validation`) -- same "never trust a raw number without a
-     baseline" discipline as every other eval here.
+Linear probe on the protein embeddings: trained on seen proteins, scored on the validation split.
 
 Usage:
     uv run python src/evaluation/linear_probe_eval.py \\

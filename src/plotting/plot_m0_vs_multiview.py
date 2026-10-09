@@ -1,14 +1,5 @@
 """
-Presentation figure: baseline M0 vs. M3 (all text fields concatenated)
-vs. the final multiview checkpoint on zero-shot classification (DeepLoc/EC/GO-MF). Validation pool throughout
-(CLAUDE.md 11ai), same numbers as results_summary.csv. The reduced,
-two-checkpoint companion to plot_ablation_comparison.py, which shows all
-10 ablation checkpoints.
-
-M0 here = biobert_unfreeze_0_m0_best (the post-11y-fix M0, same one
-results_summary.csv labels "N=0 (M0)").
-
-Plotting-only: reads data/evaluation/all_results.csv, computes nothing.
+Presentation figure: M0 vs. M3 vs. multiview on zero-shot classification.
 
 Usage:
     uv run python src/plotting/plot_m0_vs_multiview.py

@@ -1,13 +1,5 @@
 """
-Presentation schematic: how the training text for one protein (TP53) is
-built in the three training-text designs -- M0 (function only), M3 (unmasked name + function + family + location concatenated
-into one string, CLAUDE.md 11z), and multiview (one field drawn at random
-per training example, 11ac). A method illustration, no results.
-
-Example texts are TP53's real UniProt fields from
-data/full_proteome/protein_annotations.csv, shortened with "..." where
-noted. Concatenation format follows embed_biobert.py's
-append_family_location (plain ", "-joined, no field labels).
+Presentation schematic of the training text for M0, M3 and multiview.
 
 Usage:
     uv run python src/plotting/plot_training_text_variants.py

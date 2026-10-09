@@ -1,46 +1,15 @@
 """
-Train the no-abundance ablation: protein_emb = ESM2 only (640-dim), text_emb
-= whichever biobert_embeddings*.h5 variant --biobert-filename points at
-(plain UniProt annotation, gene-name-masked, and/or GO-term-augmented — see
-embed_biobert.py). No patient-level anything — abundance and clinical
-description are both gone, so there is no patient-varying signal left at all.
-Proteins are deduplicated globally across cohorts (src/model/dataset.py) and split
-train/validation/test at the protein level (data/protein_splits.json), not
-the patient level (see CLAUDE.md's "no-abundance ablation" notes for why).
-
-BioBERT-unfreezing experiment (--unfreeze-biobert-layers): ESM2 always stays
-fully frozen. --unfreeze-biobert-layers 0 (default) is the original,
-fully-frozen-BioBERT baseline, unchanged -- text still comes straight from
-the precomputed --biobert-filename .h5 file, no BioBERT forward pass at
-training time at all. --unfreeze-biobert-layers N > 0 unfreezes the last N
-BioBERT Transformer layers (total layer count read off the model itself,
-never hard-coded) and switches the text side to a live tokenizer -> BioBERT
--> mean-pool forward pass so gradients can reach them, using the exact same
-text a matching --biobert-filename would have been embedded from (inferred
-from its naming convention -- see parse_biobert_text_flags in dataset.py).
-BioBERT's unfrozen layers get their own optimizer param group at
---biobert-lr, separate from the projection heads' --lr.
-
-Mixed precision (bf16 autocast): the live BioBERT forward/backward pass
-(--unfreeze-biobert-layers > 0 only) runs under torch.autocast(dtype=
-torch.bfloat16) on CUDA -- roughly half the compute cost of fp32 on Ampere+
-tensor cores, no loss-scaler needed (bf16 keeps fp32's exponent range, just
-fewer mantissa bits, so it doesn't need the numerical-stability workarounds
-fp16 does). Weights and the optimizer step stay fp32 throughout; only the
-forward/backward math for this pass runs in bf16. The frozen-BioBERT
-baseline (--unfreeze-biobert-layers 0) never touches autocast at all --
-identical to its original behavior.
-
-There is no --cohorts flag: this script always trains on the full,
-homology-aware-split human proteome (data/full_proteome/, see CLAUDE.md
-section 11) -- the old per-cohort CPTAC concept doesn't apply here at all
-(that's train.py / section 1-10, a different, ablation-baseline script).
+Trains the protein and text projection heads (frozen ESM2 / BioBERT inputs)
+with a symmetric InfoNCE loss.
 
 Usage:
     uv run python src/model/train_protein_level.py \\
-        --checkpoint data/runs/.../checkpoint_full_proteome_masked.pt \\
-        --epochs 2000 \\
+        --checkpoint data/runs/full_proteome/multiview_experiment/multiview.pt \\
+        --epochs 100 --lr 1.16e-4 --batch-size 512 --hidden-dim 2048 --output-dim 1024 \\
+        --early-stopping-patience 10 \\
         --biobert-filename biobert_embeddings_masked.h5 \\
+        --view-biobert-filenames biobert_embeddings_masked.h5 \\
+            biobert_embeddings_family_view.h5 biobert_embeddings_location_view.h5 \\
         --splits-file data/protein_splits_full_proteome.json
 """
 import sys
@@ -202,7 +171,7 @@ def train(checkpoint_path: str, epochs: int,
     (e.g. [masked Function, Family-view, Location-view]) -- when given, the
     TRAINING dataset picks one at random per protein per __getitem__ call
     instead of reading `biobert_filename` (multi-view random-selection
-    experiment, see CLAUDE.md; motivated by 11z finding that concatenating
+    experiment; motivated by the finding that concatenating
     more distinguishing text, as M0-M3 did, helps closed-set self-ID tasks
     while hurting open-vocabulary generalization -- this varies WHICH text is
     shown instead of adding more content per example). VALIDATION deliberately
@@ -217,7 +186,7 @@ def train(checkpoint_path: str, epochs: int,
     GroupedBatchSampler so a protein's views co-occur in the same batch, and
     trained with multi_positive_infonce_loss instead of infonce_loss. This is
     the CMC/SupCon-inspired extension of the plain multi-view random-selection
-    experiment above -- see CLAUDE.md for the full design discussion.
+    experiment above.
     VALIDATION is unaffected either way: still the single, fixed
     biobert_filename, plain infonce_loss, same rationale as the
     view_biobert_filenames case (comparability across epochs/runs).

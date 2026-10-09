@@ -4,7 +4,7 @@ import time
 import argparse
 
 
-# Data-driven choice (see CLAUDE.md "GO-term augmentation"): the typical
+# Data-driven choice: the typical
 # protein has ~4 GO terms per category and is untouched by this cap; it only
 # bounds the long tail of heavily-studied proteins (up to 90+ terms) so they
 # don't dominate the token budget purely from research attention. Cap=10 is

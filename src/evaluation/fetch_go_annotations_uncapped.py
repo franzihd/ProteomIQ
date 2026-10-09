@@ -1,49 +1,5 @@
 """
-Fetches raw, UNCAPPED GO annotations (all three aspects: Biological Process,
-Molecular Function, Cellular Component) for every protein in our own vetted
-human proteome pool, directly from UniProt. Feeds the new zero-shot
-text-to-protein retrieval evaluation (build_go_retrieval_eligible_terms.py /
-zero_shot_go_retrieval_eval.py) -- ground truth needs the FULL annotation
-list per protein, not a truncated one.
-
-Why a new fetch, not reuse of existing GO data:
-  - data/full_proteome/protein_annotations.csv already has GO_Biological_
-    Process / GO_Cellular_Component columns, but fetch_full_human_proteome.py
-    caps them at MAX_GO_TERMS_PER_CATEGORY=10 per protein (see that script --
-    the cap exists because that data feeds BioBERT training-text embedding,
-    where more terms just eat into a 512-token budget with diminishing
-    value). For retrieval ground truth, a capped list would silently
-    undercount true positives for any protein with >10 real GO-BP/CC
-    annotations -- unacceptable for an evaluation metric.
-  - data/full_proteome/uniprot_go_mf_terms.csv (built for the GO-MF
-    zero-shot CLASSIFICATION eval, build_go_mf_eval_set.py) IS already
-    uncapped -- but only covers Molecular Function. Re-fetching all three
-    aspects together here (rather than reusing that file for MF and writing
-    two more single-aspect fetches for BP/CC) means all three come from one
-    UniProt snapshot/query pass, avoiding a subtle version-skew risk between
-    files fetched at different times -- and needs only one fetch script
-    instead of three near-identical ones.
-
-Direct vs. inherited/propagated annotations -- an explicit, documented
-choice, not a silent default: this script extracts UniProt's own GO
-cross-references AS-IS. UniProt lists the specific (usually fairly granular)
-terms a protein was directly annotated with; it does NOT walk the GO DAG
-to also add every ancestor term the annotation implies (e.g. a protein
-annotated with "DNA-binding transcription factor activity" is NOT also
-listed here under its ancestor "DNA binding" unless UniProt separately
-annotated it with that too). This project does not perform GO-DAG ancestor
-propagation (the "true path rule") anywhere -- doing so would require
-choosing a propagation policy (which relations to follow, whether to count
-propagated terms as equally strong positives as direct ones, etc.), which
-is a real methodological fork left for future work, not resolved here.
-Ground truth in this evaluation is therefore DIRECT annotations only.
-
-Same paginated organism_id:9606 AND reviewed:true UniProt query pattern as
-fetch_full_human_proteome.py / build_go_mf_eval_set.py. Confirmed (in
-build_go_mf_eval_set.py, and re-confirmed for this script) that requesting
-any single go_* field still returns cross-references for ALL THREE aspects
-in the response -- aspect filtering happens client-side via the "P:"/"F:"/
-"C:" prefix on each GO term's label, not server-side.
+Fetches all GO annotations (BP, MF, CC) from UniProt for the GO-term retrieval eval.
 
 Usage:
     uv run python src/evaluation/fetch_go_annotations_uncapped.py

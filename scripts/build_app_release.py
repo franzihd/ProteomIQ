@@ -1,34 +1,8 @@
 """
-Assembles a standalone, professor-facing release of just the ProteomIQ tool
-(src/app.py and its runtime dependencies), separate from the thesis's model
-training/evaluation code.
-
-This is a GENERATED artifact, not something to hand-edit -- regenerate it any
-time src/app.py or one of the files it imports changes. That's the point:
-copying the actual source files (rather than hand-maintaining a second,
-rewritten copy) means the release can never silently drift out of sync with
-the real code.
-
-CODE_FILES below is the exact import chain src/app.py touches at runtime,
-traced by hand: app.py -> retrieve_and_annotate.py / interpret.py ->
-dataset.py / projection_head.py / embed_biobert.py / normalize_uploaded_sample.py.
-Nothing under src/evaluation/, src/model/train*.py, src/model/sweep*.py,
-src/Textual/, or src/preprocessing/rank_normalize.py is imported by the app,
-directly or transitively, so none of it is included.
-
-DATA_FILES is the checkpoint, ESM2 embeddings, protein annotations, and one
-example patient sample -- everything the app needs to run out of the box.
-biobert_embeddings*.h5 (the ~4GB training-text cube) is deliberately NOT
-included: the app only ever encodes query text live (encode_query_vector in
-retrieve_and_annotate.py), it never reads a precomputed biobert_embeddings*.h5
-file.
+Builds a standalone release of the Streamlit tool (app code + required data) in dist/.
 
 Usage:
     uv run python scripts/build_app_release.py [--zip]
-
-Output: dist/proteomiq-app/ -- a self-contained folder (code + a trimmed
-pyproject.toml + ~94MB of data files + its own README, no thesis code
-visible). With --zip, also writes dist/proteomiq-app.zip for easy sharing.
 """
 import argparse
 import shutil

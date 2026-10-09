@@ -1,18 +1,5 @@
 """
-Alignment-vs-uniformity scatter (Wang & Isola 2020) for M0 / multi-positive /
-multiview -- candidate replacement for panels A+B of
-plot_task_agnostic_comparison.py (Results 2.2).
-
-Two panels: (A) full scale including both references (mismatched pairs for
-alignment, random points for uniformity), so the reader sees how small the
-between-model differences are relative to the meaningful range; (B) a zoom on
-the three models, so the ordering is still readable. Lower-left is better on
-both axes.
-
-Reads the saved alignment_uniformity JSON summaries -- plotting only, no
-numbers computed here. The mismatched-pair reference is drawn per checkpoint
-in the CSV, but as one line (their mean) in the figure, since it only varies
-in the third decimal (random wrong-pair draw per checkpoint).
+Alignment vs. uniformity scatter for M0, multi-positive and multiview.
 
 Usage:
     uv run python src/plotting/plot_alignment_uniformity_scatter.py

@@ -1,68 +1,5 @@
 """
-Builds the GO Molecular Function (GO-Slim-MF) zero-shot classification test
-set used by zero_shot_go_mf_eval.py.
-
-Same overall recipe as build_ec_eval_set.py / build_deeploc_eval_set.py, with
-one structural difference: DeepLoc's 10 locations and EC's 7 top-level
-numbers are FIXED, external class lists. Here there is no fixed class list --
-raw GO Molecular Function terms are far too fine-grained and long-tailed to
-use directly (thousands of distinct terms, most with a handful of members),
-so this script (a) maps every raw GO-MF term to the coarser GO Slim
-(molecular_function branch) vocabulary, then (b) derives the class list itself
-from the resulting frequency distribution, keeping just enough top classes to
-cover ~75-80% of annotated proteins.
-
-Because the class list is DATA-DERIVED (unlike DeepLoc/EC), the frequency
-distribution that decides it must be computed over the FULL protein pool
-(every seen + unseen protein together) -- never restricted to only the
-proteins that will later be scored as "unseen"/test. Doing otherwise would
-tailor the benchmark's own class list to the held-out split, which is a
-softer version of the same leakage CLAUDE.md section 11j flagged for
-model/hyperparameter selection (there: picking a checkpoint by test
-performance; here: picking a class list by test-subset composition). Seen/
-unseen is assigned only AFTER the class list and eligible-protein pool are
-fixed, exactly like DeepLoc/EC -- it's a label attached at the end, not an
-input to class selection.
-
-Pipeline:
-  1. Fetch raw GO Molecular Function (aspect "F") terms per protein from
-     UniProt -- not already in data/full_proteome/protein_annotations.csv
-     (only GO_Biological_Process/GO_Cellular_Component were fetched there,
-     see CLAUDE.md 11b), so this re-queries UniProt the same way
-     build_ec_eval_set.py re-queries for EC numbers.
-     Two distinct, explicitly-counted drop reasons apply before class
-     selection: (a) a protein has zero GO-MF terms in UniProt at all --
-     GO annotation coverage is a separate, incomplete curation effort from
-     the FUNCTION-text annotation used elsewhere in this project -- and
-     (b) a protein has a GO-MF term but that term's ancestor chain never
-     crosses a GO-Slim category (see mapslim_primary()). Both are reported
-     in the printed output and saved to CLASS_SELECTION_PATH.
-  2. Map each protein's PRIMARY (first-listed) raw GO-MF term to GO Slim via
-     goatools' mapslim() against go-basic.obo + goslim_generic.obo. A GO term
-     can have multiple GO-Slim ancestors (multiple parent paths); mapslim's
-     "direct ancestors" are the closest/most specific slim term per path --
-     ties are broken by taking the alphabetically-first GO-Slim ID, a simple,
-     deterministic, and clearly-stated simplification (see mapslim_primary()).
-  3. Frequency distribution of GO-Slim-MF classes across ALL annotated
-     proteins (not test-only, see above), printed with cumulative coverage.
-  4. Select the smallest number of top classes reaching ~75-80% cumulative
-     coverage; drop proteins whose slim class falls outside that set.
-  4b. Most proteins have more than one GO-MF term, and different terms often
-     map to DIFFERENT selected classes (e.g. many transcription factors hit
-     both "DNA binding" and "transcription regulator activity" -- measured
-     at ~33% of the eval set). Scoring a zero-shot prediction only against
-     the single primary-term label would mark a biologically correct but
-     non-primary prediction as wrong. So every protein's FULL set of valid
-     selected classes (from ALL its raw terms, not just the primary one) is
-     also computed and saved as "all_valid_classes" -- zero_shot_go_mf_eval.py
-     uses it to report a lenient accuracy (any valid class counts) alongside
-     the strict primary-label accuracy (needed anyway for macro-F1/confusion
-     matrix, which require exactly one label per row).
-  5. Assign seen/unseen relative to our model's own train split (same as
-     DeepLoc/EC), then report, as a diagnostic (not a filter), the seen/
-     unseen breakdown of the selected classes -- including how many unseen
-     proteins survive filtering and a flag if that count is too low (<30-40)
-     for the unseen-subset result to be statistically meaningful.
+Builds the GO-Slim molecular function test set for zero_shot_go_mf_eval.py.
 
 Usage:
     uv run python src/evaluation/build_go_mf_eval_set.py
@@ -260,7 +197,7 @@ def run(force_fetch: bool = False, force_obo: bool = False, target_coverage: flo
     # process, just never by this eval's own labels. Reporting unseen_test
     # separately gives a clean, once-touched figure, same discipline as
     # validation_only_auroc vs. test_only_auroc in pathway_auroc_protein_level.py
-    # (CLAUDE.md 11j).
+    #.
     validation_ensp_ids = set(splits["validation"])
     test_ensp_ids = set(splits["test"])
 

@@ -1,24 +1,5 @@
 """
-Generate a reproducible, GLOBAL, homology-aware protein split (train/
-validation/test) over the full reviewed human UniProt proteome (see
-CLAUDE.md section 11) -- not just the subset of proteins CPTAC happened to
-measure. Supersedes protein_train_validation_test.py's original pure-random
-design (data/protein_splits.json, kept untouched for comparability with the
-existing baseline checkpoint).
-
-Two changes from the original:
-1. One flat protein universe (data/full_proteome/), not a union across 9
-   cohorts -- Stage 1 doesn't need a protein to have been measured by CPTAC
-   at all, only a sequence + UniProt text.
-2. Split by CD-HIT sequence-identity CLUSTER (data/protein_clusters.json,
-   90% identity), not by individual protein -- a near-identical paralog can
-   no longer land on both sides of the split, which pure random assignment
-   didn't guard against.
-
-Validation proteins are used to pick a sane epoch count / watch training
-progress. Test proteins are touched only once, for the final reported
-numbers -- using them to pick the epoch count would leak test information
-into a training decision.
+Homology-aware train/validation/test split (80/10/10) over CD-HIT clusters.
 
 Usage:
     uv run python src/model/protein_train_validation_test.py \\

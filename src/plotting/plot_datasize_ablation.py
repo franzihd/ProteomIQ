@@ -1,11 +1,5 @@
 """
-Learning curve for the training-data-size ablation (src/model/datasize_ablation.py).
-
-Three panels (R@1 / R@10 / R@50, cross-modal retrieval on the validation split), shared
-0-80 % y-axis, x = number of training proteins (linear; a log2 axis put the 75 % and
-100 % tick labels on top of each other). Points are
-means over 3 training seeds, error bars = SD. Both retrieval directions per panel.
-Writes the figure plus a .csv with exactly the plotted numbers next to it.
+Learning curve for the training-data-size ablation.
 
 Usage:
     uv run python src/plotting/plot_datasize_ablation.py

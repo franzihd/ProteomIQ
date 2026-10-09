@@ -3,6 +3,7 @@
 Code and data from the exploratory phase of the project. It is **superseded** and not part
 of the reported thesis results. It is kept only for transparency and traceability.
 
+- `notebooks/`: early exploration of the LUAD data from the patient-level phase.
 - `src/model/train.py`, `evaluate*.py`, `generate_test_splits.py`, `recall_at_k.py`,
   `run_experiments.py`, `recall_curve.py`, `src/text_generation.py`,
   `src/plotting/plot_scaling.py`, `plot_recall_vs_cohorts.py`: the original **patient-level**
