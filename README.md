@@ -4,13 +4,28 @@ Natural-language search over the proteins of a proteomics sample. A CLIP-style m
 protein sequences (ESM2, frozen) and UniProt text (BioBERT, frozen) into a shared embedding
 space via two trained projection heads (InfoNCE loss).
 
-This repository contains the code of the thesis: data processing, training, evaluation and
-figures. The app is provided separately:
+Code for the bachelor thesis *A Contrastive Multimodal Embedding Approach For Natural Language
+Retrieval in Clinical Proteomics*, Franziska Hald, Eberhard Karls University of Tübingen, 2026.
+Supervisor: Prof. Dr. Sven Nahnsen.
+
+This repository contains data processing, training, evaluation and figures. The app is
+provided separately:
 
 - App: [proteomiq.streamlit.app](https://proteomiq.streamlit.app/)
 - App repository: [ProteomIQ-demo](https://github.com/franzihd/ProteomIQ-demo)
 
 Final model: `data/runs/full_proteome/multiview_experiment/multiview_best.pt`
+
+## Requirements
+
+Linux, Python ≥ 3.11, [uv](https://docs.astral.sh/uv/). PyTorch is pinned to a CUDA 11.8 build,
+so installation fails on macOS. A GPU is recommended for computing the embeddings but not
+required. To only try the app, use the online version or ProteomIQ-demo.
+
+## Data sources
+
+CPTAC (proteomics), UniProt (sequences, annotations), DeepLoc 1.0 (localization labels),
+Gene Ontology (GO terms).
 
 ## Structure
 
@@ -84,7 +99,8 @@ locally without reproducing the pipeline, use
 [ProteomIQ-demo](https://github.com/franzihd/ProteomIQ-demo), which includes all required
 data (built from this repository by `deploy/sync_space.sh`).
 
-From this repository, the app requires `data/full_proteome/esm2_embeddings.h5` (step 2 above).
+From this repository, the app requires `data/full_proteome/esm2_embeddings.h5`
+(see Reproducing the results).
 For the optional Claude interpretation, set `ANTHROPIC_API_KEY`.
 
 ```bash
