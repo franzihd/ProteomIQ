@@ -92,7 +92,7 @@ responding, it's used up.
 
 ```bash
 uv sync
-export ANTHROPIC_API_KEY="..."   # optional, your own key for the Claude interpretation
+# optional, for the Claude interpretation: export ANTHROPIC_API_KEY=<your key>
 uv run streamlit run src/app.py
 ```
 
