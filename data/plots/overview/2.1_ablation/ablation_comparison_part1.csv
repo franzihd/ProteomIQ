@@ -1,0 +1,13 @@
+checkpoint,group,cross_modal_T2P_R1%(val),cross_modal_T2P_R50%(val),deeploc_acc%(val),ec_acc%(val)
+N=0 (M0),unfreeze,18.6501,74.3043,20.45,16.67
+N=1,unfreeze,14.5056,65.6009,19.32,19.08
+N=2,unfreeze,10.0059,56.0687,14.02,13.77
+N=3,unfreeze,7.164,50.5033,13.64,13.53
+M1 (+Family),text,18.8869,68.5613,15.53,16.91
+Function+Location,text,20.071,71.2256,34.09,18.84
+M2 (+Family+Location),text,16.8739,66.489,34.85,16.67
+M3 (+unmasked name),text,15.6306,61.9893,31.82,20.05
+multi-positive,multi_positive,16.5187,72.5281,49.62,21.01
+multiview (winner),multiview,16.8739,74.4227,48.48,20.53
+random baseline,baseline,0.05920663114268798,2.960331557134399,11.11111111111111,14.28571428571428
+majority-class baseline,baseline,,,34.84848484848485,42.02898550724637

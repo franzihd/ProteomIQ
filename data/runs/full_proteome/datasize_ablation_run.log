@@ -1,0 +1,2119 @@
+Training pool: 13,515 proteins | target steps: 2,700
+   25%:  3,379 proteins    7 steps/epoch   386 epochs  2,702 steps
+   50%:  6,758 proteins   14 steps/epoch   193 epochs  2,702 steps
+   75%: 10,136 proteins   20 steps/epoch   135 epochs  2,700 steps
+  100%: 13,515 proteins   27 steps/epoch   100 epochs  2,700 steps
+[train] fraction=0.25 seed=42 proteins=3,379 epochs=386 -> data/runs/full_proteome/datasize_experiment/datasize_f025_seed42_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f025_seed42_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f025_seed42_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 32841.49it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   54.25%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.4139
+
+[seen]  n=2134
+  uncalibrated accuracy:   56.14%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.4268
+
+[unseen]  n=511
+  uncalibrated accuracy:   46.38%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.3577
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   46.97%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.3521
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   45.75%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.3620
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 10.39pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 9.76pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f025_seed42_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f025_seed42_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f025_seed42_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33367.97it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   21.29%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.1640
+
+[seen]  n=3398
+  accuracy:   21.25%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.1617
+
+[unseen]  n=849
+  accuracy:   21.44%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.1763
+
+[unseen_validation]  n=414
+  accuracy:   19.08%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.1691
+
+[unseen_test]  n=435
+  accuracy:   23.68%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.1842
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -2.43pp
+Generalization gap (seen accuracy - unseen accuracy): -0.19pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f025_seed42_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f025_seed42_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f025_seed42_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 32919.21it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   43.24%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   43.09%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   43.82%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   43.05%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   44.59%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -1.50pp
+Generalization gap (seen accuracy - unseen accuracy): -0.73pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f025_seed42_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f025_seed42_best.json
+[train] fraction=0.25 seed=43 proteins=3,379 epochs=386 -> data/runs/full_proteome/datasize_experiment/datasize_f025_seed43_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f025_seed43_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f025_seed43_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 32165.65it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   54.48%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.4345
+
+[seen]  n=2134
+  uncalibrated accuracy:   55.48%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.4393
+
+[unseen]  n=511
+  uncalibrated accuracy:   50.29%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.4120
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   50.76%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.4270
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   49.80%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.3978
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 5.69pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 5.19pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f025_seed43_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f025_seed43_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f025_seed43_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 24935.52it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   19.05%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.1611
+
+[seen]  n=3398
+  accuracy:   19.48%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.1629
+
+[unseen]  n=849
+  accuracy:   17.31%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.1546
+
+[unseen_validation]  n=414
+  accuracy:   15.46%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.1439
+
+[unseen_test]  n=435
+  accuracy:   19.08%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.1650
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): 0.40pp
+Generalization gap (seen accuracy - unseen accuracy): 2.17pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f025_seed43_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f025_seed43_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f025_seed43_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 30659.22it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   42.36%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   42.16%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   43.15%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   42.38%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   43.93%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -1.77pp
+Generalization gap (seen accuracy - unseen accuracy): -1.00pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f025_seed43_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f025_seed43_best.json
+[train] fraction=0.25 seed=44 proteins=3,379 epochs=386 -> data/runs/full_proteome/datasize_experiment/datasize_f025_seed44_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f025_seed44_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f025_seed44_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 11689.19it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   51.19%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.4154
+
+[seen]  n=2134
+  uncalibrated accuracy:   52.72%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.4247
+
+[unseen]  n=511
+  uncalibrated accuracy:   44.81%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.3764
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   45.08%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.3834
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   44.53%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.3666
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 8.18pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 7.90pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f025_seed44_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f025_seed44_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f025_seed44_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 30785.87it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   21.19%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.1642
+
+[seen]  n=3398
+  accuracy:   21.25%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.1646
+
+[unseen]  n=849
+  accuracy:   20.97%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.1637
+
+[unseen_validation]  n=414
+  accuracy:   19.57%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.1655
+
+[unseen_test]  n=435
+  accuracy:   22.30%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.1599
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -1.05pp
+Generalization gap (seen accuracy - unseen accuracy): 0.28pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f025_seed44_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f025_seed44_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f025_seed44_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33039.09it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   42.30%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   41.96%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   43.69%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   42.65%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   44.73%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -2.77pp
+Generalization gap (seen accuracy - unseen accuracy): -1.73pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f025_seed44_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f025_seed44_best.json
+[train] fraction=0.5 seed=42 proteins=6,758 epochs=193 -> data/runs/full_proteome/datasize_experiment/datasize_f050_seed42_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f050_seed42_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f050_seed42_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 19665.59it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   56.52%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.4516
+
+[seen]  n=2134
+  uncalibrated accuracy:   58.81%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.4680
+
+[unseen]  n=511
+  uncalibrated accuracy:   46.97%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.3838
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   47.73%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.3747
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   46.15%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.3882
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 12.66pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 11.84pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f050_seed42_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f050_seed42_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f050_seed42_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 28560.99it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   21.73%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.1732
+
+[seen]  n=3398
+  accuracy:   22.16%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.1779
+
+[unseen]  n=849
+  accuracy:   20.02%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.1541
+
+[unseen_validation]  n=414
+  accuracy:   19.32%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.1599
+
+[unseen_test]  n=435
+  accuracy:   20.69%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.1469
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): 1.47pp
+Generalization gap (seen accuracy - unseen accuracy): 2.14pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f050_seed42_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f050_seed42_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f050_seed42_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 32797.61it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   48.49%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   48.47%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   48.56%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   48.80%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   48.33%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): 0.14pp
+Generalization gap (seen accuracy - unseen accuracy): -0.10pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f050_seed42_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f050_seed42_best.json
+[train] fraction=0.5 seed=43 proteins=6,758 epochs=193 -> data/runs/full_proteome/datasize_experiment/datasize_f050_seed43_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f050_seed43_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f050_seed43_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 31188.49it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   56.29%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.4543
+
+[seen]  n=2134
+  uncalibrated accuracy:   58.72%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.4693
+
+[unseen]  n=511
+  uncalibrated accuracy:   46.18%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.3887
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   42.80%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.3688
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   49.80%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.4114
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 8.92pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 12.53pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f050_seed43_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f050_seed43_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f050_seed43_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 34339.94it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   21.43%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.1772
+
+[seen]  n=3398
+  accuracy:   21.60%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.1777
+
+[unseen]  n=849
+  accuracy:   20.73%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.1749
+
+[unseen_validation]  n=414
+  accuracy:   20.29%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.1796
+
+[unseen_test]  n=435
+  accuracy:   21.15%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.1702
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): 0.45pp
+Generalization gap (seen accuracy - unseen accuracy): 0.87pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f050_seed43_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f050_seed43_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f050_seed43_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 32947.80it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   43.69%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   43.56%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   44.22%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   43.85%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   44.59%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -1.03pp
+Generalization gap (seen accuracy - unseen accuracy): -0.66pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f050_seed43_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f050_seed43_best.json
+[train] fraction=0.5 seed=44 proteins=6,758 epochs=193 -> data/runs/full_proteome/datasize_experiment/datasize_f050_seed44_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f050_seed44_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f050_seed44_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33469.66it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   56.41%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.4516
+
+[seen]  n=2134
+  uncalibrated accuracy:   58.48%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.4694
+
+[unseen]  n=511
+  uncalibrated accuracy:   47.75%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.3800
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   46.59%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.3670
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   48.99%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.3852
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 9.49pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 10.73pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f050_seed44_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f050_seed44_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f050_seed44_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33503.25it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   23.66%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.1824
+
+[seen]  n=3398
+  accuracy:   23.93%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.1822
+
+[unseen]  n=849
+  accuracy:   22.61%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.1845
+
+[unseen_validation]  n=414
+  accuracy:   22.46%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.2027
+
+[unseen_test]  n=435
+  accuracy:   22.76%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.1660
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): 1.17pp
+Generalization gap (seen accuracy - unseen accuracy): 1.31pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f050_seed44_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f050_seed44_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f050_seed44_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33198.09it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   44.93%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   44.75%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   45.62%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   46.52%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   44.73%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): 0.03pp
+Generalization gap (seen accuracy - unseen accuracy): -0.87pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f050_seed44_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f050_seed44_best.json
+[train] fraction=0.75 seed=42 proteins=10,136 epochs=135 -> data/runs/full_proteome/datasize_experiment/datasize_f075_seed42_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f075_seed42_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f075_seed42_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33918.50it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   57.47%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.4405
+
+[seen]  n=2134
+  uncalibrated accuracy:   60.87%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.4653
+
+[unseen]  n=511
+  uncalibrated accuracy:   43.25%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.3331
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   40.91%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.3136
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   45.75%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.3536
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 15.12pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 17.62pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f075_seed42_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f075_seed42_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f075_seed42_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 32917.91it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   24.04%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.1856
+
+[seen]  n=3398
+  accuracy:   24.57%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.1928
+
+[unseen]  n=849
+  accuracy:   21.91%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.1552
+
+[unseen_validation]  n=414
+  accuracy:   21.50%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.1592
+
+[unseen_test]  n=435
+  accuracy:   22.30%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.1504
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): 2.27pp
+Generalization gap (seen accuracy - unseen accuracy): 2.67pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f075_seed42_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f075_seed42_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f075_seed42_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33355.97it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   43.84%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   43.28%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   46.09%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   44.92%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   47.26%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -3.98pp
+Generalization gap (seen accuracy - unseen accuracy): -2.81pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f075_seed42_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f075_seed42_best.json
+[train] fraction=0.75 seed=43 proteins=10,136 epochs=135 -> data/runs/full_proteome/datasize_experiment/datasize_f075_seed43_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f075_seed43_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f075_seed43_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33759.36it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   65.18%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.5360
+
+[seen]  n=2134
+  uncalibrated accuracy:   67.90%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.5593
+
+[unseen]  n=511
+  uncalibrated accuracy:   53.82%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.4433
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   51.52%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.4327
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   56.28%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.4562
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 11.63pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 14.08pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f075_seed43_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f075_seed43_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f075_seed43_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33232.46it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   22.70%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.1634
+
+[seen]  n=3398
+  accuracy:   23.04%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.1661
+
+[unseen]  n=849
+  accuracy:   21.32%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.1549
+
+[unseen_validation]  n=414
+  accuracy:   21.74%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.1595
+
+[unseen_test]  n=435
+  accuracy:   20.92%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.1507
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): 2.12pp
+Generalization gap (seen accuracy - unseen accuracy): 1.72pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f075_seed43_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f075_seed43_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f075_seed43_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 34209.05it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   42.13%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   41.97%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   42.75%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   43.58%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   41.92%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): 0.05pp
+Generalization gap (seen accuracy - unseen accuracy): -0.78pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f075_seed43_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f075_seed43_best.json
+[train] fraction=0.75 seed=44 proteins=10,136 epochs=135 -> data/runs/full_proteome/datasize_experiment/datasize_f075_seed44_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f075_seed44_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f075_seed44_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33274.86it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   60.95%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.4948
+
+[seen]  n=2134
+  uncalibrated accuracy:   64.10%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.5193
+
+[unseen]  n=511
+  uncalibrated accuracy:   47.75%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.3912
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   49.24%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.3980
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   46.15%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.3709
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 17.95pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 16.36pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f075_seed44_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f075_seed44_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f075_seed44_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 27969.52it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   22.98%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.1972
+
+[seen]  n=3398
+  accuracy:   23.16%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.1977
+
+[unseen]  n=849
+  accuracy:   22.26%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.1953
+
+[unseen_validation]  n=414
+  accuracy:   21.26%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.2057
+
+[unseen_test]  n=435
+  accuracy:   23.22%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.1843
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -0.06pp
+Generalization gap (seen accuracy - unseen accuracy): 0.90pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f075_seed44_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f075_seed44_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f075_seed44_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 32920.51it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   44.00%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   43.86%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   44.56%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   44.12%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   44.99%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -1.13pp
+Generalization gap (seen accuracy - unseen accuracy): -0.69pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f075_seed44_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f075_seed44_best.json
+[train] fraction=1.0 seed=42 proteins=13,515 epochs=100 -> data/runs/full_proteome/datasize_experiment/datasize_f100_seed42_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f100_seed42_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f100_seed42_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33014.26it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   63.59%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.5081
+
+[seen]  n=2134
+  uncalibrated accuracy:   67.15%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.5384
+
+[unseen]  n=511
+  uncalibrated accuracy:   48.73%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.3821
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   48.86%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.3857
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   48.58%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.3705
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 18.57pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 18.42pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f100_seed42_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f100_seed42_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f100_seed42_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33742.99it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   23.50%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.1929
+
+[seen]  n=3398
+  accuracy:   23.63%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.1939
+
+[unseen]  n=849
+  accuracy:   22.97%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.1871
+
+[unseen_validation]  n=414
+  accuracy:   20.77%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.1897
+
+[unseen_test]  n=435
+  accuracy:   25.06%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.1847
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -1.43pp
+Generalization gap (seen accuracy - unseen accuracy): 0.66pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f100_seed42_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f100_seed42_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f100_seed42_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 25392.96it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   49.64%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   49.27%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   51.10%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   52.01%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   50.20%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -0.93pp
+Generalization gap (seen accuracy - unseen accuracy): -1.83pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f100_seed42_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f100_seed42_best.json
+[train] fraction=1.0 seed=43 proteins=13,515 epochs=100 -> data/runs/full_proteome/datasize_experiment/datasize_f100_seed43_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f100_seed43_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f100_seed43_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 31513.50it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   64.20%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.5279
+
+[seen]  n=2134
+  uncalibrated accuracy:   67.57%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.5581
+
+[unseen]  n=511
+  uncalibrated accuracy:   50.10%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.4082
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   50.38%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.4169
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   49.80%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.4005
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 17.78pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 17.47pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f100_seed43_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f100_seed43_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f100_seed43_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33171.71it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   20.63%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.1604
+
+[seen]  n=3398
+  accuracy:   20.89%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.1600
+
+[unseen]  n=849
+  accuracy:   19.55%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.1644
+
+[unseen_validation]  n=414
+  accuracy:   20.29%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.1818
+
+[unseen_test]  n=435
+  accuracy:   18.85%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.1441
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): 2.04pp
+Generalization gap (seen accuracy - unseen accuracy): 1.34pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f100_seed43_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f100_seed43_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f100_seed43_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 32590.16it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   43.69%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   43.48%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   44.56%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   45.32%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   43.79%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -0.31pp
+Generalization gap (seen accuracy - unseen accuracy): -1.08pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f100_seed43_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f100_seed43_best.json
+[train] fraction=1.0 seed=44 proteins=13,515 epochs=100 -> data/runs/full_proteome/datasize_experiment/datasize_f100_seed44_train_log.txt
+[eval] data/runs/full_proteome/datasize_experiment/datasize_f100_seed44_best.pt
+Closed validation-set pool: 1,689 proteins (expected 1,689 minus any never measured in training data)
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f100_seed44_best.pt
+Classes (9-way): ['Nucleus', 'Cytoplasm', 'Extracellular', 'Mitochondrion', 'Cell membrane', 'Endoplasmic reticulum', 'Golgi apparatus', 'Lysosome/Vacuole', 'Peroxisome']
+
+Loading DeepLoc human-only test set ...
+  2645 proteins (2134 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 34930.59it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding DeepLoc test proteins with the protein tower (once, shared across all conditions) ...
+  2645 proteins resolved
+
+
+[ensemble] Embedding the 9 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot DeepLoc subcellular localization classification (9-way, condition=ensemble, human-only, no Chloroplast)
+========================================================================================
+
+[all]  n=2645
+  uncalibrated accuracy:   65.48%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.79%)
+  uncalibrated macro-F1:   0.5291
+
+[seen]  n=2134
+  uncalibrated accuracy:   68.84%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 37.07%)
+  uncalibrated macro-F1:   0.5570
+
+[unseen]  n=511
+  uncalibrated accuracy:   51.47%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 35.62%)
+  uncalibrated macro-F1:   0.4125
+
+[unseen_validation]  n=264
+  uncalibrated accuracy:   51.14%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 34.85%)
+  uncalibrated macro-F1:   0.4004
+
+[unseen_test]  n=247
+  uncalibrated accuracy:   51.82%  (random baseline: 11.11%, majority-class baseline ['Nucleus']: 36.44%)
+  uncalibrated macro-F1:   0.4185
+
+Generalization gap, uncalibrated, test-only (seen accuracy - unseen_test accuracy): 17.02pp
+Generalization gap, uncalibrated (seen accuracy - unseen accuracy): 17.37pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/deeploc/predictions_datasize_f100_seed44_best_9way_human.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/deeploc/summary_datasize_f100_seed44_best_9way_human.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f100_seed44_best.pt
+Classes (7-way EC top-level): ['Oxidoreductases', 'Transferases', 'Hydrolases', 'Lyases', 'Isomerases', 'Ligases', 'Translocases']
+
+Loading EC top-level test set ...
+  4247 enzymes (3398 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 34734.35it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding EC test proteins with the protein tower (once, shared across all conditions) ...
+  4247 proteins resolved
+
+
+[ensemble] Embedding the 7 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot EC top-level classification (7-way, condition=ensemble, 5 templates, ensembled)
+========================================================================================
+
+[all]  n=4247
+  accuracy:   26.58%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.03%)
+  macro-F1:   0.2402
+
+[seen]  n=3398
+  accuracy:   26.69%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 39.76%)
+  macro-F1:   0.2416
+
+[unseen]  n=849
+  accuracy:   26.15%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 41.11%)
+  macro-F1:   0.2340
+
+[unseen_validation]  n=414
+  accuracy:   25.36%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 42.03%)
+  macro-F1:   0.2381
+
+[unseen_test]  n=435
+  accuracy:   26.90%  (random baseline: 14.29%, majority-class baseline ['Transferases']: 40.23%)
+  macro-F1:   0.2292
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -0.20pp
+Generalization gap (seen accuracy - unseen accuracy): 0.54pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/ec_top_level/predictions_datasize_f100_seed44_best.csv
+Summary + confusion matrices saved to data/evaluation/zero_shot_classification/ec_top_level/summary_datasize_f100_seed44_best.json
+Using device: cuda
+Checkpoint: data/runs/full_proteome/datasize_experiment/datasize_f100_seed44_best.pt
+
+Loading GO-Slim-MF class selection ...
+  10 classes, 82.30% coverage of the full annotated pool: ['hydrolase activity', 'transcription regulator activity', 'molecular transducer activity', 'molecular function regulator activity', 'DNA binding', 'transporter activity', 'transferase activity', 'cytoskeletal protein binding', 'RNA binding', 'receptor ligand activity']
+
+Loading GO-Slim-MF test set ...
+  7470 proteins (5973 seen, 0 unseen)
+
+Loading checkpoint and building protein/text towers ...
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 33002.51it/s]
+[transformers] [1mBertModel LOAD REPORT[0m from: /home/franziska/.cache/huggingface/hub/models--dmis-lab--biobert-base-cased-v1.2/snapshots/67c9c25b46986521ca33df05d8540da1210b3256
+Key                                        | Status     |  | 
+-------------------------------------------+------------+--+-
+cls.predictions.bias                       | UNEXPECTED |  | 
+cls.predictions.transform.dense.weight     | UNEXPECTED |  | 
+cls.seq_relationship.bias                  | UNEXPECTED |  | 
+cls.predictions.decoder.weight             | UNEXPECTED |  | 
+cls.predictions.transform.dense.bias       | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED |  | 
+cls.predictions.decoder.bias               | UNEXPECTED |  | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED |  | 
+cls.seq_relationship.weight                | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+Embedding GO-MF test proteins with the protein tower (once, shared across all conditions) ...
+  7470 proteins resolved
+
+
+[ensemble] Embedding the 10 class prompts (5 templates, ensembled) ...
+========================================================================================
+Zero-shot GO-Slim-MF classification (10-way, condition=ensemble, 5 templates, ensembled)
+Correct = prediction is ANY of the protein's genuinely valid classes
+(not single-label exact match -- see module docstring for why)
+========================================================================================
+
+[all]  n=7470
+  accuracy:   46.85%  (random baseline: 13.72%, majority-class baseline ['DNA binding']: 24.03%)  [mean 1.37 valid classes/protein]
+
+[seen]  n=5973
+  accuracy:   46.88%  (random baseline: 13.67%, majority-class baseline ['DNA binding']: 24.01%)  [mean 1.37 valid classes/protein]
+
+[unseen]  n=1497
+  accuracy:   46.76%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.11%)  [mean 1.39 valid classes/protein]
+
+[unseen_validation]  n=748
+  accuracy:   46.39%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 23.66%)  [mean 1.39 valid classes/protein]
+
+[unseen_test]  n=749
+  accuracy:   47.13%  (random baseline: 13.93%, majority-class baseline ['DNA binding']: 24.57%)  [mean 1.39 valid classes/protein]
+
+Generalization gap, test-only (seen accuracy - unseen_test accuracy): -0.25pp
+Generalization gap (seen accuracy - unseen accuracy): 0.12pp
+
+Per-protein predictions saved to data/evaluation/zero_shot_classification/go_mf/predictions_datasize_f100_seed44_best.csv
+Summary saved to data/evaluation/zero_shot_classification/go_mf/summary_datasize_f100_seed44_best.json
+
+Saved data/evaluation/datasize_experiment/raw_runs.csv and data/evaluation/datasize_experiment/aggregated.csv

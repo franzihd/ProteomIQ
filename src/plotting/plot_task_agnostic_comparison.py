@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 
 OUTPUT_PATH = "data/plots/overview/2.2_task_agnostic/task_agnostic_comparison.png"
+PROBE_KNN_OUTPUT_PATH = "data/plots/overview/2.2_task_agnostic/representation_quality_probe_knn.png"
 
 CHECKPOINTS = [
     ("biobert_unfreeze_0_m0_best", "M0"),
@@ -109,27 +110,40 @@ def main(output_path: str):
     dot_panel(axes[0, 0], align, align_ref, "mismatched pairs", "A  Alignment (↓ better)", "{:.4f}")
     dot_panel(axes[0, 1], uniform, uniform_ref, "random points", "B  Uniformity, pooled (↓ better)", "{:.4f}")
 
-    def grouped_task_panel(ax, data: dict, frozen: dict, floor: dict, floor_label: str, title: str):
+    FROZEN_BAR = dict(facecolor="#EEF0F4", edgecolor=MUTED, hatch="///", linewidth=0.8)
+
+    def grouped_task_panel(ax, data: dict, frozen: dict, floor: dict, floor_label: str, title: str,
+                           fs: float = 1.0, frozen_as_bar: bool = False):
         x = np.arange(len(TASKS))
-        w = 0.25
-        for i, label in enumerate(labels):
-            vals = [data[label][task] for task, _ in TASKS]
-            bars = ax.bar(x + (i - 1) * w, vals, w, color=COLORS[label], zorder=3)
+        # frozen_as_bar: frozen ESM2 becomes its own (hatched, light) first bar per group
+        # instead of a line across the group -- thesis figure, decided 2026-09-27.
+        series = ([("frozen ESM2", frozen)] if frozen_as_bar else []) + [(l, data[l]) for l in labels]
+        w = 0.8 / len(series)
+        for i, (label, values) in enumerate(series):
+            vals = [values[task] for task, _ in TASKS]
+            style = FROZEN_BAR if label == "frozen ESM2" else dict(color=COLORS[label])
+            bars = ax.bar(x + (i - (len(series) - 1) / 2) * w, vals, w, zorder=3, **style)
             for bar in bars:
                 ax.annotate(f"{bar.get_height():.1f}", (bar.get_x() + bar.get_width() / 2, bar.get_height()),
-                            xytext=(0, 2), textcoords="offset points", ha="center", fontsize=7.5, color=INK)
+                            xytext=(0, 2), textcoords="offset points", ha="center", fontsize=7.5 * fs, color=INK)
+        half = len(series) / 2 * w
         for j, (task, _) in enumerate(TASKS):
-            ax.hlines(frozen[task], x[j] - 1.5 * w, x[j] + 1.5 * w, colors=INK, linewidth=1.8, zorder=4, path_effects=HALO)
-            ax.hlines(floor[task], x[j] - 1.5 * w, x[j] + 1.5 * w, colors=MUTED, linestyles=(0, (6, 3)),
+            if not frozen_as_bar:
+                ax.hlines(frozen[task], x[j] - half, x[j] + half, colors=INK, linewidth=1.8, zorder=4, path_effects=HALO)
+            ax.hlines(floor[task], x[j] - half, x[j] + half, colors=MUTED, linestyles=(0, (6, 3)),
                       linewidth=1.6, zorder=4, path_effects=HALO)
         ax.set_xticks(x)
-        ax.set_xticklabels([name for _, name in TASKS])
-        ax.set_title(title, fontsize=10.5, color=INK, loc="left")
+        ax.set_xticklabels([name for _, name in TASKS], fontsize=10 * fs)
+        ax.tick_params(axis="y", labelsize=10 * fs)
+        ax.set_title(title, fontsize=10.5 * fs, color=INK, loc="left")
         ax.set_ylim(0, 100)
         style_axis(ax)
-        ax.legend([plt.Line2D([], [], color=INK, linewidth=1.8),
-                   plt.Line2D([], [], color=MUTED, linewidth=1.6, linestyle=(0, (6, 3)))],
-                  ["frozen ESM2 (untrained)", floor_label], fontsize=8.5, frameon=False, loc="upper left")
+        floor_handle = plt.Line2D([], [], color=MUTED, linewidth=1.6, linestyle=(0, (6, 3)))
+        if frozen_as_bar:
+            ax.legend([floor_handle], [floor_label], fontsize=8.5 * fs, frameon=False, loc="upper left")
+        else:
+            ax.legend([plt.Line2D([], [], color=INK, linewidth=1.8), floor_handle],
+                      ["frozen ESM2 (untrained)", floor_label], fontsize=8.5 * fs, frameon=False, loc="upper left")
 
     grouped_task_panel(axes[1, 0], probe, probe_raw, probe_major, "majority-class baseline",
                        "C  Linear probe accuracy (%)")
@@ -159,6 +173,23 @@ def main(output_path: str):
         rows.append(dict(checkpoint="random baseline", metric="knn_agreement@10%", task=task, value=knn_random[task]))
     pd.DataFrame(rows).to_csv(Path(output_path).with_suffix(".csv"), index=False)
     print(f"Saved to {output_path} (+ .csv)")
+
+    # Thesis version (decided 2026-09-27): alignment/uniformity go into a table, so the
+    # figure keeps only the two label-based panels (linear probe + k-NN), same styling.
+    # Stacked vertically with larger fonts so the text stays readable at \textwidth.
+    fig2, axes2 = plt.subplots(2, 1, figsize=(8, 9.5))
+    grouped_task_panel(axes2[0], probe, probe_raw, probe_major, "majority-class baseline",
+                       "(A)  Linear probe accuracy (%)", fs=1.3, frozen_as_bar=True)
+    grouped_task_panel(axes2[1], knn, knn_raw, knn_random, "random baseline",
+                       "(B)  k-NN label agreement, k=10 (%)", fs=1.3, frozen_as_bar=True)
+    fig2.legend([plt.Rectangle((0, 0), 1, 1, **FROZEN_BAR)] + handles, ["frozen ESM2 (untrained)"] + labels,
+                loc="lower center", ncol=4, fontsize=12, frameon=False,
+                bbox_to_anchor=(0.5, -0.01))
+    fig2.tight_layout(rect=[0, 0.04, 1, 1], h_pad=2.0)
+    fig2.savefig(PROBE_KNN_OUTPUT_PATH, dpi=200, bbox_inches="tight")
+    probe_knn_rows = [r for r in rows if r["metric"] in ("linear_probe_accuracy%", "knn_agreement@10%")]
+    pd.DataFrame(probe_knn_rows).to_csv(Path(PROBE_KNN_OUTPUT_PATH).with_suffix(".csv"), index=False)
+    print(f"Saved to {PROBE_KNN_OUTPUT_PATH} (+ .csv)")
 
 
 if __name__ == "__main__":

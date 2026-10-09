@@ -3,7 +3,9 @@ Bar-chart visualization of the four-lever training-signal ablation study
 (CLAUDE.md 11x/11y/11z/11ac/11ae): BioBERT-unfreeze depth, text-field
 concatenation (M0-M3), multiview, and multi-positive, compared across all
 5 topic evals in two figures (retrieval / zero-shot classification), each a
-2+1 layout of horizontal-bar panels. All percentage panels share one 0-80 % x-axis so bar
+2+1 layout of horizontal-bar panels, plus one combined 3x2 overview figure
+(ablation_comparison.png) with all six panels, also saved split into
+ablation_comparison_part1.png (rows 1-2) and ablation_comparison_part2.png (row 3). All percentage panels share one 0-80 % x-axis so bar
 lengths are directly comparable; mAP is a different unit and keeps its own
 axis. ProteomIQ brand colors.
 
@@ -85,6 +87,14 @@ FIGURES = {
         ("go_mf_acc%(val)", "GO-Slim-MF accuracy (%)"),
     ],
 }
+# Combined overview (all six panels in one portrait figure), kept alongside the two split figures:
+#   row 1 = cross-modal R@1 + R@50, row 2 = DeepLoc + EC, row 3 = GO-Slim-MF + GO-term retrieval
+COMBINED_NAME = "ablation_comparison"
+COMBINED_METRICS = [
+    FIGURES["ablation_retrieval"][0], FIGURES["ablation_retrieval"][1],
+    FIGURES["ablation_zero_shot"][0], FIGURES["ablation_zero_shot"][1],
+    FIGURES["ablation_zero_shot"][2], FIGURES["ablation_retrieval"][2],
+]
 PERCENT_XLIM = 80
 
 
@@ -149,13 +159,7 @@ def plot_figure(df, metrics, baselines, output_path: Path, with_majority: bool):
     for i, (ax, (col, title)) in enumerate(zip(axes, metrics)):
         draw_panel(ax, df, col, title, baselines, show_labels=(i != 1))
 
-    handles = [plt.Rectangle((0, 0), 1, 1, color=GROUP_COLORS[g]) for g in GROUP_LABELS]
-    names = list(GROUP_LABELS.values())
-    if with_majority:
-        handles.append(plt.Line2D([], [], color=INK, linewidth=1.6))
-        names.append("Majority-class baseline")
-    handles.append(plt.Line2D([], [], color=MUTED, linewidth=1.6, linestyle="--"))
-    names.append("Random baseline")
+    handles, names = legend_entries(with_majority)
     fig.legend(handles, names, loc="lower center", ncol=len(names), fontsize=8.5, frameon=False,
                bbox_to_anchor=(left + width + gap / 2, -0.01), handlelength=1.6, columnspacing=1.2)
 
@@ -173,12 +177,51 @@ def plot_figure(df, metrics, baselines, output_path: Path, with_majority: bool):
     print(f"Saved to {output_path} (+ .csv)")
 
 
+def legend_entries(with_majority: bool):
+    handles = [plt.Rectangle((0, 0), 1, 1, color=GROUP_COLORS[g]) for g in GROUP_LABELS]
+    names = list(GROUP_LABELS.values())
+    if with_majority:
+        handles.append(plt.Line2D([], [], color=INK, linewidth=1.6))
+        names.append("Majority-class baseline")
+    handles.append(plt.Line2D([], [], color=MUTED, linewidth=1.6, linestyle="--"))
+    names.append("Random baseline")
+    return handles, names
+
+
+def plot_combined(df, baselines, metrics, output_path: Path):
+    """Panels in a 2-column grid (one row per two metrics), legend underneath. Same per-row
+    height for every call, so the split parts render at the same scale as the full figure."""
+    nrows = len(metrics) // 2
+    fig, axes = plt.subplots(nrows, 2, figsize=(10, 11.5 / 3 * nrows))
+    for i, (ax, (col, title)) in enumerate(zip(axes.flat, metrics)):
+        draw_panel(ax, df, col, title, baselines, show_labels=(i % 2 == 0))
+    plt.tight_layout()
+    handles, names = legend_entries(with_majority=True)
+    fig.legend(handles, names, loc="upper center", ncol=4, fontsize=9.5, frameon=False,
+               bbox_to_anchor=(0.5, 0))
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close(fig)
+    cols = [c for c, _ in metrics]
+    table = df[["group"] + cols].reset_index()
+    table.loc[len(table)] = {"checkpoint": "random baseline", "group": "baseline",
+                             **{c: baselines[c][0] for c in cols}}
+    table.loc[len(table)] = {"checkpoint": "majority-class baseline", "group": "baseline",
+                             **{c: baselines[c][1] for c in cols}}
+    table.to_csv(output_path.with_suffix(".csv"), index=False)
+    print(f"Saved to {output_path} (+ .csv)")
+
+
 def main(output_dir: str):
     df = pd.read_csv(RESULTS_SUMMARY_PATH).set_index("checkpoint").loc[CHECKPOINT_ORDER]
     baselines = validation_baselines()
     for name, metrics in FIGURES.items():
         plot_figure(df, metrics, baselines, Path(output_dir) / f"{name}.png",
                     with_majority=any(baselines[c][1] is not None for c, _ in metrics))
+    plot_combined(df, baselines, COMBINED_METRICS, Path(output_dir) / f"{COMBINED_NAME}.png")
+    # Same overview split across two thesis pages: rows 1-2 (4 panels) and row 3 (2 panels)
+    plot_combined(df, baselines, COMBINED_METRICS[:4], Path(output_dir) / f"{COMBINED_NAME}_part1.png")
+    plot_combined(df, baselines, COMBINED_METRICS[4:], Path(output_dir) / f"{COMBINED_NAME}_part2.png")
 
 
 if __name__ == "__main__":

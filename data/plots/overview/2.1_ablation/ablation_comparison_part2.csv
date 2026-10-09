@@ -1,0 +1,13 @@
+checkpoint,group,go_mf_acc%(val),go_retrieval_mean_mAP(val)
+N=0 (M0),unfreeze,41.58,0.0863
+N=1,unfreeze,43.58,0.0744
+N=2,unfreeze,35.56,0.0582
+N=3,unfreeze,41.31,0.0548
+M1 (+Family),text,38.37,0.0645
+Function+Location,text,41.31,0.0687
+M2 (+Family+Location),text,36.63,0.0604
+M3 (+unmasked name),text,32.75,0.0618
+multi-positive,multi_positive,44.52,0.097
+multiview (winner),multiview,52.81,0.0952
+random baseline,baseline,13.930481283422461,0.02105307034259073
+majority-class baseline,baseline,23.66310160427807,

@@ -1,0 +1,62 @@
+{
+  "all": {
+    "n": 7470,
+    "accuracy": 0.4400267737617135,
+    "majority_class": "DNA binding",
+    "majority_baseline_accuracy": 0.24029451137884872,
+    "random_baseline_accuracy": 0.1372021419009371,
+    "mean_valid_classes_per_protein": 1.372021419009371
+  },
+  "seen": {
+    "n": 5973,
+    "accuracy": 0.4386405491377867,
+    "majority_class": "DNA binding",
+    "majority_baseline_accuracy": 0.24008036162732296,
+    "random_baseline_accuracy": 0.13668173447178972,
+    "mean_valid_classes_per_protein": 1.3668173447178973
+  },
+  "unseen": {
+    "n": 1497,
+    "accuracy": 0.4455577822311289,
+    "majority_class": "DNA binding",
+    "majority_baseline_accuracy": 0.24114896459585838,
+    "random_baseline_accuracy": 0.13927855711422846,
+    "mean_valid_classes_per_protein": 1.3927855711422845
+  },
+  "unseen_validation": {
+    "n": 748,
+    "accuracy": 0.4411764705882353,
+    "majority_class": "DNA binding",
+    "majority_baseline_accuracy": 0.23663101604278075,
+    "random_baseline_accuracy": 0.1393048128342246,
+    "mean_valid_classes_per_protein": 1.393048128342246
+  },
+  "unseen_test": {
+    "n": 749,
+    "accuracy": 0.4499332443257677,
+    "majority_class": "DNA binding",
+    "majority_baseline_accuracy": 0.24566088117489987,
+    "random_baseline_accuracy": 0.13925233644859814,
+    "mean_valid_classes_per_protein": 1.3925233644859814
+  },
+  "generalization_gap": -0.00691723309334219,
+  "generalization_gap_test_only": -0.011292695187980983,
+  "checkpoint": "data/runs/full_proteome/datasize_experiment/datasize_f075_seed44_best.pt",
+  "biobert_filename": "biobert_embeddings_masked.h5",
+  "classes": [
+    "hydrolase activity",
+    "transcription regulator activity",
+    "molecular transducer activity",
+    "molecular function regulator activity",
+    "DNA binding",
+    "transporter activity",
+    "transferase activity",
+    "cytoskeletal protein binding",
+    "RNA binding",
+    "receptor ligand activity"
+  ],
+  "condition": "ensemble",
+  "achieved_coverage": 0.8229591274650215,
+  "unseen_warning": null,
+  "unseen_test_warning": null
+}
