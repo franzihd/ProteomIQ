@@ -30,7 +30,7 @@ DISPLAY_LABELS = {
     "N=0 (M0)": "M0 (Function, frozen)", "N=1": "Unfreeze N=1", "N=2": "Unfreeze N=2",
     "N=3": "Unfreeze N=3",
     "M1 (+Family)": "M1 (+Family)", "Function+Location": "M1' (+Location)",
-    "M2 (+Family+Location)": "M2 (+Family+Location)", "M3 (+unmasked name)": "M3 (+unmasked name)",
+    "M2 (+Family+Location)": "M2 (+Family+Location)", "M3 (+unmasked name)": "M3 (+Gene Name)",
     "multi-positive": "Multi-positive", "multiview (winner)": "Multiview",
 }
 # M0 is the shared reference for every lever, so it gets its own neutral color
