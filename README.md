@@ -96,13 +96,4 @@ uv sync
 uv run streamlit run src/app.py
 ```
 
-[ProteomIQ-demo](https://github.com/franzihd/ProteomIQ-demo) contains only the app and is the
-source of the online app.
-
-Upload a CSV with one row per protein, or use the built-in example sample:
-
-```
-gene,abundance
-EGFR,1.23
-KRAS,0.45
-```
+[ProteomIQ-demo](https://github.com/franzihd/ProteomIQ-demo) contains only the app.
